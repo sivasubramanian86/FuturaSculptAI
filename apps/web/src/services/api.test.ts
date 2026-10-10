@@ -155,7 +155,7 @@ describe('ApiClient', () => {
       json: async () => {
         throw new Error('Not JSON');
       },
-    } as Response);
+    } as unknown as Response);
 
     await expect(client.onboard(payload)).rejects.toThrow('Gateway Timeout');
   });
@@ -197,7 +197,7 @@ describe('ApiClient', () => {
       json: async () => {
         throw new Error('Parse error');
       },
-    } as Response);
+    } as unknown as Response);
 
     await expect(client.uploadEvidence(mockFile)).rejects.toThrow('Internal Error');
   });

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import '@testing-library/jest-dom/vitest';
 import React from 'react';
 import { EvidenceDrawer } from './EvidenceDrawer';
 import { EvidenceEnvelope } from '../types';
@@ -13,6 +14,7 @@ describe('EvidenceDrawer Component', () => {
   const mockEvidenceList: EvidenceEnvelope[] = [
     {
       evidence_id: 'EV-001',
+      tenant_id: 'tenant-food-mfg-01',
       sha256_hash: 'a1b2c3d4e5f67890123456789abcdef0123456789abcdef0123456789abcdef0',
       source_uri: 'gs://futurasculpt-evidence/food_manufacturing/sop_thermal_seal.pdf',
       source_type: 'pdf',
@@ -40,6 +42,7 @@ describe('EvidenceDrawer Component', () => {
     },
     {
       evidence_id: 'EV-002',
+      tenant_id: 'tenant-food-mfg-01',
       sha256_hash: 'b2c3d4e5f67890123456789abcdef0123456789abcdef0123456789abcdef012',
       source_uri: 'gs://futurasculpt-evidence/food_manufacturing/roles_catalog.csv',
       source_type: 'csv',
