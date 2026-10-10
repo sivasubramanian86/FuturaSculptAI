@@ -5,6 +5,7 @@ import { ScenarioCard } from './components/ScenarioCard';
 import { TrustScoreCard } from './components/TrustScoreCard';
 import { EvidenceDrawer } from './components/EvidenceDrawer';
 import { OnboardingModal } from './components/OnboardingModal';
+import { AgentSwarmConsole } from './components/AgentSwarmConsole';
 import { api } from './services/api';
 import {
   EvidenceEnvelope,
@@ -76,6 +77,19 @@ export const App: React.FC = () => {
     setStatusMessage(`Ingested ${file.name} (SHA-256: ${uploaded.sha256_hash.slice(0, 10)}...)`);
   };
 
+  const handleHorizonChange = async (year: number) => {
+    try {
+      const temporalRes = await api.getTemporalWorkGraph(year);
+      setNodes(temporalRes.graph.nodes);
+      setEdges(temporalRes.graph.edges);
+      setStatusMessage(
+        `WorkGraph projected to Horizon Year ${year} (${temporalRes.summary.agent_task_allocation_pct}% agent automation).`
+      );
+    } catch (err: any) {
+      console.error('Failed to load temporal graph:', err);
+    }
+  };
+
   return (
     <div className="cockpit-container">
       <Header
@@ -125,6 +139,7 @@ export const App: React.FC = () => {
                 edges={edges}
                 selectedNode={selectedNode}
                 onSelectNode={(node) => setSelectedNode(node)}
+                onHorizonChange={handleHorizonChange}
               />
             </div>
 
@@ -137,7 +152,9 @@ export const App: React.FC = () => {
             </div>
           </div>
 
-          {/* Bottom Full-Width: Evidence Ledger */}
+          {/* Bottom Sections: Multi-Agent Swarm Console & Evidence Ledger */}
+          <AgentSwarmConsole />
+
           <EvidenceDrawer
             evidenceLedger={evidenceLedger}
             onUploadFile={handleUploadFile}

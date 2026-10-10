@@ -1,11 +1,19 @@
 import React, { useState } from 'react';
-import { WorkGraphNode, WorkGraphEdge } from '../types';
+import { api } from '../services/api';
+import {
+  BlastRadiusResponse,
+  WorkGraphEdge,
+  WorkGraphNode,
+} from '../types';
 
 interface WorkGraphViewProps {
   nodes: WorkGraphNode[];
   edges: WorkGraphEdge[];
   onSelectNode: (node: WorkGraphNode) => void;
   selectedNode: WorkGraphNode | null;
+  currentHorizonYear?: number;
+  onHorizonChange?: (year: number) => void;
+  onInspectBlastRadius?: (nodeId: string) => Promise<BlastRadiusResponse>;
 }
 
 export const WorkGraphView: React.FC<WorkGraphViewProps> = ({
@@ -13,33 +21,115 @@ export const WorkGraphView: React.FC<WorkGraphViewProps> = ({
   edges,
   onSelectNode,
   selectedNode,
+  currentHorizonYear = 0,
+  onHorizonChange,
+  onInspectBlastRadius,
 }) => {
   const [filterType, setFilterType] = useState<string>('all');
+  const [horizonYear, setHorizonYear] = useState<number>(currentHorizonYear);
 
-  const filteredNodes = filterType === 'all'
-    ? nodes
-    : nodes.filter((n) => n.node_type === filterType);
+  // Blast radius state
+  const [analyzingBlast, setAnalyzingBlast] = useState<boolean>(false);
+  const [blastResult, setBlastResult] = useState<BlastRadiusResponse | null>(null);
+  const [blastError, setBlastError] = useState<string | null>(null);
+
+  const filteredNodes =
+    filterType === 'all'
+      ? nodes
+      : nodes.filter((n) => n.node_type === filterType);
+
+  const handleHorizonClick = (year: number) => {
+    setHorizonYear(year);
+    if (onHorizonChange) {
+      onHorizonChange(year);
+    }
+  };
+
+  const handleAnalyzeBlastRadius = async (nodeId: string) => {
+    try {
+      setAnalyzingBlast(true);
+      setBlastError(null);
+      const fn =
+        onInspectBlastRadius ||
+        ((id: string) => api.getBlastRadius(id, 3));
+      const res = await fn(nodeId);
+      setBlastResult(res);
+    } catch (err: any) {
+      setBlastError(err.message || 'Failed to analyze blast radius');
+    } finally {
+      setAnalyzingBlast(false);
+    }
+  };
 
   const getTagClass = (type: string) => {
     switch (type) {
-      case 'outcome': return 'tag-outcome';
-      case 'capability': return 'tag-capability';
-      case 'workflow': return 'tag-workflow';
-      case 'task': return 'tag-task';
-      case 'role': return 'tag-role';
-      case 'agent': return 'tag-agent';
-      case 'control': return 'tag-control';
-      default: return 'tag-capability';
+      case 'outcome':
+        return 'tag-outcome';
+      case 'capability':
+        return 'tag-capability';
+      case 'workflow':
+        return 'tag-workflow';
+      case 'task':
+        return 'tag-task';
+      case 'role':
+        return 'tag-role';
+      case 'agent':
+        return 'tag-agent';
+      case 'control':
+        return 'tag-control';
+      default:
+        return 'tag-capability';
+    }
+  };
+
+  const getRiskColor = (risk: string) => {
+    switch (risk) {
+      case 'CRITICAL':
+        return 'var(--accent-rose, #f43f5e)';
+      case 'HIGH':
+        return 'var(--accent-amber, #f59e0b)';
+      case 'MEDIUM':
+        return 'var(--accent-cyan, #06b6d4)';
+      default:
+        return 'var(--accent-emerald, #10b981)';
     }
   };
 
   return (
     <div className="glass-panel panel-card">
-      <div className="section-header">
+      <div className="section-header" style={{ flexWrap: 'wrap', gap: '10px' }}>
         <h2 className="section-title">
           <span>🌐</span> Temporal Work Transformation Graph
         </h2>
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+          {/* Horizon Year Tabs */}
+          <div style={{ display: 'flex', background: 'rgba(15,23,42,0.6)', borderRadius: '6px', padding: '2px' }}>
+            {[
+              { year: 0, label: 'Yr 0: Baseline' },
+              { year: 1, label: 'Yr 1: Augmented' },
+              { year: 3, label: 'Yr 3: Autonomous' },
+            ].map((tab) => (
+              <button
+                key={tab.year}
+                onClick={() => handleHorizonClick(tab.year)}
+                style={{
+                  background: horizonYear === tab.year ? 'var(--accent-cyan)' : 'transparent',
+                  color: horizonYear === tab.year ? '#020617' : 'var(--text-secondary)',
+                  border: 'none',
+                  borderRadius: '4px',
+                  padding: '4px 10px',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                }}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Node Filter */}
           <select
             className="form-select"
             style={{ width: 'auto', padding: '4px 10px', fontSize: '12px' }}
@@ -62,7 +152,7 @@ export const WorkGraphView: React.FC<WorkGraphViewProps> = ({
       </div>
 
       <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '12px' }}>
-        Temporal digital twin connecting business outcomes, operational workflows, tasks, skills, and autonomous Google ADK agents ({nodes.length} nodes, {edges.length} directed edges). Click any node to inspect evidence lineage.
+        Temporal digital twin connecting business outcomes, operational workflows, tasks, skills, and autonomous Google ADK agents ({nodes.length} nodes, {edges.length} directed edges). Horizon Year: <strong>{horizonYear}</strong>.
       </p>
 
       <div className="nodes-grid">
@@ -76,7 +166,11 @@ export const WorkGraphView: React.FC<WorkGraphViewProps> = ({
                 borderColor: isSelected ? 'var(--accent-cyan)' : undefined,
                 background: isSelected ? 'rgba(6, 182, 212, 0.12)' : undefined,
               }}
-              onClick={() => onSelectNode(node)}
+              onClick={() => {
+                onSelectNode(node);
+                setBlastResult(null);
+                setBlastError(null);
+              }}
               role="button"
               tabIndex={0}
               onKeyDown={(e) => e.key === 'Enter' && onSelectNode(node)}
@@ -86,7 +180,14 @@ export const WorkGraphView: React.FC<WorkGraphViewProps> = ({
               </span>
               <div className="node-name">{node.name}</div>
               <div className="node-desc">{node.description}</div>
-              <div style={{ marginTop: '8px', fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+              <div
+                style={{
+                  marginTop: '8px',
+                  fontSize: '10px',
+                  color: 'var(--text-muted)',
+                  fontFamily: 'var(--font-mono)',
+                }}
+              >
                 ID: {node.node_id} • Citations: {node.evidence_ids.length}
               </div>
             </div>
@@ -96,37 +197,200 @@ export const WorkGraphView: React.FC<WorkGraphViewProps> = ({
 
       {selectedNode && (
         <div className="drawer-panel" style={{ marginTop: '20px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '8px',
+              flexWrap: 'wrap',
+              gap: '8px',
+            }}
+          >
             <h3 style={{ fontSize: '14px', fontWeight: 600 }}>
-              Node Detail: <span style={{ color: 'var(--accent-cyan)' }}>{selectedNode.name}</span>
+              Node Detail:{' '}
+              <span style={{ color: 'var(--accent-cyan)' }}>
+                {selectedNode.name}
+              </span>
             </h3>
-            <span className={`node-tag ${getTagClass(selectedNode.node_type)}`}>
-              {selectedNode.node_type}
-            </span>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <span className={`node-tag ${getTagClass(selectedNode.node_type)}`}>
+                {selectedNode.node_type}
+              </span>
+              <button
+                className="btn btn-secondary"
+                style={{ fontSize: '11px', padding: '4px 10px' }}
+                onClick={() => handleAnalyzeBlastRadius(selectedNode.node_id)}
+                disabled={analyzingBlast}
+              >
+                {analyzingBlast ? 'Tracing...' : '💥 Analyze Blast Radius'}
+              </button>
+            </div>
           </div>
+
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '12px' }}>
             {selectedNode.description}
           </p>
-          <div className="grid-cards" style={{ gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
-            <div style={{ background: 'rgba(255,255,255,0.02)', padding: '8px', borderRadius: '4px' }}>
-              <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>CRITICALITY</div>
-              <div style={{ fontSize: '12px', fontWeight: 600, textTransform: 'capitalize' }}>
+
+          <div
+            className="grid-cards"
+            style={{ gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}
+          >
+            <div
+              style={{
+                background: 'rgba(255,255,255,0.02)',
+                padding: '8px',
+                borderRadius: '4px',
+              }}
+            >
+              <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
+                CRITICALITY
+              </div>
+              <div
+                style={{
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  textTransform: 'capitalize',
+                }}
+              >
                 {selectedNode.properties.criticality || 'Standard'}
               </div>
             </div>
-            <div style={{ background: 'rgba(255,255,255,0.02)', padding: '8px', borderRadius: '4px' }}>
-              <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>TEMPORAL STATUS</div>
-              <div style={{ fontSize: '12px', fontWeight: 600, textTransform: 'capitalize' }}>
+            <div
+              style={{
+                background: 'rgba(255,255,255,0.02)',
+                padding: '8px',
+                borderRadius: '4px',
+              }}
+            >
+              <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
+                TEMPORAL STATUS
+              </div>
+              <div
+                style={{
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  textTransform: 'capitalize',
+                }}
+              >
                 {selectedNode.properties.status || 'Active'}
               </div>
             </div>
-            <div style={{ background: 'rgba(255,255,255,0.02)', padding: '8px', borderRadius: '4px' }}>
-              <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>EVIDENCE CITATIONS</div>
+            <div
+              style={{
+                background: 'rgba(255,255,255,0.02)',
+                padding: '8px',
+                borderRadius: '4px',
+              }}
+            >
+              <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
+                EVIDENCE CITATIONS
+              </div>
               <div style={{ fontSize: '12px', fontWeight: 600 }}>
                 {selectedNode.evidence_ids.join(', ') || 'Direct Ingestion'}
               </div>
             </div>
           </div>
+
+          {/* Blast Radius Results Drawer */}
+          {blastError && (
+            <div
+              style={{
+                marginTop: '12px',
+                background: 'rgba(244,63,94,0.1)',
+                color: 'var(--accent-rose)',
+                padding: '8px 12px',
+                borderRadius: '6px',
+                fontSize: '12px',
+              }}
+            >
+              {blastError}
+            </div>
+          )}
+
+          {blastResult && (
+            <div
+              style={{
+                marginTop: '14px',
+                paddingTop: '12px',
+                borderTop: '1px solid rgba(255,255,255,0.08)',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '8px',
+                }}
+              >
+                <div style={{ fontSize: '13px', fontWeight: 600 }}>
+                  Downstream Blast Radius Impact Cascade
+                </div>
+                <span
+                  style={{
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    padding: '2px 8px',
+                    borderRadius: '4px',
+                    background: 'rgba(15,23,42,0.8)',
+                    color: getRiskColor(blastResult.disruption_risk),
+                    border: `1px solid ${getRiskColor(blastResult.disruption_risk)}`,
+                  }}
+                >
+                  DISRUPTION RISK: {blastResult.disruption_risk}
+                </span>
+              </div>
+
+              <div
+                style={{
+                  fontSize: '12px',
+                  color: 'var(--text-secondary)',
+                  marginBottom: '8px',
+                }}
+              >
+                Total Affected Entities: <strong>{blastResult.total_affected_nodes}</strong>
+                {blastResult.affected_roles.length > 0 && (
+                  <span> • Roles: {blastResult.affected_roles.join(', ')}</span>
+                )}
+                {blastResult.affected_controls.length > 0 && (
+                  <span style={{ color: 'var(--accent-rose)' }}>
+                    {' '}
+                    • Controls Impacted: {blastResult.affected_controls.join(', ')}
+                  </span>
+                )}
+              </div>
+
+              {blastResult.cascade.length > 0 && (
+                <div
+                  style={{
+                    maxHeight: '130px',
+                    overflowY: 'auto',
+                    background: 'rgba(0,0,0,0.25)',
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                  }}
+                >
+                  {blastResult.cascade.map((item, idx) => (
+                    <div
+                      key={idx}
+                      style={{
+                        fontSize: '11px',
+                        padding: '3px 0',
+                        color: 'var(--text-secondary)',
+                        borderBottom: '1px solid rgba(255,255,255,0.02)',
+                      }}
+                    >
+                      <span style={{ color: '#a5b4fc', fontWeight: 600 }}>
+                        [Depth {item.depth} {item.node_type}]:
+                      </span>{' '}
+                      {item.name} ({item.node_id})
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>

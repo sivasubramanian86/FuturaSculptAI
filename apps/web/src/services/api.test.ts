@@ -286,4 +286,139 @@ describe('ApiClient', () => {
       'Failed to verify claim entailment: Unprocessable Entity'
     );
   });
+
+  it('fetches temporal WorkGraph and handles failure', async () => {
+    const mockTemporal = {
+      horizon_year: 0,
+      graph: { graph_id: 'WG-001', nodes: [], edges: [] },
+      summary: { horizon_year: 0, human_task_allocation_pct: 100, agent_task_allocation_pct: 0, active_roles_count: 5, active_agents_count: 0 },
+    };
+
+    // Default horizon 0
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockTemporal,
+    } as Response);
+
+    const resDefault = await client.getTemporalWorkGraph();
+    expect(resDefault).toEqual(mockTemporal);
+
+    // Custom horizon 3
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockTemporal,
+    } as Response);
+
+    const resCustom = await client.getTemporalWorkGraph(3);
+    expect(resCustom).toEqual(mockTemporal);
+
+    // Failure
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: false,
+      statusText: 'Bad Request',
+    } as Response);
+
+    await expect(client.getTemporalWorkGraph(9)).rejects.toThrow(
+      'Failed to load temporal WorkGraph: Bad Request'
+    );
+  });
+
+  it('calculates blast radius and handles failure', async () => {
+    const mockBlast = {
+      root_node_id: 'CAP-001',
+      max_depth: 3,
+      overall_risk_rating: 'HIGH',
+      impacted_nodes_count: 4,
+      impacted_nodes: [],
+      affected_entity_types: ['role', 'task'],
+      citations: ['EVD-001'],
+    };
+
+    // Default depth 3
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockBlast,
+    } as Response);
+
+    const resDefault = await client.getBlastRadius('CAP-001');
+    expect(resDefault).toEqual(mockBlast);
+
+    // Custom depth 1
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockBlast,
+    } as Response);
+
+    const resCustom = await client.getBlastRadius('CAP-001', 1);
+    expect(resCustom).toEqual(mockBlast);
+
+    // Failure
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: false,
+      statusText: 'Not Found',
+    } as Response);
+
+    await expect(client.getBlastRadius('INVALID-NODE')).rejects.toThrow(
+      'Failed to calculate blast radius: Not Found'
+    );
+  });
+
+  it('runs agent swarm and handles failure', async () => {
+    const mockSwarmRes = {
+      run_id: 'RUN-123',
+      tenant_id: 'tenant-food-mfg-01',
+      status: 'COMPLETED',
+      autonomy_gate: 'A1_RECOMMENDATION',
+      trajectories: [],
+      synthesis: {},
+    };
+
+    const requestPayload = {
+      scenario_prompt: 'Augment inspections',
+      horizon_years: 2,
+    };
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockSwarmRes,
+    } as Response);
+
+    const res = await client.runAgentSwarm(requestPayload as any);
+    expect(res).toEqual(mockSwarmRes);
+
+    // Failure
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: false,
+      statusText: 'Service Unavailable',
+    } as Response);
+
+    await expect(client.runAgentSwarm(requestPayload as any)).rejects.toThrow(
+      'Failed to execute agent swarm: Service Unavailable'
+    );
+  });
+
+  it('retrieves swarm run by id and handles failure', async () => {
+    const mockSwarmRun = {
+      run_id: 'RUN-123',
+      status: 'COMPLETED',
+    };
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockSwarmRun,
+    } as Response);
+
+    const res = await client.getSwarmRun('RUN-123');
+    expect(res).toEqual(mockSwarmRun);
+
+    // Failure
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: false,
+      statusText: 'Not Found',
+    } as Response);
+
+    await expect(client.getSwarmRun('RUN-MISSING')).rejects.toThrow(
+      'Failed to retrieve swarm run: Not Found'
+    );
+  });
 });

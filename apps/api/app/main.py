@@ -4,7 +4,15 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
-from app.routers import evidence, health, onboarding, scenarios, scoring, workgraph
+from app.routers import (
+    agents,
+    evidence,
+    health,
+    onboarding,
+    scenarios,
+    scoring,
+    workgraph,
+)
 
 app = FastAPI(
     title=settings.app_name,
@@ -30,6 +38,7 @@ app.include_router(workgraph.router)
 app.include_router(scenarios.router)
 app.include_router(evidence.router)
 app.include_router(scoring.router)
+app.include_router(agents.router)
 
 
 @app.get("/", tags=["Root"])

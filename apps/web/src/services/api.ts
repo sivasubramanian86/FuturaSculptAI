@@ -4,12 +4,16 @@
  */
 
 import {
+  BlastRadiusResponse,
   ClaimVerificationResult,
   EvidenceEnvelope,
   IntegrityCheckResult,
   OnboardingPayload,
   RoleResilienceResult,
   ScenarioComparisonResponse,
+  SwarmRunRequest,
+  SwarmRunResponse,
+  TemporalGraphResponse,
   TrustScoreResult,
   WorkGraphResponse,
 } from '../types';
@@ -149,6 +153,51 @@ export class ApiClient {
     if (!res.ok) {
       const err = await res.json().catch(() => ({ detail: res.statusText }));
       throw new Error(err.detail || 'Upload failed');
+    }
+    return res.json();
+  }
+
+  async getTemporalWorkGraph(horizonYear: number = 0): Promise<TemporalGraphResponse> {
+    const res = await fetch(`${API_BASE}/workgraph/temporal?horizon_year=${horizonYear}`, {
+      headers: this.getHeaders(),
+    });
+    if (!res.ok) {
+      throw new Error(`Failed to load temporal WorkGraph: ${res.statusText}`);
+    }
+    return res.json();
+  }
+
+  async getBlastRadius(nodeId: string, maxDepth: number = 3): Promise<BlastRadiusResponse> {
+    const res = await fetch(
+      `${API_BASE}/workgraph/blast-radius?node_id=${encodeURIComponent(nodeId)}&max_depth=${maxDepth}`,
+      {
+        headers: this.getHeaders(),
+      }
+    );
+    if (!res.ok) {
+      throw new Error(`Failed to calculate blast radius: ${res.statusText}`);
+    }
+    return res.json();
+  }
+
+  async runAgentSwarm(request: SwarmRunRequest): Promise<SwarmRunResponse> {
+    const res = await fetch(`${API_BASE}/agents/swarm/run`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify(request),
+    });
+    if (!res.ok) {
+      throw new Error(`Failed to execute agent swarm: ${res.statusText}`);
+    }
+    return res.json();
+  }
+
+  async getSwarmRun(runId: string): Promise<SwarmRunResponse> {
+    const res = await fetch(`${API_BASE}/agents/swarm/runs/${encodeURIComponent(runId)}`, {
+      headers: this.getHeaders(),
+    });
+    if (!res.ok) {
+      throw new Error(`Failed to retrieve swarm run: ${res.statusText}`);
     }
     return res.json();
   }

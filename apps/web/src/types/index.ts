@@ -165,3 +165,98 @@ export interface OnboardingPayload {
   consent_purpose?: string;
   consent_granted?: boolean;
 }
+
+export interface BlastRadiusNodeImpact {
+  node_id: string;
+  name: string;
+  node_type: string;
+  depth: number;
+  relationship_chain: string[];
+}
+
+export interface BlastRadiusResponse {
+  target_node_id: string;
+  target_node_name: string;
+  target_node_type: string;
+  total_affected_nodes: number;
+  affected_roles: string[];
+  affected_tasks: string[];
+  affected_systems: string[];
+  affected_controls: string[];
+  cascade: BlastRadiusNodeImpact[];
+  disruption_risk: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  analyzed_at: string;
+}
+
+export interface TemporalSimulationSummary {
+  horizon_year: number;
+  human_task_allocation_pct: number;
+  agent_task_allocation_pct: number;
+  active_agent_count: number;
+  active_human_roles_count: number;
+  net_productivity_gain_pct: number;
+  governance_checkpoint_count: number;
+}
+
+export interface TemporalGraphResponse {
+  graph: WorkGraphResponse;
+  summary: TemporalSimulationSummary;
+}
+
+export type AutonomyTier =
+  | 'A0_READ_ONLY'
+  | 'A1_RECOMMENDATION'
+  | 'A2_APPROVAL_GATE'
+  | 'A3_REVERSIBLE_ACTION'
+  | 'A4_DISALLOWED';
+
+export type AgentRole =
+  | 'EngagementOrchestrator'
+  | 'WorkGraphArchitectAgent'
+  | 'TaskDecompositionAgent'
+  | 'SkillGapAgent'
+  | 'GovernanceCriticAgent'
+  | 'FinOpsCostAgent';
+
+export interface AgentStep {
+  agent_role: AgentRole;
+  step_index: number;
+  thought: string;
+  tool_called?: string;
+  observation: string;
+  autonomy_tier: AutonomyTier;
+  evidence_citations: string[];
+  timestamp: string;
+}
+
+export interface SwarmRunRequest {
+  scenario_prompt: string;
+  sector?: string;
+  target_role_id?: string;
+  target_capability_id?: string;
+  evidence_ids?: string[];
+  horizon_years?: number;
+}
+
+export interface SwarmSynthesis {
+  title: string;
+  executive_summary: string;
+  human_in_the_loop_recommendation: string;
+  projected_human_work_pct: number;
+  projected_agent_work_pct: number;
+  reskilling_pathway: string;
+  compliance_verdict: string;
+  estimated_token_cost_usd: number;
+  citations: string[];
+}
+
+export interface SwarmRunResponse {
+  run_id: string;
+  tenant_id: string;
+  status: 'COMPLETED' | 'BLOCKED_BY_POLICY' | 'REQUIRES_APPROVAL';
+  autonomy_gate: AutonomyTier;
+  trajectories: AgentStep[];
+  synthesis: SwarmSynthesis;
+  started_at: string;
+  completed_at: string;
+}

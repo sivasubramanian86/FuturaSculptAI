@@ -206,5 +206,63 @@ describe('App Component', () => {
     await waitFor(() => {
       expect(screen.getByText(/Ingested packaging_audit.pdf/i)).toBeInTheDocument();
     });
+
+    // Dismiss message
+    const dismissBtn = screen.getByRole('button', { name: '✕' });
+    fireEvent.click(dismissBtn);
+    expect(screen.queryByText(/Ingested packaging_audit.pdf/i)).not.toBeInTheDocument();
+  });
+
+  it('handles horizon switching and error catching in App', async () => {
+    const mockTemporalSuccess = {
+      horizon_year: 3,
+      graph: {
+        graph_id: 'WG-TEMPORAL-Y3',
+        nodes: [
+          {
+            node_id: 'AGT-001',
+            name: 'PackagingVisionAgent',
+            node_type: 'agent' as const,
+            description: 'Edge-TPU sensor.',
+            properties: {},
+            evidence_ids: [],
+          },
+        ],
+        edges: [],
+      },
+      summary: {
+        horizon_year: 3,
+        human_task_allocation_pct: 20,
+        agent_task_allocation_pct: 80,
+        active_roles_count: 3,
+        active_agents_count: 2,
+      },
+    };
+
+    vi.spyOn(api, 'getTemporalWorkGraph').mockResolvedValueOnce(mockTemporalSuccess);
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByText('FuturaSculptAI')).toBeInTheDocument();
+    });
+
+    // Click Yr 3 tab
+    const yr3Btn = screen.getByRole('button', { name: /Yr 3: Autonomous/i });
+    fireEvent.click(yr3Btn);
+
+    await waitFor(() => {
+      expect(api.getTemporalWorkGraph).toHaveBeenCalledWith(3);
+      expect(screen.getByText(/WorkGraph projected to Horizon Year 3 \(80% agent automation\)/i)).toBeInTheDocument();
+    });
+
+    // Test error branch
+    vi.spyOn(api, 'getTemporalWorkGraph').mockRejectedValueOnce(new Error('Horizon failed'));
+    const yr1Btn = screen.getByRole('button', { name: /Yr 1: Augmented/i });
+    fireEvent.click(yr1Btn);
+
+    await waitFor(() => {
+      expect(api.getTemporalWorkGraph).toHaveBeenCalledWith(1);
+    });
   });
 });
