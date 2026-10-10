@@ -1,9 +1,19 @@
+/**
+ * Header component for FuturaSculptAI Enterprise Cockpit.
+ * Renders brand identity, tenant & sector telemetry capsules, and global actions.
+ * Conforms to WCAG 2.1 AA with role="banner" and accessible button labels.
+ */
+
 import React from 'react';
 
-interface HeaderProps {
+export interface HeaderProps {
+  /** Active tenant identifier (e.g. tenant-food-mfg-01). */
   tenantId: string;
+  /** Active enterprise industry sector. */
   sector: string;
+  /** Callback opening enterprise onboarding modal. */
   onOpenOnboard: () => void;
+  /** Callback triggering data refresh across all cockpit services. */
   onRefresh: () => void;
 }
 
@@ -14,7 +24,7 @@ export const Header: React.FC<HeaderProps> = ({
   onRefresh,
 }) => {
   return (
-    <header className="glass-panel header-bar">
+    <header className="glass-panel header-bar" role="banner">
       <div className="brand-wrapper">
         <div className="brand-logo" aria-hidden="true">FS</div>
         <div>
@@ -24,16 +34,17 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       <div className="header-controls">
-        <span className="badge badge-sector" title="Active Sector Capsule">
+        <span className="badge badge-sector" title="Active Sector Capsule" aria-label={`Sector: ${sector}`}>
           Sector: {sector === 'food_manufacturing' ? 'Food Manufacturing' : sector}
         </span>
-        <span className="badge badge-tenant" title="Active Tenant Scope">
+        <span className="badge badge-tenant" title="Active Tenant Scope" aria-label={`Tenant: ${tenantId}`}>
           {tenantId}
         </span>
-        <span className="badge badge-status" title="System Health">
-          <span className="status-dot"></span> Online
+        <span className="badge badge-status" title="System Health" aria-label="System status: Online">
+          <span className="status-dot" aria-hidden="true"></span> Online
         </span>
         <button
+          type="button"
           className="btn btn-secondary"
           onClick={onRefresh}
           title="Refresh Graph and Scenarios"
@@ -42,6 +53,7 @@ export const Header: React.FC<HeaderProps> = ({
           ↻ Refresh
         </button>
         <button
+          type="button"
           className="btn btn-primary"
           onClick={onOpenOnboard}
           title="Onboard New Enterprise Workspace"

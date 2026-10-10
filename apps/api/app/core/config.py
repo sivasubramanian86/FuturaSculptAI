@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     app_version: str = "0.1.0"
     environment: str = "development"
     debug: bool = False
+    log_level: str = "INFO"
 
     # Multi-tenant and default project context
     default_tenant_id: str = "tenant-food-mfg-01"

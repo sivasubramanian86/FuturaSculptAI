@@ -1,3 +1,8 @@
+/**
+ * Interactive WorkGraph Visualizer with Temporal Horizon Projections & Blast Radius Inspection.
+ * Conforms to WCAG 2.1 AA with role="region", tablist keyboard controls, and focus indicators.
+ */
+
 import React, { useState } from 'react';
 import { api } from '../services/api';
 import {
@@ -6,13 +11,20 @@ import {
   WorkGraphNode,
 } from '../types';
 
-interface WorkGraphViewProps {
+export interface WorkGraphViewProps {
+  /** Array of WorkGraph ontology nodes. */
   nodes: WorkGraphNode[];
+  /** Array of directed relationship edges. */
   edges: WorkGraphEdge[];
+  /** Callback fired when a node is selected. */
   onSelectNode: (node: WorkGraphNode) => void;
+  /** Currently selected WorkGraph node, if any. */
   selectedNode: WorkGraphNode | null;
+  /** Current temporal horizon projection year (0, 1, or 3). */
   currentHorizonYear?: number;
+  /** Callback fired when the horizon year changes. */
   onHorizonChange?: (year: number) => void;
+  /** Optional custom handler for blast radius calculation. */
   onInspectBlastRadius?: (nodeId: string) => Promise<BlastRadiusResponse>;
 }
 
@@ -96,14 +108,18 @@ export const WorkGraphView: React.FC<WorkGraphViewProps> = ({
   };
 
   return (
-    <div className="glass-panel panel-card">
+    <div className="glass-panel panel-card" role="region" aria-label="Temporal Work Transformation Graph">
       <div className="section-header" style={{ flexWrap: 'wrap', gap: '10px' }}>
         <h2 className="section-title">
           <span>🌐</span> Temporal Work Transformation Graph
         </h2>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
           {/* Horizon Year Tabs */}
-          <div style={{ display: 'flex', background: 'rgba(15,23,42,0.6)', borderRadius: '6px', padding: '2px' }}>
+          <div
+            role="tablist"
+            aria-label="Transformation Horizon Years"
+            style={{ display: 'flex', background: 'rgba(15,23,42,0.6)', borderRadius: '6px', padding: '2px' }}
+          >
             {[
               { year: 0, label: 'Yr 0: Baseline' },
               { year: 1, label: 'Yr 1: Augmented' },
@@ -111,6 +127,10 @@ export const WorkGraphView: React.FC<WorkGraphViewProps> = ({
             ].map((tab) => (
               <button
                 key={tab.year}
+                type="button"
+                role="tab"
+                aria-selected={horizonYear === tab.year}
+                aria-controls="graph-nodes-grid"
                 onClick={() => handleHorizonClick(tab.year)}
                 style={{
                   background: horizonYear === tab.year ? 'var(--accent-cyan)' : 'transparent',
@@ -155,7 +175,7 @@ export const WorkGraphView: React.FC<WorkGraphViewProps> = ({
         Temporal digital twin connecting business outcomes, operational workflows, tasks, skills, and autonomous Google ADK agents ({nodes.length} nodes, {edges.length} directed edges). Horizon Year: <strong>{horizonYear}</strong>.
       </p>
 
-      <div className="nodes-grid">
+      <div id="graph-nodes-grid" className="nodes-grid" role="region" aria-label="WorkGraph Nodes">
         {filteredNodes.map((node) => {
           const isSelected = selectedNode?.node_id === node.node_id;
           return (
@@ -173,7 +193,16 @@ export const WorkGraphView: React.FC<WorkGraphViewProps> = ({
               }}
               role="button"
               tabIndex={0}
-              onKeyDown={(e) => e.key === 'Enter' && onSelectNode(node)}
+              aria-label={`Node: ${node.name}, entity type: ${node.node_type}`}
+              aria-pressed={isSelected}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onSelectNode(node);
+                  setBlastResult(null);
+                  setBlastError(null);
+                }
+              }}
             >
               <span className={`node-tag ${getTagClass(node.node_type)}`}>
                 {node.node_type}
@@ -196,7 +225,7 @@ export const WorkGraphView: React.FC<WorkGraphViewProps> = ({
       </div>
 
       {selectedNode && (
-        <div className="drawer-panel" style={{ marginTop: '20px' }}>
+        <div className="drawer-panel" style={{ marginTop: '20px' }} role="region" aria-label="Selected Node Detail">
           <div
             style={{
               display: 'flex',
@@ -295,6 +324,7 @@ export const WorkGraphView: React.FC<WorkGraphViewProps> = ({
           {/* Blast Radius Results Drawer */}
           {blastError && (
             <div
+              role="alert"
               style={{
                 marginTop: '12px',
                 background: 'rgba(244,63,94,0.1)',
@@ -310,6 +340,8 @@ export const WorkGraphView: React.FC<WorkGraphViewProps> = ({
 
           {blastResult && (
             <div
+              role="region"
+              aria-label="Blast Radius Cascade Analysis"
               style={{
                 marginTop: '14px',
                 paddingTop: '12px',

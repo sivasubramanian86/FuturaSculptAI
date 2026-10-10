@@ -1,3 +1,10 @@
+/**
+ * Main Enterprise Cockpit Application for FuturaSculptAI.
+ * Orchestrates WorkGraph digital twin, future scenarios, governance TrustBoard,
+ * multi-agent swarm deliberation console, and cryptographic evidence ledger.
+ * Conforms to WCAG 2.1 AA accessibility with full landmark structure and Error Boundary isolation.
+ */
+
 import React, { useEffect, useState } from 'react';
 import { Header } from './components/Header';
 import { WorkGraphView } from './components/WorkGraphView';
@@ -6,6 +13,7 @@ import { TrustScoreCard } from './components/TrustScoreCard';
 import { EvidenceDrawer } from './components/EvidenceDrawer';
 import { OnboardingModal } from './components/OnboardingModal';
 import { AgentSwarmConsole } from './components/AgentSwarmConsole';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { api } from './services/api';
 import {
   EvidenceEnvelope,
@@ -31,7 +39,7 @@ export const App: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
-  const loadData = async () => {
+  const loadData = async (): Promise<void> => {
     try {
       setLoading(true);
       const [graphRes, scenariosRes, trustRes, rriRes, evidenceRes] = await Promise.all([
@@ -63,7 +71,7 @@ export const App: React.FC = () => {
     loadData();
   }, [tenantId, sector]);
 
-  const handleOnboardSubmit = async (payload: OnboardingPayload) => {
+  const handleOnboardSubmit = async (payload: OnboardingPayload): Promise<void> => {
     const res = await api.onboard(payload);
     setTenantId(res.tenant_id);
     setSector(res.sector);
@@ -71,13 +79,13 @@ export const App: React.FC = () => {
     await loadData();
   };
 
-  const handleUploadFile = async (file: File) => {
+  const handleUploadFile = async (file: File): Promise<void> => {
     const uploaded = await api.uploadEvidence(file, 'Executive Ingestion');
     setEvidenceLedger((prev) => [uploaded, ...prev]);
     setStatusMessage(`Ingested ${file.name} (SHA-256: ${uploaded.sha256_hash.slice(0, 10)}...)`);
   };
 
-  const handleHorizonChange = async (year: number) => {
+  const handleHorizonChange = async (year: number): Promise<void> => {
     try {
       const temporalRes = await api.getTemporalWorkGraph(year);
       setNodes(temporalRes.graph.nodes);
@@ -91,82 +99,102 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="cockpit-container">
-      <Header
-        tenantId={tenantId}
-        sector={sector}
-        onOpenOnboard={() => setIsOnboardingOpen(true)}
-        onRefresh={loadData}
-      />
+    <ErrorBoundary>
+      <div className="cockpit-container">
+        {/* Skip Navigation Link for WCAG 2.1 AA Compliance */}
+        <a href="#main-content" className="skip-link">
+          Skip to main content
+        </a>
 
-      {statusMessage && (
-        <div style={{
-          background: 'rgba(6, 182, 212, 0.12)',
-          border: '1px solid rgba(6, 182, 212, 0.3)',
-          color: 'var(--accent-cyan)',
-          padding: '10px 16px',
-          borderRadius: '8px',
-          fontSize: '13px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}>
-          <span>✨ {statusMessage}</span>
-          <button
-            onClick={() => setStatusMessage(null)}
-            style={{ background: 'transparent', border: 'none', color: 'inherit', cursor: 'pointer' }}
+        <Header
+          tenantId={tenantId}
+          sector={sector}
+          onOpenOnboard={() => setIsOnboardingOpen(true)}
+          onRefresh={loadData}
+        />
+
+        {statusMessage && (
+          <div
+            role="status"
+            aria-live="polite"
+            style={{
+              background: 'rgba(6, 182, 212, 0.12)',
+              border: '1px solid rgba(6, 182, 212, 0.3)',
+              color: 'var(--accent-cyan)',
+              padding: '10px 16px',
+              borderRadius: '8px',
+              fontSize: '13px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}
           >
-            ✕
-          </button>
-        </div>
-      )}
-
-      {loading ? (
-        <div className="glass-panel panel-card" style={{ textAlign: 'center', padding: '40px' }}>
-          <div style={{ fontSize: '18px', fontWeight: 600 }}>Sculpting Work Transformation Digital Twin...</div>
-          <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginTop: '8px' }}>
-            Traversing temporal graph, compiling scenarios, and calculating governance scores.
-          </p>
-        </div>
-      ) : (
-        <>
-          <div className="grid-main">
-            {/* Left Column: Future Scenarios + WorkGraph Visualizer */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              <ScenarioCard scenarios={scenarios} />
-              <WorkGraphView
-                nodes={nodes}
-                edges={edges}
-                selectedNode={selectedNode}
-                onSelectNode={(node) => setSelectedNode(node)}
-                onHorizonChange={handleHorizonChange}
-              />
-            </div>
-
-            {/* Right Column: Governance TrustBoard + Role Resilience Index */}
-            <div>
-              <TrustScoreCard
-                trustBoard={trustBoard}
-                roleResilience={roleResilience}
-              />
-            </div>
+            <span>✨ {statusMessage}</span>
+            <button
+              type="button"
+              onClick={() => setStatusMessage(null)}
+              aria-label="Dismiss message"
+              style={{ background: 'transparent', border: 'none', color: 'inherit', cursor: 'pointer' }}
+            >
+              ✕
+            </button>
           </div>
+        )}
 
-          {/* Bottom Sections: Multi-Agent Swarm Console & Evidence Ledger */}
-          <AgentSwarmConsole />
+        <main id="main-content" role="main" tabIndex={-1}>
+          {loading ? (
+            <div
+              role="status"
+              aria-live="polite"
+              className="glass-panel panel-card"
+              style={{ textAlign: 'center', padding: '40px' }}
+            >
+              <div style={{ fontSize: '18px', fontWeight: 600 }}>Sculpting Work Transformation Digital Twin...</div>
+              <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginTop: '8px' }}>
+                Traversing temporal graph, compiling scenarios, and calculating governance scores.
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="grid-main">
+                {/* Left Column: Future Scenarios + WorkGraph Visualizer */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                  <ScenarioCard scenarios={scenarios} />
+                  <WorkGraphView
+                    nodes={nodes}
+                    edges={edges}
+                    selectedNode={selectedNode}
+                    onSelectNode={(node) => setSelectedNode(node)}
+                    onHorizonChange={handleHorizonChange}
+                  />
+                </div>
 
-          <EvidenceDrawer
-            evidenceLedger={evidenceLedger}
-            onUploadFile={handleUploadFile}
-          />
-        </>
-      )}
+                {/* Right Column: Governance TrustBoard + Role Resilience Index */}
+                <div>
+                  <TrustScoreCard
+                    trustBoard={trustBoard}
+                    roleResilience={roleResilience}
+                  />
+                </div>
+              </div>
 
-      <OnboardingModal
-        isOpen={isOnboardingOpen}
-        onClose={() => setIsOnboardingOpen(false)}
-        onSubmit={handleOnboardSubmit}
-      />
-    </div>
+              {/* Bottom Sections: Multi-Agent Swarm Console & Evidence Ledger */}
+              <AgentSwarmConsole />
+
+              <EvidenceDrawer
+                evidenceLedger={evidenceLedger}
+                onUploadFile={handleUploadFile}
+              />
+            </>
+          )}
+        </main>
+
+        <OnboardingModal
+          isOpen={isOnboardingOpen}
+          onClose={() => setIsOnboardingOpen(false)}
+          onSubmit={handleOnboardSubmit}
+        />
+      </div>
+    </ErrorBoundary>
   );
 };

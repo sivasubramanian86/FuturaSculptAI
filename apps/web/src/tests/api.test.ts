@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { ApiClient } from './api';
+import { ApiClient } from '../services/api';
 
 describe('ApiClient', () => {
   let client: ApiClient;

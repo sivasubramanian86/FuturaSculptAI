@@ -1,7 +1,7 @@
+import '@testing-library/jest-dom/vitest';
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import React from 'react';
-import { OnboardingModal } from './OnboardingModal';
+import { OnboardingModal } from '../components/OnboardingModal';
 
 describe('OnboardingModal Component', () => {
   it('returns null when isOpen is false', () => {
@@ -90,5 +90,18 @@ describe('OnboardingModal Component', () => {
     const cancelBtn = screen.getByRole('button', { name: /Cancel/i });
     fireEvent.click(cancelBtn);
     expect(onClose).toHaveBeenCalledTimes(2);
+  });
+
+  it('closes dialog on Escape key and ignores other keys', () => {
+    const onClose = vi.fn();
+    const onSubmit = vi.fn();
+
+    render(<OnboardingModal isOpen={true} onClose={onClose} onSubmit={onSubmit} />);
+
+    fireEvent.keyDown(window, { key: 'Tab' });
+    expect(onClose).not.toHaveBeenCalled();
+
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 });

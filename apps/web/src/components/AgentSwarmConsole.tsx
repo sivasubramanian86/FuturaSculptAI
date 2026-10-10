@@ -1,8 +1,16 @@
+/**
+ * Google ADK Multi-Agent Swarm Orchestrator Console.
+ * Coordinates 5 specialized Google ADK agents with real-time A0-A4 autonomy tiers,
+ * step-by-step thoughts, tool observations, and verifiable executive synthesis.
+ * Conforms to WCAG 2.1 AA with role="region", role="log", role="alert", and accessible form labels.
+ */
+
 import React, { useState } from 'react';
 import { api } from '../services/api';
 import { SwarmRunRequest, SwarmRunResponse } from '../types';
 
-interface AgentSwarmConsoleProps {
+export interface AgentSwarmConsoleProps {
+  /** Optional custom executor for multi-agent swarm deliberation. */
   onRunSwarm?: (request: SwarmRunRequest) => Promise<SwarmRunResponse>;
 }
 
@@ -17,7 +25,7 @@ export const AgentSwarmConsole: React.FC<AgentSwarmConsoleProps> = ({
   const [swarmResult, setSwarmResult] = useState<SwarmRunResponse | null>(null);
   const [swarmError, setSwarmError] = useState<string | null>(null);
 
-  const handleLaunchSwarm = async () => {
+  const handleLaunchSwarm = async (): Promise<void> => {
     if (!prompt.trim()) return;
 
     try {
@@ -45,7 +53,7 @@ export const AgentSwarmConsole: React.FC<AgentSwarmConsoleProps> = ({
     }
   };
 
-  const getTierColor = (tier: string) => {
+  const getTierColor = (tier: string): string => {
     switch (tier) {
       case 'A4_DISALLOWED':
         return 'var(--accent-rose, #f43f5e)';
@@ -59,7 +67,12 @@ export const AgentSwarmConsole: React.FC<AgentSwarmConsoleProps> = ({
   };
 
   return (
-    <div className="glass-panel panel-card" style={{ marginTop: '24px' }}>
+    <div
+      className="glass-panel panel-card"
+      style={{ marginTop: '24px' }}
+      role="region"
+      aria-label="Google ADK Multi-Agent Swarm Orchestrator"
+    >
       <div className="section-header">
         <h2 className="section-title">
           <span>🤖</span> Google ADK Multi-Agent Swarm Orchestrator
@@ -71,6 +84,7 @@ export const AgentSwarmConsole: React.FC<AgentSwarmConsoleProps> = ({
             color: '#a5b4fc',
             border: '1px solid rgba(99,102,241,0.3)',
           }}
+          aria-label="Supervisor framework: Google GenAI ADK"
         >
           GENAI-ADK SUPERVISOR
         </span>
@@ -96,6 +110,7 @@ export const AgentSwarmConsole: React.FC<AgentSwarmConsoleProps> = ({
             color: 'var(--text-primary)',
           }}
           placeholder="Enter transformation scenario prompt..."
+          aria-label="Transformation scenario prompt"
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           disabled={isRunning}
@@ -116,10 +131,12 @@ export const AgentSwarmConsole: React.FC<AgentSwarmConsoleProps> = ({
         </select>
 
         <button
+          type="button"
           className="btn btn-primary"
           onClick={handleLaunchSwarm}
           disabled={isRunning}
           style={{ fontSize: '12px', whiteSpace: 'nowrap' }}
+          aria-label="Launch Swarm Deliberation"
         >
           {isRunning ? 'Deliberating...' : '🚀 Launch Swarm Deliberation'}
         </button>
@@ -127,6 +144,7 @@ export const AgentSwarmConsole: React.FC<AgentSwarmConsoleProps> = ({
 
       {swarmError && (
         <div
+          role="alert"
           style={{
             background: 'rgba(244,63,94,0.1)',
             color: 'var(--accent-rose)',
@@ -142,7 +160,12 @@ export const AgentSwarmConsole: React.FC<AgentSwarmConsoleProps> = ({
 
       {/* Swarm Result and Trajectory Inspector */}
       {swarmResult && (
-        <div className="drawer-panel" style={{ marginTop: '16px' }}>
+        <div
+          className="drawer-panel"
+          style={{ marginTop: '16px' }}
+          role="region"
+          aria-label="Swarm Deliberation Result and Synthesis"
+        >
           {/* Header Status */}
           <div
             style={{
@@ -158,6 +181,7 @@ export const AgentSwarmConsole: React.FC<AgentSwarmConsoleProps> = ({
               <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>RUN ID: </span>
               <strong style={{ color: 'var(--accent-cyan)' }}>{swarmResult.run_id}</strong>
             </div>
+
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
               <span
                 style={{
@@ -169,10 +193,13 @@ export const AgentSwarmConsole: React.FC<AgentSwarmConsoleProps> = ({
                   color: getTierColor(swarmResult.autonomy_gate),
                   border: `1px solid ${getTierColor(swarmResult.autonomy_gate)}`,
                 }}
+                aria-label={`Autonomy tier gate: ${swarmResult.autonomy_gate}`}
               >
                 AUTONOMY: {swarmResult.autonomy_gate}
               </span>
-              <span className="badge badge-tenant">{swarmResult.status}</span>
+              <span className="badge badge-tenant" aria-label={`Execution status: ${swarmResult.status}`}>
+                {swarmResult.status}
+              </span>
             </div>
           </div>
 
@@ -223,6 +250,8 @@ export const AgentSwarmConsole: React.FC<AgentSwarmConsoleProps> = ({
             Multi-Agent Deliberation Trajectory ({swarmResult.trajectories.length} steps)
           </div>
           <div
+            role="log"
+            aria-label="Agent Deliberation Trajectory"
             style={{
               maxHeight: '220px',
               overflowY: 'auto',

@@ -1,8 +1,17 @@
+/**
+ * TrustBoard Governance and Role Resilience Index component.
+ * Displays composite governance health (SAIF security, operational excellence, reliability, FinOps, sustainability)
+ * alongside deterministic role resilience formulas and upskilling pathways.
+ * Conforms to WCAG 2.1 AA with role="region", progressbar semantics, and high contrast labels.
+ */
+
 import React from 'react';
 import { RoleResilienceResult, TrustScoreResult } from '../types';
 
-interface TrustScoreCardProps {
+export interface TrustScoreCardProps {
+  /** Composite TrustBoard governance result. */
   trustBoard: TrustScoreResult | null;
+  /** Evaluated Role Resilience Index result. */
   roleResilience: RoleResilienceResult | null;
 }
 
@@ -11,21 +20,32 @@ export const TrustScoreCard: React.FC<TrustScoreCardProps> = ({
   roleResilience,
 }) => {
   if (!trustBoard || !roleResilience) {
-    return <div className="glass-panel panel-card">Evaluating governance posture...</div>;
+    return (
+      <div className="glass-panel panel-card" role="status" aria-live="polite">
+        Evaluating governance posture...
+      </div>
+    );
   }
 
-  const getTierColor = (tier: string) => {
+  const getTierColor = (tier: string): string => {
     switch (tier) {
-      case 'HIGH_RESILIENCE': return 'var(--accent-emerald)';
-      case 'MODERATE_RESILIENCE': return 'var(--accent-amber)';
-      default: return 'var(--accent-rose)';
+      case 'HIGH_RESILIENCE':
+        return 'var(--accent-emerald)';
+      case 'MODERATE_RESILIENCE':
+        return 'var(--accent-amber)';
+      default:
+        return 'var(--accent-rose)';
     }
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+    <div
+      style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}
+      role="region"
+      aria-label="Governance Trust Score & Role Resilience"
+    >
       {/* TrustBoard Card */}
-      <div className="glass-panel panel-card">
+      <div className="glass-panel panel-card" role="region" aria-label="TrustBoard Governance Card">
         <div className="section-header">
           <h2 className="section-title">
             <span>🛡️</span> TrustBoard Governance
@@ -36,12 +56,20 @@ export const TrustScoreCard: React.FC<TrustScoreCardProps> = ({
               background: trustBoard.gate_status === 'PASSED' ? 'rgba(16,185,129,0.15)' : 'rgba(244,63,94,0.15)',
               color: trustBoard.gate_status === 'PASSED' ? 'var(--accent-emerald)' : 'var(--accent-rose)',
             }}
+            aria-label={`Governance gate: ${trustBoard.gate_status}`}
           >
             GATE: {trustBoard.gate_status}
           </span>
         </div>
 
-        <div className="score-circle">
+        <div
+          className="score-circle"
+          role="progressbar"
+          aria-valuenow={Math.round(trustBoard.trust_score)}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label="Enterprise Trust Score"
+        >
           <div className="score-inner">
             <span className="score-num">{trustBoard.trust_score.toFixed(0)}</span>
             <span className="score-title">TRUST SCORE</span>
@@ -84,7 +112,7 @@ export const TrustScoreCard: React.FC<TrustScoreCardProps> = ({
       </div>
 
       {/* Role Resilience Index Card */}
-      <div className="glass-panel panel-card">
+      <div className="glass-panel panel-card" role="region" aria-label="Role Resilience Index Card">
         <div className="section-header">
           <h2 className="section-title">
             <span>👤</span> Role Resilience Index
@@ -92,6 +120,7 @@ export const TrustScoreCard: React.FC<TrustScoreCardProps> = ({
           <span
             className="badge"
             style={{ color: getTierColor(roleResilience.tier), borderColor: getTierColor(roleResilience.tier) }}
+            aria-label={`Resilience tier: ${roleResilience.tier}`}
           >
             {roleResilience.tier.replace(/_/g, ' ')}
           </span>
@@ -104,7 +133,17 @@ export const TrustScoreCard: React.FC<TrustScoreCardProps> = ({
           </div>
         </div>
 
-        <div className="score-circle" style={{ background: `conic-gradient(${getTierColor(roleResilience.tier)} 0% ${roleResilience.score}%, rgba(255,255,255,0.1) ${roleResilience.score}% 100%)` }}>
+        <div
+          className="score-circle"
+          role="progressbar"
+          aria-valuenow={Math.round(roleResilience.score)}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label="Role Resilience Index Score"
+          style={{
+            background: `conic-gradient(${getTierColor(roleResilience.tier)} 0% ${roleResilience.score}%, rgba(255,255,255,0.1) ${roleResilience.score}% 100%)`,
+          }}
+        >
           <div className="score-inner">
             <span className="score-num">{roleResilience.score.toFixed(0)}</span>
             <span className="score-title">RRI INDEX</span>

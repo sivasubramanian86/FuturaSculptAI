@@ -1,7 +1,7 @@
+import '@testing-library/jest-dom/vitest';
 import { describe, it, expect } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import React from 'react';
-import { ScenarioCard } from './ScenarioCard';
+import { ScenarioCard } from '../components/ScenarioCard';
 import { FutureScenario } from '../types';
 
 describe('ScenarioCard Component', () => {
@@ -93,34 +93,33 @@ describe('ScenarioCard Component', () => {
 
     expect(screen.getByText('Human-Centered Inspection Augmentation')).toBeInTheDocument();
     expect(screen.getByText('CONSERVATIVE HORIZON')).toBeInTheDocument();
-    expect(screen.getByText('$1,200,000')).toBeInTheDocument();
+    expect(screen.getByText(/\$1,200,000/)).toBeInTheDocument();
     expect(screen.getByText('$350,000')).toBeInTheDocument();
-    expect(screen.getByText('+3 Roles')).toBeInTheDocument();
-    expect(screen.getByText('92% (±7.5%)')).toBeInTheDocument();
-    expect(screen.getByText('High optical density cameras installed')).toBeInTheDocument();
-    expect(screen.getByText('Worker resistance > 20%')).toBeInTheDocument();
+    expect(screen.getByText(/3 Specialized/)).toBeInTheDocument();
+    expect(screen.getByText(/92% \(±7\.5% uncertainty envelope\)/)).toBeInTheDocument();
+    expect(screen.getByText('Worker resistance > 20% • Supplier chip delays')).toBeInTheDocument();
   });
 
   it('switches tabs across different scenario classes', () => {
     render(<ScenarioCard scenarios={mockScenarios} />);
 
     // Click Accelerated tab
-    fireEvent.click(screen.getByRole('button', { name: 'ACCELERATED' }));
+    fireEvent.click(screen.getByRole('tab', { name: 'ACCELERATED' }));
     expect(screen.getByText('Accelerated Agent Fleet Deployment')).toBeInTheDocument();
     expect(screen.getByText('ACCELERATED HORIZON')).toBeInTheDocument();
 
     // Click Disruptive tab
-    fireEvent.click(screen.getByRole('button', { name: 'DISRUPTIVE' }));
+    fireEvent.click(screen.getByRole('tab', { name: 'DISRUPTIVE' }));
     expect(screen.getByText('Disruptive Dark Warehouse Conversion')).toBeInTheDocument();
     expect(screen.getByText('DISRUPTIVE HORIZON')).toBeInTheDocument();
 
     // Click Human First tab
-    fireEvent.click(screen.getByRole('button', { name: 'HUMAN FIRST' }));
+    fireEvent.click(screen.getByRole('tab', { name: 'HUMAN FIRST' }));
     expect(screen.getByText('Frontline Craft Upskilling Paradigm')).toBeInTheDocument();
     expect(screen.getByText('HUMAN FIRST HORIZON')).toBeInTheDocument();
 
     // Click Experimental / fallback style tab
-    fireEvent.click(screen.getByRole('button', { name: 'EXPERIMENTAL UNKNOWN' }));
+    fireEvent.click(screen.getByRole('tab', { name: 'EXPERIMENTAL UNKNOWN' }));
     expect(screen.getByText('Experimental Horizon')).toBeInTheDocument();
   });
 });

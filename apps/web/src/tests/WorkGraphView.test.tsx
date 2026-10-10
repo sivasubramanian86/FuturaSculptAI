@@ -1,8 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
-import React from 'react';
-import { WorkGraphView } from './WorkGraphView';
+import { WorkGraphView } from '../components/WorkGraphView';
 import { WorkGraphNode, WorkGraphEdge, BlastRadiusResponse } from '../types';
 import { api } from '../services/api';
 

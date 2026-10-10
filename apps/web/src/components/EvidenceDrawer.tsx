@@ -1,3 +1,10 @@
+/**
+ * Cryptographic Evidence Ledger & Multimodal Ingestion Drawer.
+ * Displays immutable evidence envelopes with SHA-256 integrity verification,
+ * entity badge discovery, and anti-hallucination claim entailment audit.
+ * Conforms to WCAG 2.1 AA with role="region", role="alert", and accessible form labels.
+ */
+
 import React, { useState } from 'react';
 import { api } from '../services/api';
 import {
@@ -6,10 +13,14 @@ import {
   IntegrityCheckResult,
 } from '../types';
 
-interface EvidenceDrawerProps {
+export interface EvidenceDrawerProps {
+  /** Array of ingested EvidenceEnvelope records. */
   evidenceLedger: EvidenceEnvelope[];
+  /** Callback fired to upload an evidence file. */
   onUploadFile: (file: File) => Promise<void>;
+  /** Optional custom handler for SHA-256 integrity check. */
   onVerifyIntegrity?: (evidenceId: string) => Promise<IntegrityCheckResult>;
+  /** Optional custom handler for anti-hallucination claim audit. */
   onVerifyClaim?: (
     claimText: string,
     evidenceIds?: string[]
@@ -87,7 +98,12 @@ export const EvidenceDrawer: React.FC<EvidenceDrawerProps> = ({
   };
 
   return (
-    <div className="glass-panel panel-card" style={{ marginTop: '24px' }}>
+    <div
+      className="glass-panel panel-card"
+      style={{ marginTop: '24px' }}
+      role="region"
+      aria-label="Cryptographic Evidence Ledger & Multimodal Ingestion"
+    >
       <div className="section-header">
         <h2 className="section-title">
           <span>📜</span> Cryptographic Evidence Ledger & Multimodal Ingestion
@@ -101,6 +117,7 @@ export const EvidenceDrawer: React.FC<EvidenceDrawerProps> = ({
               onChange={handleFileChange}
               disabled={isUploading}
               accept=".pdf,.csv,.json,.txt,.png,.jpg,.jpeg,.mp3,.mp4"
+              aria-label="Upload evidence asset"
             />
           </label>
         </div>
@@ -108,6 +125,7 @@ export const EvidenceDrawer: React.FC<EvidenceDrawerProps> = ({
 
       {uploadError && (
         <div
+          role="alert"
           style={{
             background: 'rgba(244,63,94,0.1)',
             color: 'var(--accent-rose)',
@@ -127,7 +145,11 @@ export const EvidenceDrawer: React.FC<EvidenceDrawerProps> = ({
       </p>
 
       {evidenceLedger.length === 0 ? (
-        <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)' }}>
+        <div
+          role="status"
+          aria-live="polite"
+          style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)' }}
+        >
           No uploaded evidence yet. Use the upload button above to ingest a PDF or SOP file.
         </div>
       ) : (
@@ -182,7 +204,12 @@ export const EvidenceDrawer: React.FC<EvidenceDrawerProps> = ({
       )}
 
       {selectedEvidence && (
-        <div className="drawer-panel" style={{ marginTop: '16px' }}>
+        <div
+          className="drawer-panel"
+          style={{ marginTop: '20px' }}
+          role="region"
+          aria-label="Selected Evidence Details"
+        >
           <div
             style={{
               display: 'flex',
@@ -204,10 +231,12 @@ export const EvidenceDrawer: React.FC<EvidenceDrawerProps> = ({
                 {selectedEvidence.sensitivity.toUpperCase()}
               </span>
               <button
+                type="button"
                 className="btn btn-secondary"
                 style={{ fontSize: '12px', padding: '4px 10px' }}
                 onClick={() => handleVerifyIntegrity(selectedEvidence.evidence_id)}
                 disabled={verifyingIntegrity}
+                aria-label="Verify SHA-256 Ledger integrity"
               >
                 {verifyingIntegrity ? 'Verifying...' : '🛡️ Verify SHA-256 Ledger'}
               </button>
@@ -216,6 +245,7 @@ export const EvidenceDrawer: React.FC<EvidenceDrawerProps> = ({
 
           {integrityError && (
             <div
+              role="alert"
               style={{
                 background: 'rgba(244,63,94,0.1)',
                 color: 'var(--accent-rose)',
@@ -231,6 +261,8 @@ export const EvidenceDrawer: React.FC<EvidenceDrawerProps> = ({
 
           {integrityResult && (
             <div
+              role="status"
+              aria-live="polite"
               style={{
                 background: integrityResult.is_valid
                   ? 'rgba(16,185,129,0.12)'
@@ -366,6 +398,7 @@ export const EvidenceDrawer: React.FC<EvidenceDrawerProps> = ({
                 placeholder="Enter claim statement to verify against ingested evidence..."
                 value={claimText}
                 onChange={(e) => setClaimText(e.target.value)}
+                aria-label="Enter claim statement to verify against ingested evidence"
                 style={{
                   flex: 1,
                   background: 'rgba(15,23,42,0.6)',
@@ -378,10 +411,12 @@ export const EvidenceDrawer: React.FC<EvidenceDrawerProps> = ({
                 disabled={verifyingClaim}
               />
               <button
+                type="button"
                 className="btn btn-primary"
                 onClick={() => handleVerifyClaim(selectedEvidence.evidence_id)}
                 disabled={verifyingClaim}
                 style={{ fontSize: '12px', whiteSpace: 'nowrap' }}
+                aria-label="Audit claim entailment against ledger"
               >
                 {verifyingClaim ? 'Auditing...' : 'Audit Claim'}
               </button>
@@ -389,6 +424,7 @@ export const EvidenceDrawer: React.FC<EvidenceDrawerProps> = ({
 
             {claimError && (
               <div
+                role="alert"
                 style={{
                   background: 'rgba(244,63,94,0.1)',
                   color: 'var(--accent-rose)',
@@ -403,6 +439,8 @@ export const EvidenceDrawer: React.FC<EvidenceDrawerProps> = ({
 
             {claimResult && (
               <div
+                role="status"
+                aria-live="polite"
                 style={{
                   background:
                     claimResult.verdict === 'supported'

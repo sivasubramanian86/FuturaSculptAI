@@ -1,9 +1,18 @@
-import React, { useState } from 'react';
+/**
+ * Enterprise Onboarding Modal component.
+ * Bootstraps digital twin workspace parameters, k-anonymity consent, and sector taxonomy.
+ * Conforms to WCAG 2.1 AA with role="dialog", aria-modal="true", aria-labelledby, and Escape key dismissal.
+ */
+
+import React, { useEffect, useState } from 'react';
 import { OnboardingPayload } from '../types';
 
-interface OnboardingModalProps {
+export interface OnboardingModalProps {
+  /** Whether the modal dialog is visibly active. */
   isOpen: boolean;
+  /** Callback fired when user closes or cancels the modal. */
   onClose: () => void;
+  /** Callback fired on valid form submission. */
   onSubmit: (payload: OnboardingPayload) => Promise<void>;
 }
 
@@ -22,9 +31,20 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     try {
       setIsSubmitting(true);
@@ -46,13 +66,19 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
   };
 
   return (
-    <div className="modal-overlay" role="dialog" aria-modal="true">
+    <div
+      className="modal-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="onboarding-modal-title"
+    >
       <div className="glass-panel modal-content">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <h2 style={{ fontSize: '18px', fontWeight: 700 }}>
+          <h2 id="onboarding-modal-title" style={{ fontSize: '18px', fontWeight: 700 }}>
             🚀 Onboard Enterprise Transformation
           </h2>
           <button
+            type="button"
             onClick={onClose}
             style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', fontSize: '18px', cursor: 'pointer' }}
             aria-label="Close dialog"
@@ -62,15 +88,19 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
         </div>
 
         {errorMsg && (
-          <div style={{ background: 'rgba(244,63,94,0.1)', color: 'var(--accent-rose)', padding: '10px', borderRadius: '6px', fontSize: '13px', marginBottom: '14px' }}>
+          <div
+            role="alert"
+            style={{ background: 'rgba(244,63,94,0.1)', color: 'var(--accent-rose)', padding: '10px', borderRadius: '6px', fontSize: '13px', marginBottom: '14px' }}
+          >
             {errorMsg}
           </div>
         )}
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label className="form-label">ORGANIZATION NAME</label>
+            <label htmlFor="org-name-input" className="form-label">ORGANIZATION NAME</label>
             <input
+              id="org-name-input"
               className="form-input"
               value={orgName}
               onChange={(e) => setOrgName(e.target.value)}
@@ -80,8 +110,9 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
 
           <div className="form-group" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div>
-              <label className="form-label">INDUSTRY SECTOR</label>
+              <label htmlFor="sector-select" className="form-label">INDUSTRY SECTOR</label>
               <select
+                id="sector-select"
                 className="form-select"
                 value={sector}
                 onChange={(e) => setSector(e.target.value)}
@@ -92,8 +123,9 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
               </select>
             </div>
             <div>
-              <label className="form-label">WORKFORCE HEADCOUNT</label>
+              <label htmlFor="headcount-input" className="form-label">WORKFORCE HEADCOUNT</label>
               <input
+                id="headcount-input"
                 type="number"
                 className="form-input"
                 value={headcount}
@@ -105,8 +137,9 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
           </div>
 
           <div className="form-group">
-            <label className="form-label">PRIMARY STRATEGIC TRANSFORMATION GOAL</label>
+            <label htmlFor="goal-input" className="form-label">PRIMARY STRATEGIC TRANSFORMATION GOAL</label>
             <textarea
+              id="goal-input"
               className="form-textarea"
               rows={3}
               value={goal}
@@ -116,8 +149,9 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
           </div>
 
           <div className="form-group">
-            <label className="form-label">LEAD TRANSFORMATION CONTACT EMAIL</label>
+            <label htmlFor="email-input" className="form-label">LEAD TRANSFORMATION CONTACT EMAIL</label>
             <input
+              id="email-input"
               type="email"
               className="form-input"
               value={email}

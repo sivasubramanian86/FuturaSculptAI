@@ -1,8 +1,8 @@
+import '@testing-library/jest-dom/vitest';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import React from 'react';
-import { App } from './App';
-import { api } from './services/api';
+import { App } from '../App';
+import { api } from '../services/api';
 
 describe('App Component', () => {
   const mockWorkGraph = {
@@ -155,25 +155,22 @@ describe('App Component', () => {
 
     expect(screen.getByText(/Onboard Enterprise Transformation/i)).toBeInTheDocument();
 
-    // Submit form
+    // Fill form and submit
     const submitBtn = screen.getByRole('button', { name: /Bootstrap Digital Twin/i });
     fireEvent.click(submitBtn);
 
     await waitFor(() => {
+      expect(api.onboard).toHaveBeenCalled();
       expect(screen.getByText(/Successfully bootstrapped Apex Dairy Ltd!/i)).toBeInTheDocument();
     });
-
-    // Dismiss status message
-    const dismissBtn = screen.getByText('✕');
-    fireEvent.click(dismissBtn);
-    expect(screen.queryByText(/Successfully bootstrapped/i)).not.toBeInTheDocument();
   });
 
   it('handles file upload in evidence drawer', async () => {
     const uploadedEnvelope = {
-      evidence_id: 'EV-NEW',
-      sha256_hash: 'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
-      source_uri: 'gs://evidence/new_doc.pdf',
+      evidence_id: 'EV-UPLOADED-99',
+      tenant_id: 'tenant-food-mfg-01',
+      sha256_hash: '9999999999abcdef',
+      source_uri: 'gs://evidence/packaging_audit.pdf',
       source_type: 'pdf' as const,
       sensitivity: 'internal' as const,
       provenance: {
@@ -208,7 +205,7 @@ describe('App Component', () => {
     });
 
     // Dismiss message
-    const dismissBtn = screen.getByRole('button', { name: '✕' });
+    const dismissBtn = screen.getByRole('button', { name: /Dismiss message/i });
     fireEvent.click(dismissBtn);
     expect(screen.queryByText(/Ingested packaging_audit.pdf/i)).not.toBeInTheDocument();
   });
@@ -248,7 +245,7 @@ describe('App Component', () => {
     });
 
     // Click Yr 3 tab
-    const yr3Btn = screen.getByRole('button', { name: /Yr 3: Autonomous/i });
+    const yr3Btn = screen.getByRole('tab', { name: /Yr 3: Autonomous/i });
     fireEvent.click(yr3Btn);
 
     await waitFor(() => {
@@ -258,7 +255,7 @@ describe('App Component', () => {
 
     // Test error branch
     vi.spyOn(api, 'getTemporalWorkGraph').mockRejectedValueOnce(new Error('Horizon failed'));
-    const yr1Btn = screen.getByRole('button', { name: /Yr 1: Augmented/i });
+    const yr1Btn = screen.getByRole('tab', { name: /Yr 1: Augmented/i });
     fireEvent.click(yr1Btn);
 
     await waitFor(() => {

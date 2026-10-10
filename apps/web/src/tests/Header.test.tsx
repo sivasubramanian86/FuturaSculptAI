@@ -1,7 +1,7 @@
+import '@testing-library/jest-dom/vitest';
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import React from 'react';
-import { Header } from './Header';
+import { Header } from '../components/Header';
 
 describe('Header Component', () => {
   it('renders branding, tenant, and food manufacturing sector title', () => {

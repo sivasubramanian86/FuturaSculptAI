@@ -1,7 +1,7 @@
+import '@testing-library/jest-dom/vitest';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import React from 'react';
-import { AgentSwarmConsole } from './AgentSwarmConsole';
+import { AgentSwarmConsole } from '../components/AgentSwarmConsole';
 import { api } from '../services/api';
 import { SwarmRunResponse } from '../types';
 
