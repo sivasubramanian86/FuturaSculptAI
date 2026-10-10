@@ -12,3 +12,8 @@ This ledger tracks the activation, justification, outputs, and quality gates for
 | **Phase 0** | 2026-10-10 | `@10_security_governance` | Threat modeling, SAIF controls, and secret scanning standards. | `threat-model.md`, `non-negotiables.md`, Gitleaks CI workflow spec. | PASSED |
 | **Phase 0** | 2026-10-10 | `@19_cost_efficiency_architect` | FinOps cost envelope, Vertex context caching, and budget tripwires. | `cost-envelope.md`, model gateway pricing rules. | PASSED |
 | **Phase 0** | 2026-10-10 | Missing Workspace Skills Inception | Create 6 repository-specific audit skills to ensure repeatability. | Scaffolding 6 workspace skills in `.agents/skills/`. | PASSED |
+| **Phase 1** | 2026-10-10 | `@07_modern_polyglot_standards` | Enforce Python 3.12+, PEP 257 Google-style docstrings, strict typing. | `pyproject.toml`, FastAPI routes, Ruff 0 warnings. | PASSED |
+| **Phase 1** | 2026-10-10 | `@08_polyglot_tdd_engineer` | Strict test-driven verification for deterministic scoring and security gates. | 20 unit tests, 100% backend coverage, 0 warnings. | PASSED |
+| **Phase 1** | 2026-10-10 | `@09_frontend_gui_architect` | Glassmorphic dark-mode React 18 cockpit, responsive layout, accessible semantics. | React + Vite + TypeScript build (`tsc && vite build`). | PASSED |
+| **Phase 1** | 2026-10-10 | `@10_security_governance` | Bandit AST scan, input sanitization, Responsible AI red-line interceptor. | Bandit: 0 issues; zero hardcoded secrets detected. | PASSED |
+| **Phase 1** | 2026-10-10 | `@16_vcs_github_manager` | Clean public repo hygiene; gitignore raw blueprints, drafts, and binary PDFs. | Git untracking, clean commit history. | PASSED |
