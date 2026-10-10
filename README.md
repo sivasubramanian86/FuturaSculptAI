@@ -78,17 +78,77 @@ For full details, review [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/architectu
 ### Prerequisites
 - **Python 3.12+**
 - **Node.js 20+** or **22+**
-- **PowerShell 7+** (Windows) or **bash** (Linux/macOS)
-- Google Cloud SDK (`gcloud`) with active credentials
+- Any modern OS: **Linux**, **macOS**, **Chromebook (Linux subsystem / ChromeOS)**, or **Windows**
+- Python package manager of choice: **uv** (recommended for ultra-fast installs), **poetry**, or standard **pip**
+- Google Cloud SDK (`gcloud`) with active credentials (for GCP deployments)
 
-### 1. Launch Local Cockpit (Backend + Frontend)
+---
 
-```powershell
-# Clone the repository
-git clone https://github.com/kailasamsiva/FuturaSculptAI.git
-cd FuturaSculptAI
+### 1. Automated Local Setup (One Command)
 
-# Launch both FastAPI backend and React frontend with one command:
+We provide automated setup scripts that detect your Python environment (`uv` -> `poetry` -> `venv/pip`), install all dependencies for both backend and frontend, create your `.env` configuration, and run a sanity probe:
+
+```bash
+# On Linux, macOS, or Chromebook:
+chmod +x ./scripts/*.sh
+./scripts/setup_local.sh
+
+# On Windows (PowerShell):
+pwsh -NoProfile -ExecutionPolicy Bypass -File ./scripts/setup_local.ps1
+```
+
+---
+
+### 2. Manual Package Manager Setup Options
+
+If you prefer installing manually with your favorite package manager:
+
+#### Option A: Ultra-Fast Setup with `uv` (Recommended)
+```bash
+# Backend (apps/api)
+cd apps/api
+uv venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+uv pip install -e ".[dev]"
+
+# Frontend (apps/web)
+cd ../web
+npm install
+```
+
+#### Option B: Setup with `poetry`
+```bash
+# Backend (apps/api)
+cd apps/api
+poetry install
+
+# Frontend (apps/web)
+cd ../web
+npm install
+```
+
+#### Option C: Standard `pip` and `venv`
+```bash
+# Backend (apps/api)
+cd apps/api
+python3 -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\Activate.ps1
+pip install -e ".[dev]"    # Or: pip install -r requirements-dev.txt
+
+# Frontend (apps/web)
+cd ../web
+npm install
+```
+
+---
+
+### 3. Launch Local Cockpit (Backend + Frontend)
+
+```bash
+# On Linux, macOS, or Chromebook:
+./scripts/run_local.sh
+
+# On Windows:
 pwsh -NoProfile -ExecutionPolicy Bypass -File ./scripts/run_local.ps1
 ```
 
@@ -96,30 +156,17 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File ./scripts/run_local.ps1
 - **Backend Swagger API Docs:** [http://localhost:8000/docs](http://localhost:8000/docs)
 - **Readiness Health Check:** [http://localhost:8000/health/ready](http://localhost:8000/health/ready)
 
-### 2. Manual Service Launch
-
-```bash
-# Backend (apps/api)
-cd apps/api
-python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\Activate.ps1
-pip install -e ".[dev]"
-python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-
-# Frontend (apps/web)
-cd ../web
-npm install
-npm run dev
-```
-
 ---
 
 ## 🧪 Testing & Quality Gates (100% Verified)
 
 FuturaSculptAI enforces strict, non-negotiable automated quality gates before any commit:
 
-```powershell
-# Run the complete automated pre-commit scan suite
+```bash
+# On Linux, macOS, or Chromebook:
+./scripts/scan_local.sh
+
+# On Windows:
 pwsh -NoProfile -ExecutionPolicy Bypass -File ./scripts/scan_local.ps1
 ```
 
@@ -131,7 +178,7 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File ./scripts/scan_local.ps1
 | **Frontend Test Coverage** | **100.0%** | :white_check_mark: **100%** | `npm run test:coverage` |
 | **Python Code Quality** | **0 Errors** | :white_check_mark: **0 Errors** | `ruff check .` |
 | **Security AST Scan** | **0 Issues** | :white_check_mark: **0 Issues** (Clean) | `bandit -r app` |
-| **Secret & Credential Scan**| **0 Leaks** | :white_check_mark: **0 Leaks** | `pwsh ./scripts/security_scan.ps1` |
+| **Secret & Credential Scan**| **0 Leaks** | :white_check_mark: **0 Leaks** | `./scripts/security_scan.sh` or `pwsh ./scripts/security_scan.ps1` |
 | **TypeScript Type Safety** | **0 Errors** | :white_check_mark: **0 Errors** | `tsc --noEmit` |
 
 ---
