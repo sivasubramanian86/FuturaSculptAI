@@ -201,4 +201,89 @@ describe('ApiClient', () => {
 
     await expect(client.uploadEvidence(mockFile)).rejects.toThrow('Internal Error');
   });
+
+  it('fetches evidence detail and handles failure', async () => {
+    const mockDetail = { evidence_id: 'EV-001', sha256_hash: '123' };
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockDetail,
+    } as Response);
+
+    const res = await client.getEvidenceDetail('EV-001');
+    expect(res).toEqual(mockDetail);
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: false,
+      statusText: 'Not Found',
+    } as Response);
+
+    await expect(client.getEvidenceDetail('EV-NONEXISTENT')).rejects.toThrow(
+      'Failed to load evidence detail: Not Found'
+    );
+  });
+
+  it('verifies evidence integrity and handles failure', async () => {
+    const mockIntegrity = {
+      evidence_id: 'EV-001',
+      is_valid: true,
+      computed_sha256: 'abc',
+      stored_sha256: 'abc',
+      checked_at: '2026-10-10T00:00:00Z',
+    };
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockIntegrity,
+    } as Response);
+
+    const res = await client.verifyIntegrity('EV-001');
+    expect(res).toEqual(mockIntegrity);
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: false,
+      statusText: 'Server Error',
+    } as Response);
+
+    await expect(client.verifyIntegrity('EV-001')).rejects.toThrow(
+      'Failed to verify evidence integrity: Server Error'
+    );
+  });
+
+  it('verifies claim entailment and handles failure', async () => {
+    const mockClaimResult = {
+      claim_text: 'SOP requires valve inspection',
+      verdict: 'supported',
+      confidence: 0.95,
+      cited_evidence_ids: ['EV-001'],
+      cited_segments: [],
+      explanation: 'Cited in SOP-401.',
+    };
+
+    // Test with default empty evidence_ids
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockClaimResult,
+    } as Response);
+
+    const resDefault = await client.verifyClaim('SOP requires valve inspection');
+    expect(resDefault).toEqual(mockClaimResult);
+
+    // Test with specified evidence_ids
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockClaimResult,
+    } as Response);
+
+    const resWithIds = await client.verifyClaim('SOP requires valve inspection', ['EV-001']);
+    expect(resWithIds).toEqual(mockClaimResult);
+
+    // Test failure
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: false,
+      statusText: 'Unprocessable Entity',
+    } as Response);
+
+    await expect(client.verifyClaim('Bad claim')).rejects.toThrow(
+      'Failed to verify claim entailment: Unprocessable Entity'
+    );
+  });
 });

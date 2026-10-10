@@ -80,3 +80,46 @@ class EvidenceEnvelope(BaseModel):
     provenance: EvidenceProvenance
     acl: List[str] = ["role:analyst", "role:executive"]
     sensitivity: SensitivityTier = SensitivityTier.INTERNAL
+
+
+class ClaimVerdict(str, Enum):
+    """Claim verification outcome."""
+
+    SUPPORTED = "SUPPORTED"
+    CONTRADICTED = "CONTRADICTED"
+    INSUFFICIENT_EVIDENCE = "INSUFFICIENT_EVIDENCE"
+
+
+class DlpRedactionResult(BaseModel):
+    """Output of Sensitive Data Protection (DLP) redaction."""
+
+    sanitized_text: str
+    redacted_items_count: int
+    detected_info_types: List[str]
+
+
+class ClaimVerificationRequest(BaseModel):
+    """Request payload to verify an AI-generated claim against evidence."""
+
+    claim_text: str
+    evidence_ids: List[str] = []
+
+
+class ClaimVerificationResult(BaseModel):
+    """Result of claim-to-source entailment audit."""
+
+    claim_text: str
+    verdict: ClaimVerdict
+    confidence: float = Field(..., ge=0.0, le=1.0)
+    cited_evidence_ids: List[str] = []
+    cited_segments: List[EvidenceSegment] = []
+    explanation: str
+
+
+class IntegrityCheckResult(BaseModel):
+    """Cryptographic tamper verification status."""
+
+    evidence_id: str
+    sha256_hash: str
+    is_valid: bool
+    checked_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

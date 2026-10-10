@@ -71,10 +71,19 @@ export interface ScenarioComparisonResponse {
   scenarios: FutureScenario[];
 }
 
+export interface EvidenceEntity {
+  name: string;
+  entity_type: string;
+  confidence: number;
+}
+
 export interface EvidenceSegment {
   segment_id: string;
   text: string;
   page_number?: number;
+  offset_start?: number;
+  offset_end?: number;
+  timestamp_seconds?: number;
 }
 
 export interface EvidenceEnvelope {
@@ -88,14 +97,33 @@ export interface EvidenceEnvelope {
     language: string;
     normalized_text: string;
     segments: EvidenceSegment[];
+    entities?: EvidenceEntity[];
   };
   provenance: {
     author_or_source: string;
     publication_date: string;
+    freshness_horizon_days?: number;
     confidence: number;
   };
   acl: string[];
   sensitivity: string;
+}
+
+export interface IntegrityCheckResult {
+  evidence_id: string;
+  is_valid: boolean;
+  computed_sha256: string;
+  stored_sha256: string;
+  checked_at: string;
+}
+
+export interface ClaimVerificationResult {
+  claim_text: string;
+  verdict: 'supported' | 'contradicted' | 'insufficient_evidence';
+  confidence: number;
+  cited_evidence_ids: string[];
+  cited_segments: EvidenceSegment[];
+  explanation: string;
 }
 
 export interface ScoreComponent {

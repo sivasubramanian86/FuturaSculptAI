@@ -149,14 +149,7 @@ def calculate_trustboard_score(
     cst = max(0.0, min(100.0, cost_optimization))
     sus = max(0.0, min(100.0, sustainability))
 
-    weighted = (
-        (0.25 * sec)
-        + (0.15 * ops)
-        + (0.15 * rel)
-        + (0.15 * prf)
-        + (0.15 * cst)
-        + (0.15 * sus)
-    )
+    weighted = (0.25 * sec) + (0.15 * ops) + (0.15 * rel) + (0.15 * prf) + (0.15 * cst) + (0.15 * sus)
     final_score = round(weighted, 2)
 
     if red_lines_breached > 0 or sec < 75.0:

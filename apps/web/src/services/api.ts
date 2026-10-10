@@ -4,7 +4,9 @@
  */
 
 import {
+  ClaimVerificationResult,
   EvidenceEnvelope,
+  IntegrityCheckResult,
   OnboardingPayload,
   RoleResilienceResult,
   ScenarioComparisonResponse,
@@ -95,11 +97,47 @@ export class ApiClient {
     return res.json();
   }
 
-  async uploadEvidence(file: File, author: string = 'Manual Upload'): Promise<EvidenceEnvelope> {
+  async getEvidenceDetail(evidenceId: string): Promise<EvidenceEnvelope> {
+    const res = await fetch(`${API_BASE}/evidence/${encodeURIComponent(evidenceId)}`, {
+      headers: this.getHeaders(),
+    });
+    if (!res.ok) {
+      throw new Error(`Failed to load evidence detail: ${res.statusText}`);
+    }
+    return res.json();
+  }
+
+  async verifyIntegrity(evidenceId: string): Promise<IntegrityCheckResult> {
+    const res = await fetch(`${API_BASE}/evidence/${encodeURIComponent(evidenceId)}/integrity`, {
+      headers: this.getHeaders(),
+    });
+    if (!res.ok) {
+      throw new Error(`Failed to verify evidence integrity: ${res.statusText}`);
+    }
+    return res.json();
+  }
+
+  async verifyClaim(claimText: string, evidenceIds: string[] = []): Promise<ClaimVerificationResult> {
+    const res = await fetch(`${API_BASE}/evidence/verify-claim`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ claim_text: claimText, evidence_ids: evidenceIds }),
+    });
+    if (!res.ok) {
+      throw new Error(`Failed to verify claim entailment: ${res.statusText}`);
+    }
+    return res.json();
+  }
+
+  async uploadEvidence(
+    file: File,
+    author: string = 'Manual Upload',
+    sourceType: string = 'pdf'
+  ): Promise<EvidenceEnvelope> {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('author', author);
-    formData.append('source_type', 'pdf');
+    formData.append('source_type', sourceType);
 
     const res = await fetch(`${API_BASE}/evidence/upload`, {
       method: 'POST',

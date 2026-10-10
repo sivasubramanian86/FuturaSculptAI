@@ -3,20 +3,25 @@
 import hashlib
 import uuid
 from datetime import datetime, timezone
-from typing import Dict, List
+from typing import Dict, List, Optional
 
-from app.core.security import assert_responsible_workforce_compliance, sanitize_input_text
+from app.core.security import assert_responsible_workforce_compliance
 from app.models.evidence import (
-    EvidenceContent,
+    ClaimVerificationRequest,
+    ClaimVerificationResult,
     EvidenceEnvelope,
     EvidenceProvenance,
-    EvidenceSegment,
+    IntegrityCheckResult,
     SensitivityTier,
     SourceType,
 )
+from app.services.evidence_verifier import evidence_verifier
+from app.services.multimodal_parser import multimodal_parser
 
-# In-memory tenant evidence store for Phase 1 vertical slice
+# In-memory tenant evidence store
 _EVIDENCE_STORE: Dict[str, List[EvidenceEnvelope]] = {}
+# Raw hash storage for cryptographic tamper verification
+_HASH_STORE: Dict[str, str] = {}
 
 
 def process_raw_evidence_upload(
@@ -30,44 +35,30 @@ def process_raw_evidence_upload(
     """Process uploaded evidence raw bytes into a verified EvidenceEnvelope.
 
     1. Computes cryptographic SHA-256 hash.
-    2. Runs Responsible Workforce Red Line check and sanitization.
-    3. Normalizes text content into segments.
-    4. Records envelope in the Evidence Ledger.
+    2. Runs Responsible Workforce Red Line check.
+    3. Normalizes text content via multimodal parser with automated DLP masking.
+    4. Records envelope in the Evidence Ledger and registers hash.
 
     Args:
-        tenant_id: Target tenant.
+        tenant_id: Target tenant identifier.
         file_name: Original file name.
         file_bytes: Raw binary content.
-        source_type: Ingested file type (PDF, CSV, image, etc.).
+        source_type: Ingested file type (PDF, CSV, image, audio, video, etc.).
         author: Attribution or source document author.
-        sensitivity: Data classification.
+        sensitivity: Data classification tier.
 
     Returns:
         EvidenceEnvelope: Validated and stored evidence envelope.
     """
-    # 1. Compute SHA-256
+    # 1. Compute SHA-256 hash
     sha256_hash = hashlib.sha256(file_bytes).hexdigest()
 
-    # 2. Extract and decode text (safe UTF-8 decoding with replacement)
-    raw_text = file_bytes.decode("utf-8", errors="replace")
+    # 2. Responsible AI compliance assertion
+    raw_str = file_bytes.decode("utf-8", errors="replace")
+    assert_responsible_workforce_compliance(raw_str)
 
-    # 3. Security & Policy Inspection
-    assert_responsible_workforce_compliance(raw_text)
-    sanitized_text = sanitize_input_text(raw_text)
-
-    # 4. Generate segments
-    lines = [line.strip() for line in sanitized_text.splitlines() if line.strip()]
-    segments: List[EvidenceSegment] = []
-    for idx, line in enumerate(lines[:50]):  # Cap initial slice to 50 segments
-        segments.append(
-            EvidenceSegment(
-                segment_id=f"SEG-{idx+1:03d}",
-                offset_start=idx * 100,
-                offset_end=(idx + 1) * 100,
-                page_number=(idx // 10) + 1,
-                text=line,
-            )
-        )
+    # 3. Multimodal parsing and automated DLP redaction
+    content = multimodal_parser.parse_document(file_bytes, file_name, source_type)
 
     evidence_id = f"EVD-{uuid.uuid4().hex[:8].upper()}"
 
@@ -78,11 +69,7 @@ def process_raw_evidence_upload(
         source_uri=f"gs://futurasculpt-evidence/{tenant_id}/{file_name}",
         sha256_hash=sha256_hash,
         ingested_at=datetime.now(timezone.utc),
-        content=EvidenceContent(
-            language="en",
-            normalized_text=sanitized_text[:5000],  # Normalized preview
-            segments=segments,
-        ),
+        content=content,
         provenance=EvidenceProvenance(
             author_or_source=author,
             publication_date=datetime.now(timezone.utc).strftime("%Y-%m-%d"),
@@ -94,6 +81,7 @@ def process_raw_evidence_upload(
     )
 
     _EVIDENCE_STORE.setdefault(tenant_id, []).append(envelope)
+    _HASH_STORE[evidence_id] = sha256_hash
 
     return envelope
 
@@ -108,3 +96,62 @@ def get_tenant_evidence_ledger(tenant_id: str) -> List[EvidenceEnvelope]:
         List[EvidenceEnvelope]: All active envelopes.
     """
     return _EVIDENCE_STORE.get(tenant_id, [])
+
+
+def get_evidence_by_id(tenant_id: str, evidence_id: str) -> Optional[EvidenceEnvelope]:
+    """Retrieve a single evidence envelope by ID under tenant isolation.
+
+    Args:
+        tenant_id: Tenant identifier.
+        evidence_id: Target evidence ID.
+
+    Returns:
+        Optional[EvidenceEnvelope]: Matching envelope if found, else None.
+    """
+    envelopes = _EVIDENCE_STORE.get(tenant_id, [])
+    for env in envelopes:
+        if env.evidence_id == evidence_id:
+            return env
+    return None
+
+
+def verify_evidence_integrity(tenant_id: str, evidence_id: str) -> Optional[IntegrityCheckResult]:
+    """Verify cryptographic SHA-256 integrity of an evidence artifact.
+
+    Args:
+        tenant_id: Tenant identifier.
+        evidence_id: Target evidence ID.
+
+    Returns:
+        Optional[IntegrityCheckResult]: Integrity status result if found, else None.
+    """
+    envelope = get_evidence_by_id(tenant_id, evidence_id)
+    if not envelope:
+        return None
+
+    expected_hash = _HASH_STORE.get(evidence_id, envelope.sha256_hash)
+    is_valid = envelope.sha256_hash == expected_hash
+
+    return IntegrityCheckResult(
+        evidence_id=evidence_id,
+        sha256_hash=envelope.sha256_hash,
+        is_valid=is_valid,
+        checked_at=datetime.now(timezone.utc),
+    )
+
+
+def verify_claim_against_ledger(
+    tenant_id: str,
+    request: ClaimVerificationRequest,
+) -> ClaimVerificationResult:
+    """Audit an AI scenario claim against tenant evidence envelopes.
+
+    Args:
+        tenant_id: Tenant identifier.
+        request: ClaimVerificationRequest with claim text and optional evidence IDs.
+
+    Returns:
+        ClaimVerificationResult: Entailment verdict, confidence, and cited segments.
+    """
+    envelopes = get_tenant_evidence_ledger(tenant_id)
+    return evidence_verifier.verify_claim(request, envelopes)
