@@ -1,0 +1,210 @@
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import React from 'react';
+import { App } from './App';
+import { api } from './services/api';
+
+describe('App Component', () => {
+  const mockWorkGraph = {
+    graph_id: 'WG-001',
+    nodes: [
+      {
+        node_id: 'OUT-001',
+        name: 'Zero Recalls',
+        node_type: 'outcome' as const,
+        description: 'Quality guarantee.',
+        properties: {},
+        evidence_ids: ['EV-001'],
+      },
+    ],
+    edges: [],
+  };
+
+  const mockScenarios = {
+    sector: 'food_manufacturing',
+    scenarios: [
+      {
+        scenario_id: 'SCEN-001',
+        title: 'Augmented Ops',
+        scenario_class: 'conservative' as const,
+        narrative_summary: 'Operator augmentation.',
+        time_horizon_months: 18,
+        ebitda_impact_usd: 1000000,
+        transition_cost_usd: 200000,
+        net_new_roles: 2,
+        confidence_score: 0.9,
+        uncertainty_range_pct: 5,
+        assumptions: ['High reliability'],
+        invalidation_triggers: ['Downtime > 5%'],
+        evidence_ids: ['EV-001'],
+      },
+    ],
+  };
+
+  const mockTrustBoard = {
+    trust_score: 95,
+    gate_status: 'PASSED' as const,
+    saif_security_score: 98,
+    operational_excellence_score: 90,
+    reliability_score: 92,
+    cost_optimization_score: 88,
+    sustainability_score: 85,
+    red_lines_breached: 0,
+    remediation_recommendations: [],
+  };
+
+  const mockRoleResilience = {
+    role_id: 'ROL-001',
+    role_name: 'Packaging Inspector',
+    score: 85,
+    tier: 'HIGH_RESILIENCE' as const,
+    formula_version: 'v1.0.0',
+    components: [{ name: 'Task Diversity', weight: 1.0, raw_value: 85 }],
+    recommended_pathway: 'Upskill to Lead Specialist.',
+  };
+
+  const mockEvidenceLedger = [
+    {
+      evidence_id: 'EV-001',
+      sha256_hash: '1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+      source_uri: 'gs://evidence/sop.pdf',
+      source_type: 'pdf' as const,
+      sensitivity: 'internal' as const,
+      provenance: {
+        author_or_source: 'Plant QA',
+        publication_date: '2026-03-01',
+        freshness_horizon_days: 180,
+        confidence: 0.99,
+      },
+      content: {
+        language: 'en',
+        normalized_text: 'Sample SOP content.',
+        segments: [{ segment_id: 's-1', text: 'Step 1' }],
+      },
+      acl: ['role:analyst'],
+      ingested_at: '2026-03-01T10:00:00Z',
+    },
+  ];
+
+  beforeEach(() => {
+    vi.spyOn(api, 'getWorkGraph').mockResolvedValue(mockWorkGraph as any);
+    vi.spyOn(api, 'getScenarios').mockResolvedValue(mockScenarios as any);
+    vi.spyOn(api, 'getTrustBoard').mockResolvedValue(mockTrustBoard as any);
+    vi.spyOn(api, 'getRoleResilience').mockResolvedValue(mockRoleResilience as any);
+    vi.spyOn(api, 'getEvidenceLedger').mockResolvedValue(mockEvidenceLedger as any);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('renders loading state initially and then displays the complete cockpit dashboard', async () => {
+    render(<App />);
+
+    expect(screen.getByText(/Sculpting Work Transformation Digital Twin/i)).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(screen.getByText('FuturaSculptAI')).toBeInTheDocument();
+      expect(screen.getAllByText('Zero Recalls').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getByText('Augmented Ops')).toBeInTheDocument();
+      expect(screen.getByText('Packaging Inspector')).toBeInTheDocument();
+      expect(screen.getByText('Plant QA')).toBeInTheDocument();
+    });
+  });
+
+  it('handles load error gracefully with status message', async () => {
+    vi.spyOn(api, 'getWorkGraph').mockRejectedValueOnce(new Error('Network error'));
+    render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Connected via resilient local adapter/i)).toBeInTheDocument();
+    });
+  });
+
+  it('triggers refresh from header', async () => {
+    render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByText('FuturaSculptAI')).toBeInTheDocument();
+    });
+
+    const refreshBtn = screen.getByRole('button', { name: /Refresh Data/i });
+    fireEvent.click(refreshBtn);
+
+    await waitFor(() => {
+      expect(api.getWorkGraph).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  it('handles organization onboarding flow', async () => {
+    vi.spyOn(api, 'onboard').mockResolvedValueOnce({
+      tenant_id: 'tenant-dairy-02',
+      sector: 'dairy_processing',
+      organization_name: 'Apex Dairy Ltd',
+    });
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByText('FuturaSculptAI')).toBeInTheDocument();
+    });
+
+    // Open onboarding modal
+    const onboardBtn = screen.getByRole('button', { name: /Onboard Organization/i });
+    fireEvent.click(onboardBtn);
+
+    expect(screen.getByText(/Onboard Enterprise Transformation/i)).toBeInTheDocument();
+
+    // Submit form
+    const submitBtn = screen.getByRole('button', { name: /Bootstrap Digital Twin/i });
+    fireEvent.click(submitBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Successfully bootstrapped Apex Dairy Ltd!/i)).toBeInTheDocument();
+    });
+
+    // Dismiss status message
+    const dismissBtn = screen.getByText('✕');
+    fireEvent.click(dismissBtn);
+    expect(screen.queryByText(/Successfully bootstrapped/i)).not.toBeInTheDocument();
+  });
+
+  it('handles file upload in evidence drawer', async () => {
+    const uploadedEnvelope = {
+      evidence_id: 'EV-NEW',
+      sha256_hash: 'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+      source_uri: 'gs://evidence/new_doc.pdf',
+      source_type: 'pdf' as const,
+      sensitivity: 'internal' as const,
+      provenance: {
+        author_or_source: 'Executive Ingestion',
+        publication_date: '2026-03-02',
+        freshness_horizon_days: 180,
+        confidence: 0.95,
+      },
+      content: {
+        language: 'en',
+        normalized_text: 'Uploaded document text',
+        segments: [],
+      },
+      acl: ['role:analyst'],
+      ingested_at: '2026-03-02T10:00:00Z',
+    };
+
+    vi.spyOn(api, 'uploadEvidence').mockResolvedValueOnce(uploadedEnvelope);
+
+    const { container } = render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByText('FuturaSculptAI')).toBeInTheDocument();
+    });
+
+    const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+    const file = new File(['file contents'], 'packaging_audit.pdf', { type: 'application/pdf' });
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    await waitFor(() => {
+      expect(screen.getByText(/Ingested packaging_audit.pdf/i)).toBeInTheDocument();
+    });
+  });
+});

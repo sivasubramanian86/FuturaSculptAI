@@ -33,3 +33,22 @@ def test_list_evidence_ledger():
     response = client.get("/api/v1/evidence", headers={"X-Tenant-ID": "tenant-test-01"})
     assert response.status_code == 200
     assert isinstance(response.json(), list)
+
+
+def test_upload_multiple_documents_same_tenant():
+    """Verify multiple uploads correctly accumulate under same tenant."""
+    second_doc = b"SOP-402: Sanitation Procedure for Mixing Tanks."
+    file_payload = {"file": ("sanitation_sop.txt", io.BytesIO(second_doc), "text/plain")}
+
+    response = client.post(
+        "/api/v1/evidence/upload",
+        files=file_payload,
+        data={"source_type": "pdf", "author": "Sanitation Ops"},
+        headers={"X-Tenant-ID": "tenant-test-01"},
+    )
+    assert response.status_code == 201
+
+    ledger_resp = client.get("/api/v1/evidence", headers={"X-Tenant-ID": "tenant-test-01"})
+    assert ledger_resp.status_code == 200
+    items = ledger_resp.json()
+    assert len(items) >= 2

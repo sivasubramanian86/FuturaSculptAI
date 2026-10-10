@@ -93,7 +93,7 @@ export const TrustScoreCard: React.FC<TrustScoreCardProps> = ({
             className="badge"
             style={{ color: getTierColor(roleResilience.tier), borderColor: getTierColor(roleResilience.tier) }}
           >
-            {roleResilience.tier.replace('_', ' ')}
+            {roleResilience.tier.replace(/_/g, ' ')}
           </span>
         </div>
 

@@ -93,9 +93,7 @@ def process_raw_evidence_upload(
         sensitivity=sensitivity,
     )
 
-    if tenant_id not in _EVIDENCE_STORE:
-        _EVIDENCE_STORE[tenant_id] = []
-    _EVIDENCE_STORE[tenant_id].append(envelope)
+    _EVIDENCE_STORE.setdefault(tenant_id, []).append(envelope)
 
     return envelope
 
