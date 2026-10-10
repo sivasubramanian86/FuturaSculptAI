@@ -23,4 +23,7 @@ This ledger tracks the activation, justification, outputs, and quality gates for
 | **Phase 1 Audit** | 2026-10-10 | `@15_ai_evaluator_100` | Google Cloud APAC 4-pillar evaluation (Authenticity, Usability, Stability, Security). | `docs/audit/phase1-full-audit-report.md`: 100% Perfection Score across all 4 pillars. | PASSED |
 | **Phase 1 Audit** | 2026-10-10 | `repo-portfolio-auditor` | RepoPilot 5-dimension credit-score audit (Safety, Trust, Maintenance, Maturity, Docs). | Score: 100/100 (Grade A - Production Ready). | PASSED |
 | **Phase 1 Audit** | 2026-10-10 | Workspace Audit Skills | Verify C4 layers, evidence hashing, accessibility, and FinOps constraints. | All 5 repository audit skills verified and certified. | PASSED |
+| **Skill Drift Patch** | 2026-10-10 | `@06_github_project_scaffolder` | Patch skill to mandate cross-platform `setup_local` scripts and package manager auto-detection. | Updated `06_github_project_scaffolder.md` (last_audited: 2026-10-10). | PATCHED |
+| **Skill Drift Patch** | 2026-10-10 | `@07_modern_polyglot_standards` | Patch skill to mandate timezone-aware `datetime.now(timezone.utc)` and PEP 621/735 `uv` packaging. | Updated `07_modern_polyglot_standards.md` (last_audited: 2026-10-10). | PATCHED |
+| **Skill Drift Patch** | 2026-10-10 | `@10_security_governance` | Patch skill with cross-platform secret scan commands and `.venv` exclusions. | Updated `10_security_governance.md` (last_audited: 2026-10-10). | PATCHED |
 
