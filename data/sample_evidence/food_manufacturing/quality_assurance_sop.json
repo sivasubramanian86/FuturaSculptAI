@@ -1,0 +1,40 @@
+{
+  "document_id": "SOP-FOOD-PKG-401",
+  "title": "Standard Operating Procedure: High-Speed Thermal Packaging Seal & Label QA Inspection",
+  "version": "4.2",
+  "facility": "Apex Consumer Foods - Processing Line 3",
+  "effective_date": "2026-01-15",
+  "regulatory_references": [
+    "FDA 21 CFR Part 110 (Current Good Manufacturing Practice)",
+    "FDA 21 CFR Part 11 (Electronic Records & Signatures)",
+    "GFSI Global Standard for Food Safety Issue 9"
+  ],
+  "objective": "Establish rigorous automated and visual quality inspection protocols to guarantee 100% seal hermeticity, eliminate foreign body contamination, and ensure zero allergen mislabeling at 450 units per minute.",
+  "inspection_points": [
+    {
+      "checkpoint_id": "CP-01",
+      "name": "Thermal Ultrasonic Seal Integrity",
+      "defect_types": ["Micro-channel leaks", "Seal wrinkles", "Product inclusion in seam", "Burnt polymer films"],
+      "tolerances": "Zero tolerance for leaks >= 50 microns. False reject threshold target < 0.25%."
+    },
+    {
+      "checkpoint_id": "CP-02",
+      "name": "Multi-Allergen Label Verification",
+      "defect_types": ["Missing allergen alert box", "Misprinted 2D Datamatrix", "Incorrect lot/batch timestamp"],
+      "tolerances": "100% optical character verification (OCV) match against SAP batch master."
+    }
+  ],
+  "operational_roles": [
+    {
+      "role": "Packaging QA Inspector",
+      "hourly_allocation": "8 hours/shift",
+      "current_mode": "Manual periodic grab sampling (1 unit every 30 seconds)"
+    },
+    {
+      "role": "Packaging Line Lead",
+      "hourly_allocation": "Supervisory",
+      "escalation_path": "Manual line shutdown if 3 consecutive defects observed within 60 seconds"
+    }
+  ],
+  "transformation_opportunity": "Deploying continuous edge-vision model on conveyor infeed automates 85% of visual sampling, freeing operators to supervise automated pneumatic reject divert loops and perform preventative system maintenance."
+}

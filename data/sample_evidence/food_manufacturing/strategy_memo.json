@@ -1,0 +1,24 @@
+{
+  "memo_id": "STRAT-2026-APEX-01",
+  "author": "EVP Operations & Global Supply Chain",
+  "organization": "Apex Consumer Foods Group",
+  "fiscal_horizon": "2026 - 2029",
+  "title": "Strategic Directive: Next-Generation Quality Assurance & Intelligent Plant Automation",
+  "strategic_pillars": [
+    {
+      "pillar": "Zero Product Recalls",
+      "target_kpi": "Zero undeclared allergen recalls and < 0.001% packaging micro-leaks across 12 manufacturing facilities.",
+      "financial_impact": "$4.5M annual avoided recall losses and brand reputation insurance."
+    },
+    {
+      "pillar": "Frontline Human Opportunity & Workforce Vitality",
+      "target_kpi": "Transition 100% of line quality inspectors into certified Vision Automation Specialists; 0 involuntary workforce displacements.",
+      "investment_envelope": "$350,000 corporate upskilling and apprenticeship endowment."
+    },
+    {
+      "pillar": "Autonomous Operational Excellence",
+      "target_kpi": "Sub-15ms edge inference on high-speed conveyors with closed-loop pneumatic divert gates.",
+      "cloud_architecture_standard": "Google Cloud Run, Vertex AI Gemini multimodal inference, BigQuery temporal analytics, and SAIF security compliance."
+    }
+  ]
+}

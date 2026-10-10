@@ -1,0 +1,10 @@
+role_id,role_name,task_id,task_name,hours_per_week,hourly_wage_usd,non_routine_pct,augmentation_potential_pct,current_status
+ROL-001,Packaging QA Inspector,TSK-001,Visual Heat-Seal Verification,24,34.0,25,85,BASELINE
+ROL-001,Packaging QA Inspector,TSK-002,Manual Lot Sample Tear-Down,10,34.0,60,40,BASELINE
+ROL-001,Packaging QA Inspector,TSK-003,SAP Manual Defect Logging,6,34.0,15,95,BASELINE
+ROL-002,Packaging Line Lead,TSK-004,Line Exception Triage & Escalation,18,48.0,75,65,BASELINE
+ROL-002,Packaging Line Lead,TSK-005,Shift Handover Compliance Sign-Off,8,48.0,50,70,BASELINE
+ROL-003,Packaging Maintenance Technician,TSK-006,Heater Element Thermal Sensor Calibration,16,42.0,80,30,BASELINE
+ROL-003,Packaging Maintenance Technician,TSK-007,Pneumatic Divert Arm Mechanical Calibration,14,42.0,70,35,BASELINE
+ROL-004,Vision Automation Lead,TSK-008,Edge Vision Model Retraining & Calibration,20,62.0,85,90,PROPOSED_EMERGING
+ROL-004,Vision Automation Lead,TSK-009,Automated Divert Analytics & Root Cause Triage,20,62.0,80,85,PROPOSED_EMERGING
