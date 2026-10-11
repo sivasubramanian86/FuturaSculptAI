@@ -17,7 +17,7 @@
   - High-impact storyline: Apex Food Manufacturing Line 4 packaging sorting deep dive + healthcare & banking proof capsules.
   - Video Link: `https://youtu.be/futurasculpt-ai-demo` *(Replace with final upload URL)*.
 - [x] **Public Code Repository:**  
-  - GitHub Repo: `https://github.com/kailasamsiva/FuturaSculptAI`
+  - GitHub Repo: `https://github.com/sivasubramanian86/FuturaSculptAI`
   - License: Apache 2.0 ([LICENSE](file:///d:/Siva/Books/CAREER/HACKATHON/FuturaSculptAI/LICENSE))
   - Clean commit history: Git sanitized, zero secrets, zero private customer data.
 - [x] **Live Deployed Cloud URLs:**  
