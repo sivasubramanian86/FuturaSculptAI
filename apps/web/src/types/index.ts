@@ -71,6 +71,37 @@ export interface ScenarioComparisonResponse {
   scenarios: FutureScenario[];
 }
 
+export interface ScenarioSimulationRequest {
+  scenario_id: string;
+  adoption_speed_multiplier?: number;
+  wage_inflation_pct?: number;
+  automation_aggression?: number;
+  capital_cost_delta_pct?: number;
+  custom_counterfactual_query?: string | null;
+}
+
+export interface CounterfactualImpact {
+  base_ebitda_usd: number;
+  simulated_ebitda_usd: number;
+  delta_ebitda_usd: number;
+  base_transition_cost_usd: number;
+  simulated_transition_cost_usd: number;
+  net_roles_created_delta: number;
+  displaced_tasks_pct_simulated: number;
+  risk_assessment: 'LOW_VOLATILITY' | 'HIGH_RETURN' | 'ELEVATED_FRICTION' | 'HIGH_CAPITAL_EXPOSURE';
+  tripped_triggers: string[];
+  counterfactual_narrative: string;
+}
+
+export interface ScenarioSimulationResponse {
+  tenant_id: string;
+  scenario: FutureScenario;
+  simulation_parameters: Record<string, unknown>;
+  impact: CounterfactualImpact;
+  simulated_at: string;
+}
+
+
 export interface EvidenceEntity {
   name: string;
   entity_type: string;

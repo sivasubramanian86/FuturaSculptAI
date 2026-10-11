@@ -1,11 +1,15 @@
-"""Future Scenario Foundry domain service."""
+"""Future Scenario Foundry domain service and counterfactual simulation engine."""
 
-from typing import List
+from datetime import datetime, timezone
+from typing import List, Optional
 
 from app.models.scenario import (
+    CounterfactualImpact,
     FutureScenario,
     ScenarioClass,
     ScenarioComparisonResponse,
+    ScenarioSimulationRequest,
+    ScenarioSimulationResponse,
 )
 
 
@@ -51,6 +55,8 @@ def get_scenarios_for_tenant(tenant_id: str, sector: str = "food_manufacturing")
             ],
             counterfactuals=[
                 "Without copilot assistance, annual packaging defect recall risk remains at $1.8M expected loss.",
+                "If frontline tablet adoption is delayed by 6 months, competitor line throughput advantage increases by 12%.",
+                "Maintaining 100% manual visual inspection incurs $240,000 in continuous overtime expenditure.",
             ],
             primary_technologies=["Vertex AI Search", "Gemini 2.5 Flash Multimodal"],
             evidence_ids=["EVD-STRAT-01", "EVD-SOP-01"],
@@ -83,6 +89,8 @@ def get_scenarios_for_tenant(tenant_id: str, sector: str = "food_manufacturing")
             ],
             counterfactuals=[
                 "If multi-agent integration is delayed, competitor automation lowers regional unit cost by 18%.",
+                "Without pneumatic divert arm automation, line speed remains artificially throttled at 420 units/min.",
+                "Failing to upskill inspectors to Vision Stewards creates a critical skill bottleneck during camera recalibration cycles.",
             ],
             primary_technologies=["Google ADK", "Edge TPU Vision Array", "BigQuery ML"],
             evidence_ids=["EVD-SOP-01", "EVD-ROLE-01"],
@@ -113,7 +121,9 @@ def get_scenarios_for_tenant(tenant_id: str, sector: str = "food_manufacturing")
                 "Regulatory freeze on autonomous packaging line certification.",
             ],
             counterfactuals=[
-                "Without cobotic transformation, facility capacity maxes out by Q4 2027.",
+                "Without cobotic transformation, facility capacity maxes out by Q4 2027, forcing $4.5M in greenfield plant expansion.",
+                "If thermal self-healing loops fail to deploy, micro-fissure leakage causes 3.2% scrap waste annually.",
+                "Delaying cobotic cell deployment allows regional competitors to capture tier-1 retail packaging contracts.",
             ],
             primary_technologies=["Industrial Cobotics", "Spatial Vision", "Eventarc / Pub/Sub"],
             evidence_ids=["EVD-STRAT-01"],
@@ -144,7 +154,9 @@ def get_scenarios_for_tenant(tenant_id: str, sector: str = "food_manufacturing")
                 "Training budget cuts or plant management prioritization of short-term volume over skilling.",
             ],
             counterfactuals=[
-                "A purely automated approach creates 40% staff turnover and union grievances.",
+                "A purely automated approach creates 40% staff turnover and costly union grievances.",
+                "Without dedicated micro-learning shifts, operator transition readiness remains under 45%.",
+                "Eliminating operator inspection roles triggers institutional knowledge loss regarding edge-case packaging variances.",
             ],
             primary_technologies=["Personalized Pathways", "Google ADK Copilots", "TrustBoard"],
             evidence_ids=["EVD-ROLE-01", "EVD-ROLE-02"],
@@ -156,4 +168,116 @@ def get_scenarios_for_tenant(tenant_id: str, sector: str = "food_manufacturing")
         sector=sector,
         baseline_year=2026,
         scenarios=scenarios,
+    )
+
+
+def get_scenario_by_id(
+    tenant_id: str, scenario_id: str, sector: str = "food_manufacturing"
+) -> Optional[FutureScenario]:
+    """Retrieve a single future scenario by its identifier.
+
+    Args:
+        tenant_id: Tenant identifier.
+        scenario_id: Target scenario identifier (e.g. SCEN-001).
+        sector: Enterprise sector.
+
+    Returns:
+        Optional[FutureScenario]: Resolved scenario or None if not found.
+    """
+    comparison = get_scenarios_for_tenant(tenant_id, sector)
+    for scen in comparison.scenarios:
+        if scen.scenario_id == scenario_id:
+            return scen
+    return None
+
+
+def simulate_counterfactual(
+    tenant_id: str, request: ScenarioSimulationRequest, sector: str = "food_manufacturing"
+) -> Optional[ScenarioSimulationResponse]:
+    """Simulate scenario outcome under custom What-If counterfactual parameters.
+
+    Args:
+        tenant_id: Tenant identifier.
+        request: Simulation request containing parameter deltas.
+        sector: Enterprise sector.
+
+    Returns:
+        Optional[ScenarioSimulationResponse]: Simulated outcome or None if scenario not found.
+    """
+    scenario = get_scenario_by_id(tenant_id, request.scenario_id, sector)
+    if not scenario:
+        return None
+
+    # Base financial and operational metrics
+    base_ebitda = scenario.ebitda_impact_usd
+    base_cost = scenario.transition_cost_usd
+    base_displaced = scenario.displaced_tasks_pct
+
+    # Sensitivity calculation formulas
+    speed_factor = request.adoption_speed_multiplier
+    wage_factor = 1.0 + (request.wage_inflation_pct / 100.0) * 0.4
+    aggression_factor = request.automation_aggression**0.8
+    cost_factor = (1.0 + request.capital_cost_delta_pct / 100.0) * (speed_factor**0.5)
+
+    simulated_ebitda = round(base_ebitda * speed_factor * wage_factor * aggression_factor, 2)
+    delta_ebitda = round(simulated_ebitda - base_ebitda, 2)
+    simulated_cost = round(base_cost * cost_factor, 2)
+
+    # Net roles created delta calculation
+    roles_delta = round((speed_factor - 1.0) * 2.0 + (1.0 - request.automation_aggression) * 1.5)
+    simulated_displaced = round(min(95.0, max(5.0, base_displaced * request.automation_aggression)), 1)
+
+    # Invalidation triggers evaluation
+    tripped_triggers: List[str] = []
+    if request.adoption_speed_multiplier < 0.6:
+        tripped_triggers.append("Operator resistance leads to < 50% copilot usage.")
+    if request.automation_aggression > 1.8:
+        tripped_triggers.append(
+            "Packaging line speed or friction increases beyond human physical sampling capacity."
+        )
+    if request.capital_cost_delta_pct > 35.0:
+        tripped_triggers.append(
+            "Training budget cuts or equipment supply chain cost inflation exceeds capital limits."
+        )
+
+    # Risk categorization
+    if tripped_triggers:
+        risk_assessment = "ELEVATED_FRICTION"
+    elif request.capital_cost_delta_pct > 20.0:
+        risk_assessment = "HIGH_CAPITAL_EXPOSURE"
+    elif delta_ebitda > base_ebitda * 0.3:
+        risk_assessment = "HIGH_RETURN"
+    else:
+        risk_assessment = "LOW_VOLATILITY"
+
+    # Narrative formulation
+    narrative = (
+        f"Under simulated conditions (Adoption: {speed_factor:.1f}x, Wage Growth: {request.wage_inflation_pct:.1f}%, "
+        f"Aggression: {request.automation_aggression:.1f}x), projected EBITDA shifts by "
+        f"{'+' if delta_ebitda >= 0 else ''}${delta_ebitda:,.2f} USD. "
+    )
+    if tripped_triggers:
+        narrative += f"WARNING: Tripped {len(tripped_triggers)} invalidation boundary condition(s)."
+    else:
+        narrative += "All operating parameters remain within safe resilience envelopes."
+
+    impact = CounterfactualImpact(
+        base_ebitda_usd=base_ebitda,
+        simulated_ebitda_usd=simulated_ebitda,
+        delta_ebitda_usd=delta_ebitda,
+        base_transition_cost_usd=base_cost,
+        simulated_transition_cost_usd=simulated_cost,
+        net_roles_created_delta=roles_delta,
+        displaced_tasks_pct_simulated=simulated_displaced,
+        risk_assessment=risk_assessment,
+        tripped_triggers=tripped_triggers,
+        counterfactual_narrative=narrative,
+    )
+
+    return ScenarioSimulationResponse(
+        tenant_id=tenant_id,
+        scenario=scenario,
+        simulation_parameters=request.model_dump(),
+        impact=impact,
+        simulated_at=datetime.now(timezone.utc),
     )

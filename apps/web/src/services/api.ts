@@ -7,10 +7,13 @@ import {
   BlastRadiusResponse,
   ClaimVerificationResult,
   EvidenceEnvelope,
+  FutureScenario,
   IntegrityCheckResult,
   OnboardingPayload,
   RoleResilienceResult,
   ScenarioComparisonResponse,
+  ScenarioSimulationRequest,
+  ScenarioSimulationResponse,
   SwarmRunRequest,
   SwarmRunResponse,
   TemporalGraphResponse,
@@ -57,6 +60,32 @@ export class ApiClient {
     }
     return res.json();
   }
+
+  async getScenarioById(scenarioId: string, sector: string = 'food_manufacturing'): Promise<FutureScenario> {
+    const res = await fetch(`${API_BASE}/scenarios/${encodeURIComponent(scenarioId)}?sector=${encodeURIComponent(sector)}`, {
+      headers: this.getHeaders(),
+    });
+    if (!res.ok) {
+      throw new Error(`Failed to load scenario ${scenarioId}: ${res.statusText}`);
+    }
+    return res.json();
+  }
+
+  async simulateScenario(
+    payload: ScenarioSimulationRequest,
+    sector: string = 'food_manufacturing'
+  ): Promise<ScenarioSimulationResponse> {
+    const res = await fetch(`${API_BASE}/scenarios/simulate?sector=${encodeURIComponent(sector)}`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      throw new Error(`Failed to simulate scenario: ${res.statusText}`);
+    }
+    return res.json();
+  }
+
 
   async getEvidenceLedger(): Promise<EvidenceEnvelope[]> {
     const res = await fetch(`${API_BASE}/evidence`, {

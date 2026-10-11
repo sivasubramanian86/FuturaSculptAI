@@ -421,4 +421,74 @@ describe('ApiClient', () => {
       'Failed to retrieve swarm run: Not Found'
     );
   });
+
+  it('fetches scenario by id with default and custom sector, and handles failure', async () => {
+    const mockScenario = { scenario_id: 'SCEN-001', title: 'Conservative' };
+
+    // Default sector
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockScenario,
+    } as Response);
+
+    const resDefault = await client.getScenarioById('SCEN-001');
+    expect(resDefault).toEqual(mockScenario);
+
+    // Custom sector
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockScenario,
+    } as Response);
+
+    const resCustom = await client.getScenarioById('SCEN-001', 'pharma');
+    expect(resCustom).toEqual(mockScenario);
+
+    // Failure
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: false,
+      statusText: 'Not Found',
+    } as Response);
+
+    await expect(client.getScenarioById('SCEN-INVALID')).rejects.toThrow(
+      'Failed to load scenario SCEN-INVALID: Not Found'
+    );
+  });
+
+  it('simulates scenario counterfactual with default and custom sector, and handles failure', async () => {
+    const mockSimulation = {
+      tenant_id: 'tenant-01',
+      impact: { delta_ebitda_usd: 150000 },
+    };
+
+    const payload = { scenario_id: 'SCEN-001', adoption_speed_multiplier: 1.2 };
+
+    // Default sector
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockSimulation,
+    } as Response);
+
+    const resDefault = await client.simulateScenario(payload);
+    expect(resDefault).toEqual(mockSimulation);
+
+    // Custom sector
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockSimulation,
+    } as Response);
+
+    const resCustom = await client.simulateScenario(payload, 'logistics');
+    expect(resCustom).toEqual(mockSimulation);
+
+    // Failure
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: false,
+      statusText: 'Bad Request',
+    } as Response);
+
+    await expect(client.simulateScenario(payload)).rejects.toThrow(
+      'Failed to simulate scenario: Bad Request'
+    );
+  });
 });
+
