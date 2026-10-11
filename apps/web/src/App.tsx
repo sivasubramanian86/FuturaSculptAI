@@ -15,6 +15,7 @@ import { OnboardingModal } from './components/OnboardingModal';
 import { AgentSwarmConsole } from './components/AgentSwarmConsole';
 import { TaskSculptor } from './components/TaskSculptor';
 import { OpportunityEngine } from './components/OpportunityEngine';
+import { TrustBoardWorkbench } from './components/TrustBoardWorkbench';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { api } from './services/api';
 import {
@@ -180,10 +181,12 @@ export const App: React.FC = () => {
                 </div>
               </div>
 
-              {/* Bottom Sections: Task Redesign Sculptor, Opportunity Engine, Multi-Agent Swarm Console & Evidence Ledger */}
+              {/* Bottom Sections: Task Redesign Sculptor, Opportunity Engine, Governance TrustBoard, Multi-Agent Swarm Console & Evidence Ledger */}
               <TaskSculptor />
 
               <OpportunityEngine />
+
+              <TrustBoardWorkbench />
 
               <AgentSwarmConsole />
 

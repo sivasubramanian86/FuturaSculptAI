@@ -13,6 +13,7 @@ from app.core.logging import configure_logging, get_log_tenant, get_logger, set_
 from app.routers import (
     agents,
     evidence,
+    governance,
     health,
     onboarding,
     opportunity,
@@ -127,6 +128,7 @@ app.include_router(scoring.router)
 app.include_router(agents.router)
 app.include_router(tasks.router)
 app.include_router(opportunity.router)
+app.include_router(governance.router)
 
 
 @app.get("/", tags=["Root"])

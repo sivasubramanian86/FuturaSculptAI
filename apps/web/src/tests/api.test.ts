@@ -698,5 +698,144 @@ describe('ApiClient', () => {
       'Failed to submit pathway appeal: Bad Request'
     );
   });
+
+  it('fetches governance posture and handles failure', async () => {
+    const mockPosture = { overall_trust_score: 92.5, gate_status: 'PASSED' };
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockPosture,
+    } as Response);
+
+    const res = await client.getGovernancePosture();
+    expect(res).toEqual(mockPosture);
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: false,
+      statusText: 'Internal Error',
+    } as Response);
+
+    await expect(client.getGovernancePosture()).rejects.toThrow(
+      'Failed to load governance posture: Internal Error'
+    );
+  });
+
+  it('fetches SAIF controls with and without domain filter, and handles failure', async () => {
+    const mockControls = [{ control_id: 'SAIF-01' }];
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockControls,
+    } as Response);
+
+    const res1 = await client.getSAIFControls();
+    expect(res1).toEqual(mockControls);
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockControls,
+    } as Response);
+
+    const res2 = await client.getSAIFControls('SECURE_AI_SYSTEMS');
+    expect(res2).toEqual(mockControls);
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: false,
+      statusText: 'Not Found',
+    } as Response);
+
+    await expect(client.getSAIFControls()).rejects.toThrow(
+      'Failed to load SAIF controls: Not Found'
+    );
+  });
+
+  it('fetches investor lens and handles failure', async () => {
+    const mockLens = { organization_name: 'Apex Food Mfg', net_roi_multiple: 6.25 };
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockLens,
+    } as Response);
+
+    const res = await client.getInvestorLens();
+    expect(res).toEqual(mockLens);
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: false,
+      statusText: 'Service Unavailable',
+    } as Response);
+
+    await expect(client.getInvestorLens()).rejects.toThrow(
+      'Failed to load investor lens: Service Unavailable'
+    );
+  });
+
+  it('simulates investor lens assumptions and handles failure', async () => {
+    const mockSim = { net_roi_multiple: 8.5 };
+    const payload = {
+      wage_uplift_multiplier: 1.5,
+      automation_yield_factor: 1.4,
+      transition_capex_usd: 300000,
+    };
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockSim,
+    } as Response);
+
+    const res = await client.simulateInvestorLens(payload);
+    expect(res).toEqual(mockSim);
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: false,
+      statusText: 'Bad Request',
+    } as Response);
+
+    await expect(client.simulateInvestorLens(payload)).rejects.toThrow(
+      'Failed to simulate investor lens: Bad Request'
+    );
+  });
+
+  it('updates governance remediation and handles failure', async () => {
+    const mockRemediation = { control_id: 'SAIF-01', status: 'VERIFIED' };
+    const payload = {
+      control_id: 'SAIF-01',
+      remediation_owner: 'Lead SecOps',
+      action_notes: 'Applied pinned hashes.',
+      resolved: true,
+    };
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockRemediation,
+    } as Response);
+
+    const res = await client.updateRemediation(payload);
+    expect(res).toEqual(mockRemediation);
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: false,
+      statusText: 'Internal Error',
+    } as Response);
+
+    await expect(client.updateRemediation(payload)).rejects.toThrow(
+      'Failed to update governance remediation: Internal Error'
+    );
+  });
+
+  it('exports diligence pack and handles failure', async () => {
+    const mockPack = { pack_id: 'DIL-001', cryptographic_seal_hash: 'abcdef123456' };
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockPack,
+    } as Response);
+
+    const res = await client.exportDiligencePack();
+    expect(res).toEqual(mockPack);
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: false,
+      statusText: 'Forbidden',
+    } as Response);
+
+    await expect(client.exportDiligencePack()).rejects.toThrow(
+      'Failed to export diligence pack: Forbidden'
+    );
+  });
 });
 

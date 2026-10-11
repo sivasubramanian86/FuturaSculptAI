@@ -6,16 +6,24 @@
 import {
   BlastRadiusResponse,
   ClaimVerificationResult,
+  DiligencePackExport,
   EvidenceEnvelope,
   FutureScenario,
+  GovernancePostureResponse,
   IntegrityCheckResult,
+  InvestorAssumptionPayload,
+  InvestorLensResponse,
   OnboardingPayload,
-  RoleResilienceResult,
-  ScenarioComparisonResponse,
   OpportunityMetricsResponse,
   PathwayAppealRequest,
   PathwayAppealResponse,
+  RemediationActionRequest,
+  RemediationActionResponse,
+  RoleResilienceResult,
   RoleTransitionPathway,
+  SAIFControlItem,
+  SAIFDomain,
+  ScenarioComparisonResponse,
   ScenarioSimulationRequest,
   ScenarioSimulationResponse,
   SwarmRunRequest,
@@ -334,6 +342,77 @@ export class ApiClient {
     });
     if (!res.ok) {
       throw new Error(`Failed to submit pathway appeal: ${res.statusText}`);
+    }
+    return res.json();
+  }
+
+  async getGovernancePosture(): Promise<GovernancePostureResponse> {
+    const res = await fetch(`${API_BASE}/governance/trustboard`, {
+      headers: this.getHeaders(),
+    });
+    if (!res.ok) {
+      throw new Error(`Failed to load governance posture: ${res.statusText}`);
+    }
+    return res.json();
+  }
+
+  async getSAIFControls(domain?: SAIFDomain): Promise<SAIFControlItem[]> {
+    const url = domain
+      ? `${API_BASE}/governance/saif-controls?domain=${encodeURIComponent(domain)}`
+      : `${API_BASE}/governance/saif-controls`;
+    const res = await fetch(url, {
+      headers: this.getHeaders(),
+    });
+    if (!res.ok) {
+      throw new Error(`Failed to load SAIF controls: ${res.statusText}`);
+    }
+    return res.json();
+  }
+
+  async getInvestorLens(): Promise<InvestorLensResponse> {
+    const res = await fetch(`${API_BASE}/governance/investor-lens`, {
+      headers: this.getHeaders(),
+    });
+    if (!res.ok) {
+      throw new Error(`Failed to load investor lens: ${res.statusText}`);
+    }
+    return res.json();
+  }
+
+  async simulateInvestorLens(
+    payload: InvestorAssumptionPayload
+  ): Promise<InvestorLensResponse> {
+    const res = await fetch(`${API_BASE}/governance/investor-lens/simulate`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      throw new Error(`Failed to simulate investor lens: ${res.statusText}`);
+    }
+    return res.json();
+  }
+
+  async updateRemediation(
+    payload: RemediationActionRequest
+  ): Promise<RemediationActionResponse> {
+    const res = await fetch(`${API_BASE}/governance/remediate`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      throw new Error(`Failed to update governance remediation: ${res.statusText}`);
+    }
+    return res.json();
+  }
+
+  async exportDiligencePack(): Promise<DiligencePackExport> {
+    const res = await fetch(`${API_BASE}/governance/diligence-pack`, {
+      headers: this.getHeaders(),
+    });
+    if (!res.ok) {
+      throw new Error(`Failed to export diligence pack: ${res.statusText}`);
     }
     return res.json();
   }

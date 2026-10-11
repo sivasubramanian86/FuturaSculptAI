@@ -483,3 +483,105 @@ export interface OpportunityMetricsResponse {
   k_anonymity_passed: boolean;
   pathways: RoleTransitionPathway[];
 }
+
+export type SAIFDomain =
+  | 'EXPAND_ECOSYSTEM'
+  | 'SAFEGUARD_ARCH'
+  | 'SECURE_AI_SYSTEMS'
+  | 'PROTECT_DATA'
+  | 'CONTINUOUS_MONITOR'
+  | 'INCIDENT_RESPONSE';
+
+export type ControlStatus = 'VERIFIED' | 'IN_PROGRESS' | 'ACTION_REQUIRED';
+
+export interface SAIFControlItem {
+  control_id: string;
+  domain: SAIFDomain;
+  title: string;
+  description: string;
+  status: ControlStatus;
+  evidence_ids: string[];
+  verifier_component: string;
+  remediation_owner?: string | null;
+  notes?: string | null;
+}
+
+export interface WellArchitectedPillarScore {
+  pillar: string;
+  score: number;
+  weight_pct: number;
+  status: string;
+  failed_checks_count: number;
+  remediation_owner: string;
+  evidence_ids: string[];
+}
+
+export interface GovernancePostureResponse {
+  tenant_id: string;
+  overall_trust_score: number;
+  gate_status: 'PASSED' | 'FLAGGED' | 'BLOCKED';
+  red_lines_breached: number;
+  policy_version: string;
+  pillars: WellArchitectedPillarScore[];
+  saif_controls: SAIFControlItem[];
+  evaluated_at: string;
+}
+
+export interface InvestorAssumptionPayload {
+  wage_uplift_multiplier: number;
+  automation_yield_factor: number;
+  transition_capex_usd: number;
+}
+
+export interface RoadmapMilestone {
+  horizon: '30_DAYS' | '90_DAYS' | '365_DAYS';
+  title: string;
+  deliverables: string[];
+  target_roi_multiplier: number;
+  governance_checkpoint: string;
+}
+
+export interface InvestorLensResponse {
+  tenant_id: string;
+  organization_name: string;
+  transformation_thesis: string;
+  projected_ebitda_impact_usd: number;
+  transition_cost_usd: number;
+  net_roi_multiple: number;
+  payback_period_months: number;
+  defensibility_moat_score: number;
+  assumptions_applied: InvestorAssumptionPayload;
+  roadmaps: RoadmapMilestone[];
+  disclaimer: string;
+  generated_at: string;
+}
+
+export interface RemediationActionRequest {
+  control_id: string;
+  remediation_owner: string;
+  action_notes: string;
+  resolved: boolean;
+}
+
+export interface RemediationActionResponse {
+  control_id: string;
+  status: ControlStatus;
+  remediation_owner: string;
+  notes: string;
+  updated_at: string;
+}
+
+export interface DiligencePackExport {
+  pack_id: string;
+  tenant_id: string;
+  organization_name: string;
+  trust_score: number;
+  saif_compliance_pct: number;
+  red_lines_breached: number;
+  gate_status: string;
+  evidence_envelopes_count: number;
+  evidence_hashes: string[];
+  cryptographic_seal_hash: string;
+  exported_at: string;
+  disclaimer: string;
+}

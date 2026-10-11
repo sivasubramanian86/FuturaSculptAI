@@ -229,6 +229,66 @@ describe('App Component', () => {
     ],
   };
 
+  const mockGovernancePosture = {
+    tenant_id: 'tenant-food-mfg-01',
+    overall_trust_score: 93.5,
+    gate_status: 'PASSED',
+    red_lines_breached: 0,
+    policy_version: '2026.1-trustboard',
+    pillars: [
+      {
+        pillar: 'Security, Privacy & SAIF',
+        score: 100.0,
+        weight_pct: 20.0,
+        status: 'PASSED',
+        failed_checks_count: 0,
+        remediation_owner: 'Lead SecOps',
+        evidence_ids: ['EV-001'],
+      },
+    ],
+    saif_controls: [
+      {
+        control_id: 'SAIF-01',
+        domain: 'EXPAND_ECOSYSTEM',
+        title: 'Supply Chain Integrity',
+        description: 'Pinned dependencies',
+        status: 'VERIFIED',
+        evidence_ids: ['EV-001'],
+        verifier_component: 'Artifact Registry',
+        remediation_owner: 'Lead SecOps',
+        notes: null,
+      },
+    ],
+    evaluated_at: '2026-03-01T10:00:00Z',
+  };
+
+  const mockInvestorLens = {
+    tenant_id: 'tenant-food-mfg-01',
+    organization_name: 'Apex Food Mfg',
+    transformation_thesis: 'Autonomous Work Transformation unlocks EBITDA expansion.',
+    projected_ebitda_impact_usd: 1250000.0,
+    transition_cost_usd: 200000.0,
+    net_roi_multiple: 6.25,
+    payback_period_months: 1.9,
+    defensibility_moat_score: 94.5,
+    assumptions_applied: {
+      wage_uplift_multiplier: 1.0,
+      automation_yield_factor: 1.0,
+      transition_capex_usd: 200000.0,
+    },
+    roadmaps: [
+      {
+        horizon: '30_DAYS',
+        title: 'Edge Ingestion',
+        deliverables: ['Deploy sensors'],
+        target_roi_multiplier: 1.2,
+        governance_checkpoint: 'A0 Autonomy Gate',
+      },
+    ],
+    disclaimer: 'Simulated scenario projection.',
+    generated_at: '2026-03-01T10:00:00Z',
+  };
+
   beforeEach(() => {
     vi.spyOn(api, 'getWorkGraph').mockResolvedValue(mockWorkGraph as any);
     vi.spyOn(api, 'getScenarios').mockResolvedValue(mockScenarios as any);
@@ -237,6 +297,8 @@ describe('App Component', () => {
     vi.spyOn(api, 'getEvidenceLedger').mockResolvedValue(mockEvidenceLedger as any);
     vi.spyOn(api, 'getTaskMatrix').mockResolvedValue(mockTaskMatrix as any);
     vi.spyOn(api, 'getOpportunityMetrics').mockResolvedValue(mockOpportunityMetrics as any);
+    vi.spyOn(api, 'getGovernancePosture').mockResolvedValue(mockGovernancePosture as any);
+    vi.spyOn(api, 'getInvestorLens').mockResolvedValue(mockInvestorLens as any);
   });
 
   afterEach(() => {
