@@ -62,6 +62,7 @@ dist-ssr/
 *~
 .DS_Store
 Thumbs.db
+.codegraph/
 
 # Private memories, local drafts, and scratch files
 .gemini/session_context.md
