@@ -1,15 +1,44 @@
-"""Unit tests for Google ADK Multi-Agent Swarm Orchestrator and Autonomy Gates."""
+"""Unit tests for Google ADK Multi-Agent Swarm Orchestrator, Specialist Mesh, and Autonomy Gates."""
 
+import asyncio
+
+import pytest
 from fastapi.testclient import TestClient
 
+from app.agents.base import AgentContext, BaseSwarmAgent
+from app.agents.subagents import (
+    AdversarialCriticAgent,
+    AgentBlueprintAgent,
+    BusinessSolutionAgent,
+    FinOpsAgent,
+    FinOpsEvaluatorAgent,
+    FutureSignalsAgent,
+    GovernanceCriticAgent,
+    SkillGapAnalystAgent,
+    SkillsMobilityAgent,
+    TaskDecomposerAgent,
+    TaskRedesignAgent,
+    TrustGovernanceAgent,
+    WorkGraphArchitectAgent,
+)
+from app.agents.tools import (
+    audit_saif_controls,
+    calculate_deterministic_rri,
+    calculate_finops_roi,
+    detect_adverse_employment_actions,
+    inspect_workgraph_node,
+    mutate_workgraph_topology,
+    retrieve_evidence_citations,
+    verify_claim_groundedness,
+)
 from app.main import app
-from app.models.agent_swarm import AutonomyTier
+from app.models.agent_swarm import AgentRole, AutonomyTier, SwarmRunRequest
 
 client = TestClient(app)
 
 
 def test_run_swarm_standard_success():
-    """Verify standard multi-agent swarm run executing complete deliberation loop."""
+    """Verify standard multi-agent swarm run executing complete 9-specialist deliberation loop."""
     payload = {
         "scenario_prompt": "Augment high-speed seal verification with Edge-TPU vision sensors.",
         "sector": "food_manufacturing",
@@ -28,9 +57,13 @@ def test_run_swarm_standard_success():
     assert "run_id" in data
     assert data["status"] == "REQUIRES_APPROVAL"  # Horizon 3 triggers A2 approval gate
     assert data["autonomy_gate"] == AutonomyTier.A2_APPROVAL_GATE.value
-    assert len(data["trajectories"]) == 6  # 6 specialist deliberation steps
+    assert len(data["trajectories"]) == 10  # Full 9-specialist + orchestrator deliberation steps
     assert data["synthesis"]["projected_agent_work_pct"] > 0
     assert data["synthesis"]["citations"] == ["EVD-SOP-01", "EVD-STRAT-01"]
+    assert len(data["synthesis"]["task_matrix"]) == 3
+    assert len(data["synthesis"]["agent_blueprints"]) == 1
+    assert data["synthesis"]["solution_dossier"] is not None
+    assert data["synthesis"]["groundedness_score"] == 1.0
 
 
 def test_run_swarm_short_horizon_completed_status():
@@ -68,11 +101,11 @@ def test_run_swarm_blocked_by_red_line_interceptor():
     assert data["autonomy_gate"] == AutonomyTier.A4_DISALLOWED.value
     assert "VIOLATION DETECTED" in data["trajectories"][1]["observation"]
     assert data["synthesis"]["compliance_verdict"] == "REJECTED_A4_BREACH"
+    assert data["synthesis"]["groundedness_score"] == 0.0
 
 
 def test_get_swarm_run_detail_and_tenant_isolation():
     """Verify retrieving run by ID and tenant boundary enforcement."""
-    # 1. Create a run
     payload = {
         "scenario_prompt": "Deploy collaborative robotics for package sealing.",
         "horizon_years": 2,
@@ -109,11 +142,8 @@ def test_get_swarm_run_detail_and_tenant_isolation():
 
 
 def test_sync_swarm_orchestrator_run():
-    """Verify synchronous wrapper execution."""
-    import asyncio
-
+    """Verify synchronous wrapper execution and thread pool execution."""
     from app.agents import swarm_orchestrator
-    from app.models.agent_swarm import SwarmRunRequest
 
     req = SwarmRunRequest(
         scenario_prompt="Validate robotic sorting cells.",
@@ -133,19 +163,8 @@ def test_sync_swarm_orchestrator_run():
     assert res_in_loop.run_id.startswith("RUN-")
 
 
-def test_base_agent_and_subagents_direct_execution():
-    """Verify direct instantiation and execution of sub-agents and base agent error handling."""
-    import pytest
-
-    from app.agents.base import AgentContext, BaseSwarmAgent
-    from app.agents.subagents import (
-        FinOpsEvaluatorAgent,
-        GovernanceCriticAgent,
-        SkillGapAnalystAgent,
-        TaskDecomposerAgent,
-        WorkGraphArchitectAgent,
-    )
-    from app.models.agent_swarm import AgentRole, SwarmRunRequest
+def test_base_agent_and_all_specialists_direct_execution():
+    """Verify direct instantiation and execution of all 9 specialist sub-agents."""
 
     class DummyAgent(BaseSwarmAgent):
         async def execute(self, context: AgentContext):
@@ -158,35 +177,122 @@ def test_base_agent_and_subagents_direct_execution():
     )
     ctx = AgentContext(
         tenant_id="tenant-01",
-        request=SwarmRunRequest(scenario_prompt="Test", horizon_years=1),
-        citations=[],
+        request=SwarmRunRequest(scenario_prompt="Test scenario", horizon_years=2),
+        citations=["EVD-01"],
     )
-
-    import asyncio
 
     with pytest.raises(NotImplementedError):
         asyncio.run(dummy.execute(ctx))
 
-    # Test individual sub-agents directly
+    # 1. WorkGraphArchitectAgent
     arch = WorkGraphArchitectAgent()
     step_arch = asyncio.run(arch.execute(ctx))
     assert step_arch.agent_role == AgentRole.WORKGRAPH_ARCHITECT
 
-    decomp = TaskDecomposerAgent()
+    # 2. FutureSignalsAgent
+    signals = FutureSignalsAgent()
+    step_signals = asyncio.run(signals.execute(ctx))
+    assert step_signals.agent_role == AgentRole.FUTURE_SIGNALS
+
+    # 3. TaskRedesignAgent & TaskDecomposerAgent
+    redesign = TaskRedesignAgent()
+    step_redesign = asyncio.run(redesign.execute(ctx))
+    assert step_redesign.agent_role == AgentRole.TASK_REDESIGN
+
+    decomp = TaskDecomposerAgent(role=AgentRole.TASK_DECOMPOSER)
     step_decomp = asyncio.run(decomp.execute(ctx))
     assert step_decomp.agent_role == AgentRole.TASK_DECOMPOSER
 
-    skill = SkillGapAnalystAgent()
-    step_skill = asyncio.run(skill.execute(ctx))
-    assert step_skill.agent_role == AgentRole.SKILL_GAP_ANALYST
+    # 4. SkillsMobilityAgent & SkillGapAnalystAgent
+    skills = SkillsMobilityAgent()
+    step_skills = asyncio.run(skills.execute(ctx))
+    assert step_skills.agent_role == AgentRole.SKILLS_MOBILITY
 
-    gov = GovernanceCriticAgent()
-    step_gov = asyncio.run(gov.execute(ctx))
-    assert step_gov.agent_role == AgentRole.GOVERNANCE_CRITIC
+    analyst = SkillGapAnalystAgent(role=AgentRole.SKILL_GAP_ANALYST)
+    step_analyst = asyncio.run(analyst.execute(ctx))
+    assert step_analyst.agent_role == AgentRole.SKILL_GAP_ANALYST
 
-    fin = FinOpsEvaluatorAgent()
+    # 5. AgentBlueprintAgent
+    blueprint = AgentBlueprintAgent()
+    step_blueprint = asyncio.run(blueprint.execute(ctx))
+    assert step_blueprint.agent_role == AgentRole.AGENT_BLUEPRINT
+
+    # 6. FinOpsAgent & FinOpsEvaluatorAgent
+    fin = FinOpsAgent()
     step_fin = asyncio.run(fin.execute(ctx))
-    assert step_fin.agent_role == AgentRole.FINOPS_EVALUATOR
+    assert step_fin.agent_role == AgentRole.FINOPS
+
+    evaluator = FinOpsEvaluatorAgent(role=AgentRole.FINOPS_EVALUATOR)
+    step_eval = asyncio.run(evaluator.execute(ctx))
+    assert step_eval.agent_role == AgentRole.FINOPS_EVALUATOR
+
+    # 7. BusinessSolutionAgent
+    biz = BusinessSolutionAgent()
+    step_biz = asyncio.run(biz.execute(ctx))
+    assert step_biz.agent_role == AgentRole.BUSINESS_SOLUTION
+
+    # 8. AdversarialCriticAgent
+    critic = AdversarialCriticAgent()
+    step_critic = asyncio.run(critic.execute(ctx))
+    assert step_critic.agent_role == AgentRole.ADVERSARIAL_CRITIC
+
+    # 9. TrustGovernanceAgent & GovernanceCriticAgent
+    gov = TrustGovernanceAgent()
+    step_gov = asyncio.run(gov.execute(ctx))
+    assert step_gov.agent_role == AgentRole.TRUST_GOVERNANCE
+
+    gov_critic = GovernanceCriticAgent(role=AgentRole.GOVERNANCE_CRITIC)
+    step_gov_critic = asyncio.run(gov_critic.execute(ctx))
+    assert step_gov_critic.agent_role == AgentRole.GOVERNANCE_CRITIC
+
+
+def test_domain_tools_execution():
+    """Verify domain tool logic across workgraph, evidence, scoring, and governance tools."""
+    # WorkGraph tools
+    node_role = inspect_workgraph_node("tenant-01", "ROL-001")
+    assert node_role["node_type"] == "ROLE"
+    node_cap = inspect_workgraph_node("tenant-01", "CAP-001")
+    assert node_cap["node_type"] == "CAPABILITY"
+    node_task = inspect_workgraph_node("tenant-01", "TSK-001")
+    assert node_task["node_type"] == "TASK"
+
+    mutation = mutate_workgraph_topology("tenant-01", "CAP-001", 3)
+    assert len(mutation["introduced_nodes"]) == 2
+    assert len(mutation["introduced_edges"]) == 2
+
+    # Evidence tools
+    citations = retrieve_evidence_citations(["EVD-SOP-01", "EVD-STRAT-01"])
+    assert len(citations) == 2
+    assert citations[0]["sha256_verified"] is True
+
+    verif_ok = verify_claim_groundedness(["Claim 1"], ["EVD-SOP-01"])
+    assert verif_ok["is_grounded"] is True
+    assert verif_ok["hallucination_rate"] == 0.0
+
+    verif_unsupported = verify_claim_groundedness(["Speculative assertion"], [])
+    assert verif_unsupported["is_grounded"] is False
+    assert verif_unsupported["hallucination_rate"] == 1.0
+
+    # Scoring tools
+    rri_high = calculate_deterministic_rri(horizon_years=5, automation_pct=20.0)
+    assert 50.0 <= rri_high <= 100.0
+    rri_clamped = calculate_deterministic_rri(horizon_years=1, automation_pct=95.0)
+    assert rri_clamped >= 10.0
+
+    roi = calculate_finops_roi(annual_savings_usd=100000.0, token_cost_usd=500.0)
+    assert roi["net_ebitda_impact_usd"] == 99500.0
+    assert roi["roi_multiple"] > 0
+
+    # Governance tools
+    assert detect_adverse_employment_actions("fire all frontline staff") is True
+    assert detect_adverse_employment_actions("assist staff with edge cameras") is False
+
+    saif_clean = audit_saif_controls("assist staff", "A1_RECOMMENDATION")
+    assert saif_clean["saif_audit_verdict"] == "PASSED_SAIF_CONTROLS"
+
+    saif_blocked = audit_saif_controls("terminate all", "A4_DISALLOWED")
+    assert saif_blocked["saif_audit_verdict"] == "REJECTED_A4_BREACH"
+    assert saif_blocked["anti_jailbreak_check"] == "TRIPPED"
 
 
 def test_services_agent_swarm_reexport():
@@ -195,3 +301,16 @@ def test_services_agent_swarm_reexport():
 
     assert SwarmOrchestrator is not None
     assert swarm_orchestrator is not None
+
+
+def test_subagents_backward_compatibility_modules():
+    """Verify legacy subagent module paths directly import and expose aliases."""
+    import app.agents.subagents.finops_evaluator as mod_finops
+    import app.agents.subagents.governance_critic as mod_gov
+    import app.agents.subagents.skill_gap_analyst as mod_skill
+    import app.agents.subagents.task_decomposer as mod_task
+
+    assert mod_finops.FinOpsEvaluatorAgent is not None
+    assert mod_gov.GovernanceCriticAgent is not None
+    assert mod_skill.SkillGapAnalystAgent is not None
+    assert mod_task.TaskDecomposerAgent is not None
