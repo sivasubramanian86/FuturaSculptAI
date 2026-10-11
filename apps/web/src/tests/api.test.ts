@@ -595,5 +595,108 @@ describe('ApiClient', () => {
       'Failed to submit task approval decision: Bad Request'
     );
   });
+
+  it('fetches workforce opportunity metrics with defaults and custom params', async () => {
+    const mockMetrics = {
+      tenant_id: 'tenant-food-mfg-01',
+      cohort_size: 25,
+      k_anonymity_passed: true,
+      pathways: [],
+    };
+
+    // Default params
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockMetrics,
+    } as Response);
+
+    const res1 = await client.getOpportunityMetrics();
+    expect(res1).toEqual(mockMetrics);
+
+    // Custom params
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockMetrics,
+    } as Response);
+
+    const res2 = await client.getOpportunityMetrics(8, 'ROL-002');
+    expect(res2).toEqual(mockMetrics);
+
+    // Failure
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: false,
+      statusText: 'Service Unavailable',
+    } as Response);
+
+    await expect(client.getOpportunityMetrics()).rejects.toThrow(
+      'Failed to load workforce opportunity metrics: Service Unavailable'
+    );
+  });
+
+  it('fetches role transition pathways and handles failure', async () => {
+    const mockPathways = [{ pathway_id: 'PTH-001', source_role_id: 'ROL-001' }];
+
+    // Default params
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockPathways,
+    } as Response);
+
+    const res1 = await client.getTransitionPathways();
+    expect(res1).toEqual(mockPathways);
+
+    // Custom roleId
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockPathways,
+    } as Response);
+
+    const res2 = await client.getTransitionPathways('ROL-003');
+    expect(res2).toEqual(mockPathways);
+
+    // Failure
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: false,
+      statusText: 'Not Found',
+    } as Response);
+
+    await expect(client.getTransitionPathways()).rejects.toThrow(
+      'Failed to load role transition pathways: Not Found'
+    );
+  });
+
+  it('submits pathway appeal and handles failure', async () => {
+    const mockAppeal = {
+      appeal_id: 'APL-12345678',
+      pathway_id: 'PTH-001',
+      appellant_id: 'EMP-101',
+      status: 'PENDING_AUDIT_REVIEW',
+    };
+    const payload = {
+      pathway_id: 'PTH-001',
+      contested_skill: 'Vision Tuning',
+      rationale: 'Prior 5-year certification.',
+      appellant_id: 'EMP-101',
+    };
+
+    // Success
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockAppeal,
+    } as Response);
+
+    const res = await client.submitPathwayAppeal(payload);
+    expect(res).toEqual(mockAppeal);
+
+    // Failure
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: false,
+      statusText: 'Bad Request',
+    } as Response);
+
+    await expect(client.submitPathwayAppeal(payload)).rejects.toThrow(
+      'Failed to submit pathway appeal: Bad Request'
+    );
+  });
 });
 

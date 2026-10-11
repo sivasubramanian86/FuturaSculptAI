@@ -123,6 +123,112 @@ describe('App Component', () => {
     ],
   };
 
+  const mockOpportunityMetrics = {
+    tenant_id: 'tenant-food-mfg-01',
+    role_resilience: {
+      role_id: 'ROL-001',
+      role_name: 'Packaging Quality Inspector',
+      score: 82.5,
+      tier: 'HIGH_RESILIENCE',
+      formula_version: '2026.1-rri',
+      components: [
+        {
+          name: 'Non-routine Judgment',
+          weight: 0.35,
+          raw_value: 85,
+          weighted_value: 29.75,
+          rationale: 'Visual testing',
+          evidence_ids: ['EV-001'],
+        },
+      ],
+      recommended_pathway: 'Edge AI Systems Operator',
+      calculated_at: '2026-03-01T10:00:00Z',
+    },
+    transition_readiness: [
+      {
+        from_role_id: 'ROL-001',
+        to_role_id: 'ROL-EMG-01',
+        score: 77.0,
+        shared_skills_pct: 70.0,
+        critical_gap_pct: 15.0,
+        learning_velocity_pct: 80.0,
+        feasibility_tier: 'HIGH_FEASIBILITY',
+        formula_version: '2026.1-trs',
+        components: [],
+        evidence_ids: ['EV-001'],
+        calculated_at: '2026-03-01T10:00:00Z',
+      },
+    ],
+    workforce_adaptability: {
+      tenant_id: 'tenant-food-mfg-01',
+      score: 81.25,
+      learning_velocity_pct: 85.0,
+      tech_absorption_pct: 80.0,
+      skill_mobility_rate_pct: 75.0,
+      culture_readiness_pct: 85.0,
+      adaptability_tier: 'HIGH_ADAPTABILITY',
+      cohort_size: 25,
+      k_anonymity_passed: true,
+      formula_version: '2026.1-wai',
+      components: [],
+      evidence_ids: ['EV-001'],
+      calculated_at: '2026-03-01T10:00:00Z',
+    },
+    human_opportunity_score: {
+      tenant_id: 'tenant-food-mfg-01',
+      score: 71.43,
+      new_roles_count: 3,
+      augmented_tasks_count: 8,
+      automated_tasks_count: 2,
+      sentiment_tier: 'NET_POSITIVE_TRANSFORMATION',
+      formula_version: '2026.1-hos',
+      evidence_ids: ['EV-001'],
+      calculated_at: '2026-03-01T10:00:00Z',
+    },
+    cohort_size: 25,
+    k_anonymity_passed: true,
+    pathways: [
+      {
+        pathway_id: 'PTH-001',
+        tenant_id: 'tenant-food-mfg-01',
+        source_role_id: 'ROL-001',
+        source_role_name: 'Packaging Quality Inspector',
+        target_role_id: 'ROL-EMG-01',
+        target_role_name: 'Edge AI Systems Operator',
+        transition_readiness: {
+          from_role_id: 'ROL-001',
+          to_role_id: 'ROL-EMG-01',
+          score: 77.0,
+          shared_skills_pct: 70.0,
+          critical_gap_pct: 15.0,
+          learning_velocity_pct: 80.0,
+          feasibility_tier: 'HIGH_FEASIBILITY',
+          formula_version: '2026.1-trs',
+          components: [],
+          evidence_ids: ['EV-001'],
+          calculated_at: '2026-03-01T10:00:00Z',
+        },
+        skill_overlap_pct: 70.0,
+        skill_gaps: ['Edge ML Telemetry'],
+        curriculum: [
+          {
+            module_id: 'MOD-01',
+            title: 'Industrial Computer Vision',
+            duration_weeks: 4,
+            skill_gaps_addressed: ['Edge ML Telemetry'],
+            delivery_format: 'HYBRID',
+            certification: 'Level 1 Certified',
+          },
+        ],
+        estimated_duration_weeks: 12,
+        wage_impact_pct: 18.5,
+        status: 'ACTIVE',
+        evidence_ids: ['EV-001'],
+        created_at: '2026-03-01T10:00:00Z',
+      },
+    ],
+  };
+
   beforeEach(() => {
     vi.spyOn(api, 'getWorkGraph').mockResolvedValue(mockWorkGraph as any);
     vi.spyOn(api, 'getScenarios').mockResolvedValue(mockScenarios as any);
@@ -130,6 +236,7 @@ describe('App Component', () => {
     vi.spyOn(api, 'getRoleResilience').mockResolvedValue(mockRoleResilience as any);
     vi.spyOn(api, 'getEvidenceLedger').mockResolvedValue(mockEvidenceLedger as any);
     vi.spyOn(api, 'getTaskMatrix').mockResolvedValue(mockTaskMatrix as any);
+    vi.spyOn(api, 'getOpportunityMetrics').mockResolvedValue(mockOpportunityMetrics as any);
   });
 
   afterEach(() => {

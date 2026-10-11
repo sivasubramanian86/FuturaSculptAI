@@ -12,6 +12,10 @@ import {
   OnboardingPayload,
   RoleResilienceResult,
   ScenarioComparisonResponse,
+  OpportunityMetricsResponse,
+  PathwayAppealRequest,
+  PathwayAppealResponse,
+  RoleTransitionPathway,
   ScenarioSimulationRequest,
   ScenarioSimulationResponse,
   SwarmRunRequest,
@@ -285,6 +289,51 @@ export class ApiClient {
     });
     if (!res.ok) {
       throw new Error(`Failed to submit task approval decision: ${res.statusText}`);
+    }
+    return res.json();
+  }
+
+  async getOpportunityMetrics(
+    cohortSize: number = 25,
+    roleId: string = 'ROL-001'
+  ): Promise<OpportunityMetricsResponse> {
+    const res = await fetch(
+      `${API_BASE}/opportunity/metrics?cohort_size=${cohortSize}&role_id=${encodeURIComponent(roleId)}`,
+      {
+        headers: this.getHeaders(),
+      }
+    );
+    if (!res.ok) {
+      throw new Error(`Failed to load workforce opportunity metrics: ${res.statusText}`);
+    }
+    return res.json();
+  }
+
+  async getTransitionPathways(
+    roleId: string = 'ROL-001'
+  ): Promise<RoleTransitionPathway[]> {
+    const res = await fetch(
+      `${API_BASE}/opportunity/pathways?role_id=${encodeURIComponent(roleId)}`,
+      {
+        headers: this.getHeaders(),
+      }
+    );
+    if (!res.ok) {
+      throw new Error(`Failed to load role transition pathways: ${res.statusText}`);
+    }
+    return res.json();
+  }
+
+  async submitPathwayAppeal(
+    payload: PathwayAppealRequest
+  ): Promise<PathwayAppealResponse> {
+    const res = await fetch(`${API_BASE}/opportunity/appeal`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      throw new Error(`Failed to submit pathway appeal: ${res.statusText}`);
     }
     return res.json();
   }

@@ -15,6 +15,7 @@ from app.routers import (
     evidence,
     health,
     onboarding,
+    opportunity,
     scenarios,
     scoring,
     tasks,
@@ -125,6 +126,7 @@ app.include_router(evidence.router)
 app.include_router(scoring.router)
 app.include_router(agents.router)
 app.include_router(tasks.router)
+app.include_router(opportunity.router)
 
 
 @app.get("/", tags=["Root"])

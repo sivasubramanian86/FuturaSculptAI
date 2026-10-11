@@ -367,3 +367,119 @@ export interface TaskApprovalResponse {
   approval_notes?: string | null;
   task: TaskRedesignItem;
 }
+
+export type FeasibilityTier = 'HIGH_FEASIBILITY' | 'MODERATE_FEASIBILITY' | 'HIGH_EFFORT';
+export type AdaptabilityTier = 'ELITE_AGILITY' | 'ADAPTIVE' | 'TRANSITIONING' | 'RESISTANT';
+export type OpportunitySentimentTier = 'HIGHLY_EMPOWERING' | 'BALANCED' | 'DISPLACEMENT_RISK';
+
+export interface TransitionReadinessScore {
+  source_role_id: string;
+  target_role_id: string;
+  score: number;
+  shared_skills_pct: number;
+  critical_gap_pct: number;
+  learning_velocity_pct: number;
+  feasibility_tier: FeasibilityTier;
+  formula_version: string;
+  components: {
+    name: string;
+    weight: number;
+    raw_value: number;
+    weighted_value: number;
+    rationale: string;
+    evidence_ids: string[];
+  }[];
+  evidence_ids: string[];
+  calculated_at: string;
+}
+
+export interface WorkforceAdaptabilityIndex {
+  tenant_id: string;
+  score: number;
+  learning_velocity_pct: number;
+  tech_absorption_pct: number;
+  skill_mobility_rate_pct: number;
+  culture_readiness_pct: number;
+  adaptability_tier: AdaptabilityTier;
+  cohort_size: number;
+  k_anonymity_passed: boolean;
+  privacy_notice?: string | null;
+  formula_version: string;
+  components: {
+    name: string;
+    weight: number;
+    raw_value: number;
+    weighted_value: number;
+    rationale: string;
+    evidence_ids: string[];
+  }[];
+  evidence_ids: string[];
+  calculated_at: string;
+}
+
+export interface HumanOpportunityScore {
+  tenant_id: string;
+  score: number;
+  new_roles_count: number;
+  augmented_tasks_count: number;
+  automated_tasks_count: number;
+  sentiment_tier: OpportunitySentimentTier;
+  formula_version: string;
+  evidence_ids: string[];
+  calculated_at: string;
+}
+
+export interface ReskillingModule {
+  module_id: string;
+  title: string;
+  duration_weeks: number;
+  skill_gaps_addressed: string[];
+  delivery_format: string;
+  certification: string;
+}
+
+export interface RoleTransitionPathway {
+  pathway_id: string;
+  tenant_id: string;
+  source_role_id: string;
+  source_role_name: string;
+  target_role_id: string;
+  target_role_name: string;
+  transition_readiness: TransitionReadinessScore;
+  skill_overlap_pct: number;
+  skill_gaps: string[];
+  curriculum: ReskillingModule[];
+  estimated_duration_weeks: number;
+  wage_impact_pct: number;
+  status: string;
+  evidence_ids: string[];
+  created_at: string;
+}
+
+export interface PathwayAppealRequest {
+  pathway_id: string;
+  contested_skill: string;
+  rationale: string;
+  supporting_evidence_uri?: string | null;
+  appellant_id: string;
+}
+
+export interface PathwayAppealResponse {
+  appeal_id: string;
+  pathway_id: string;
+  appellant_id: string;
+  status: string;
+  received_at: string;
+  notice: string;
+}
+
+export interface OpportunityMetricsResponse {
+  tenant_id: string;
+  role_resilience: RoleResilienceResult;
+  transition_readiness: TransitionReadinessScore[];
+  workforce_adaptability: WorkforceAdaptabilityIndex;
+  human_opportunity_score: HumanOpportunityScore;
+  cohort_size: number;
+  k_anonymity_passed: boolean;
+  pathways: RoleTransitionPathway[];
+}

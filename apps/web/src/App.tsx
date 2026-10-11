@@ -14,6 +14,7 @@ import { EvidenceDrawer } from './components/EvidenceDrawer';
 import { OnboardingModal } from './components/OnboardingModal';
 import { AgentSwarmConsole } from './components/AgentSwarmConsole';
 import { TaskSculptor } from './components/TaskSculptor';
+import { OpportunityEngine } from './components/OpportunityEngine';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { api } from './services/api';
 import {
@@ -179,8 +180,10 @@ export const App: React.FC = () => {
                 </div>
               </div>
 
-              {/* Bottom Sections: Task Redesign Sculptor, Multi-Agent Swarm Console & Evidence Ledger */}
+              {/* Bottom Sections: Task Redesign Sculptor, Opportunity Engine, Multi-Agent Swarm Console & Evidence Ledger */}
               <TaskSculptor />
+
+              <OpportunityEngine />
 
               <AgentSwarmConsole />
 
