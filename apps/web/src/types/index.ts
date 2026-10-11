@@ -291,3 +291,79 @@ export interface SwarmRunResponse {
   started_at: string;
   completed_at: string;
 }
+
+export type TaskClassificationCategory =
+  | 'RETAIN'
+  | 'ASSIST'
+  | 'AUGMENT'
+  | 'AUTOMATE'
+  | 'REDESIGN'
+  | 'RETIRE';
+
+export type TaskRedesignStatus =
+  | 'DRAFT'
+  | 'SUBMITTED_FOR_REVIEW'
+  | 'APPROVED'
+  | 'REJECTED';
+
+export interface TaskRedesignItem {
+  task_id: string;
+  tenant_id: string;
+  workflow_id: string;
+  task_name: string;
+  role_id: string;
+  role_name: string;
+  classification: TaskClassificationCategory;
+  rationale: string;
+  target_agent_id?: string | null;
+  target_system?: string | null;
+  baseline_cycle_time_seconds: number;
+  target_cycle_time_seconds: number;
+  cycle_time_reduction_pct: number;
+  human_share_pct: number;
+  agent_share_pct: number;
+  status: TaskRedesignStatus;
+  approved_by?: string | null;
+  approval_timestamp?: string | null;
+  approval_notes?: string | null;
+  evidence_ids: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TaskMatrixResponse {
+  tenant_id: string;
+  workflow_id: string;
+  workflow_name: string;
+  total_tasks: number;
+  classification_summary: Record<string, number>;
+  overall_human_share_pct: number;
+  overall_agent_share_pct: number;
+  overall_cycle_time_reduction_pct: number;
+  tasks: TaskRedesignItem[];
+}
+
+export interface TaskRedesignUpdateRequest {
+  classification?: TaskClassificationCategory;
+  rationale?: string;
+  target_agent_id?: string | null;
+  target_system?: string | null;
+  target_cycle_time_seconds?: number;
+  human_share_pct?: number;
+  agent_share_pct?: number;
+}
+
+export interface TaskApprovalRequest {
+  approver_id: string;
+  decision: 'APPROVED' | 'REJECTED';
+  notes?: string;
+}
+
+export interface TaskApprovalResponse {
+  task_id: string;
+  status: TaskRedesignStatus;
+  approved_by: string;
+  approval_timestamp: string;
+  approval_notes?: string | null;
+  task: TaskRedesignItem;
+}

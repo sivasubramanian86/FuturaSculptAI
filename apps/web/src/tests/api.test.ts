@@ -490,5 +490,110 @@ describe('ApiClient', () => {
       'Failed to simulate scenario: Bad Request'
     );
   });
+
+  it('fetches task matrix with and without workflowId and handles failure', async () => {
+    const mockMatrix = { total_tasks: 6, tasks: [] };
+
+    // Without workflowId
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockMatrix,
+    } as Response);
+
+    const res1 = await client.getTaskMatrix();
+    expect(res1).toEqual(mockMatrix);
+
+    // With workflowId
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockMatrix,
+    } as Response);
+
+    const res2 = await client.getTaskMatrix('WKF-001');
+    expect(res2).toEqual(mockMatrix);
+
+    // Failure
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: false,
+      statusText: 'Service Unavailable',
+    } as Response);
+
+    await expect(client.getTaskMatrix()).rejects.toThrow(
+      'Failed to load task matrix: Service Unavailable'
+    );
+  });
+
+  it('fetches task redesign item by id and handles failure', async () => {
+    const mockItem = { task_id: 'TSK-001', classification: 'AUTOMATE' };
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockItem,
+    } as Response);
+
+    const res = await client.getTaskById('TSK-001');
+    expect(res).toEqual(mockItem);
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: false,
+      statusText: 'Not Found',
+    } as Response);
+
+    await expect(client.getTaskById('TSK-999')).rejects.toThrow(
+      'Failed to load task redesign item: Not Found'
+    );
+  });
+
+  it('updates task redesign item and handles failure', async () => {
+    const mockUpdated = { task_id: 'TSK-001', classification: 'REDESIGN' };
+    const payload = { classification: 'REDESIGN' as const, rationale: 'Restructured' };
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockUpdated,
+    } as Response);
+
+    const res = await client.updateTask('TSK-001', payload);
+    expect(res).toEqual(mockUpdated);
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: false,
+      statusText: 'Internal Error',
+    } as Response);
+
+    await expect(client.updateTask('TSK-001', payload)).rejects.toThrow(
+      'Failed to update task redesign item: Internal Error'
+    );
+  });
+
+  it('submits task approval decision and handles failure', async () => {
+    const mockApproval = {
+      task_id: 'TSK-001',
+      status: 'APPROVED' as const,
+      approved_by: 'Lead Architect',
+    };
+    const payload = {
+      approver_id: 'Lead Architect',
+      decision: 'APPROVED' as const,
+      notes: 'Sign-off complete',
+    };
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockApproval,
+    } as Response);
+
+    const res = await client.approveTask('TSK-001', payload);
+    expect(res).toEqual(mockApproval);
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: false,
+      statusText: 'Bad Request',
+    } as Response);
+
+    await expect(client.approveTask('TSK-001', payload)).rejects.toThrow(
+      'Failed to submit task approval decision: Bad Request'
+    );
+  });
 });
 

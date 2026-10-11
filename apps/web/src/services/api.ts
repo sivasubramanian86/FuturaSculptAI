@@ -16,6 +16,11 @@ import {
   ScenarioSimulationResponse,
   SwarmRunRequest,
   SwarmRunResponse,
+  TaskApprovalRequest,
+  TaskApprovalResponse,
+  TaskMatrixResponse,
+  TaskRedesignItem,
+  TaskRedesignUpdateRequest,
   TemporalGraphResponse,
   TrustScoreResult,
   WorkGraphResponse,
@@ -227,6 +232,59 @@ export class ApiClient {
     });
     if (!res.ok) {
       throw new Error(`Failed to retrieve swarm run: ${res.statusText}`);
+    }
+    return res.json();
+  }
+
+  async getTaskMatrix(workflowId?: string): Promise<TaskMatrixResponse> {
+    const url = workflowId
+      ? `${API_BASE}/tasks/matrix?workflow_id=${encodeURIComponent(workflowId)}`
+      : `${API_BASE}/tasks/matrix`;
+    const res = await fetch(url, {
+      headers: this.getHeaders(),
+    });
+    if (!res.ok) {
+      throw new Error(`Failed to load task matrix: ${res.statusText}`);
+    }
+    return res.json();
+  }
+
+  async getTaskById(taskId: string): Promise<TaskRedesignItem> {
+    const res = await fetch(`${API_BASE}/tasks/${encodeURIComponent(taskId)}`, {
+      headers: this.getHeaders(),
+    });
+    if (!res.ok) {
+      throw new Error(`Failed to load task redesign item: ${res.statusText}`);
+    }
+    return res.json();
+  }
+
+  async updateTask(
+    taskId: string,
+    payload: TaskRedesignUpdateRequest
+  ): Promise<TaskRedesignItem> {
+    const res = await fetch(`${API_BASE}/tasks/${encodeURIComponent(taskId)}`, {
+      method: 'PATCH',
+      headers: this.getHeaders(),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      throw new Error(`Failed to update task redesign item: ${res.statusText}`);
+    }
+    return res.json();
+  }
+
+  async approveTask(
+    taskId: string,
+    payload: TaskApprovalRequest
+  ): Promise<TaskApprovalResponse> {
+    const res = await fetch(`${API_BASE}/tasks/${encodeURIComponent(taskId)}/approval`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      throw new Error(`Failed to submit task approval decision: ${res.statusText}`);
     }
     return res.json();
   }

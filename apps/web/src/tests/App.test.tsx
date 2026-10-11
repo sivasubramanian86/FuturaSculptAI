@@ -86,12 +86,50 @@ describe('App Component', () => {
     },
   ];
 
+  const mockTaskMatrix = {
+    tenant_id: 'tenant-food-mfg-01',
+    workflow_id: 'WKF-001',
+    workflow_name: 'High-Speed Packaging Line Quality Inspection',
+    total_tasks: 1,
+    classification_summary: { AUTOMATE: 1 },
+    overall_human_share_pct: 0.0,
+    overall_agent_share_pct: 100.0,
+    overall_cycle_time_reduction_pct: 93.3,
+    tasks: [
+      {
+        task_id: 'TSK-001',
+        tenant_id: 'tenant-food-mfg-01',
+        workflow_id: 'WKF-001',
+        task_name: 'Continuous Surface Defect Screening',
+        role_id: 'ROL-001',
+        role_name: 'Packaging Quality Inspector',
+        classification: 'AUTOMATE',
+        rationale: 'Repetitive high-frequency visual inspection.',
+        target_agent_id: 'PackagingVisionAgent',
+        target_system: 'Edge-TPU Vision Pipeline',
+        baseline_cycle_time_seconds: 45.0,
+        target_cycle_time_seconds: 3.0,
+        cycle_time_reduction_pct: 93.3,
+        human_share_pct: 0.0,
+        agent_share_pct: 100.0,
+        status: 'DRAFT',
+        approved_by: null,
+        approval_timestamp: null,
+        approval_notes: null,
+        evidence_ids: ['EV-001'],
+        created_at: '2026-03-01T10:00:00Z',
+        updated_at: '2026-03-01T10:00:00Z',
+      },
+    ],
+  };
+
   beforeEach(() => {
     vi.spyOn(api, 'getWorkGraph').mockResolvedValue(mockWorkGraph as any);
     vi.spyOn(api, 'getScenarios').mockResolvedValue(mockScenarios as any);
     vi.spyOn(api, 'getTrustBoard').mockResolvedValue(mockTrustBoard as any);
     vi.spyOn(api, 'getRoleResilience').mockResolvedValue(mockRoleResilience as any);
     vi.spyOn(api, 'getEvidenceLedger').mockResolvedValue(mockEvidenceLedger as any);
+    vi.spyOn(api, 'getTaskMatrix').mockResolvedValue(mockTaskMatrix as any);
   });
 
   afterEach(() => {
