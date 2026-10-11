@@ -57,6 +57,20 @@ flowchart TD
     GoogleCloud -.-> CorePlatform
 ```
 
+![FuturaSculptAI System Architecture](docs/assets/diagrams/system-architecture.jpg)
+
+### End-to-End User Journey & Transformation Workflow
+
+![FuturaSculptAI User Journey and Transformation Flow](docs/assets/diagrams/user-journey-flow.jpg)
+
+### Google Cloud Infrastructure & Service Topology
+
+![Google Cloud Platform Infrastructure](docs/assets/diagrams/gcp-infrastructure.jpg)
+
+### Domain Entities & Class Architecture
+
+![Domain Class & Entity Diagram](docs/assets/diagrams/class-domain-entities.jpg)
+
 ---
 
 ## 2. C4 Architecture Level Breakdown

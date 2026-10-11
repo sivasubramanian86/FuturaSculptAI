@@ -74,6 +74,8 @@ docker compose up --build
 
 ## 🏗️ System Architecture & Data Flow
 
+![FuturaSculptAI System Architecture](docs/assets/diagrams/system-architecture.jpg)
+
 ```mermaid
 graph TB
     subgraph Client["Presentation Layer (Executive Cockpit)"]
@@ -117,6 +119,18 @@ graph TB
     Score --> BQ
     SecMgr -.->|Runtime Credentials| API
 ```
+
+### 🔄 End-to-End User Journey & Transformation Workflow
+
+![FuturaSculptAI User Journey and Transformation Flow](docs/assets/diagrams/user-journey-flow.jpg)
+
+### ☁️ Google Cloud Enterprise Infrastructure
+
+![Google Cloud Platform Infrastructure](docs/assets/diagrams/gcp-infrastructure.jpg)
+
+### 📐 Domain Entities & Class Architecture
+
+![Domain Class & Entity Diagram](docs/assets/diagrams/class-domain-entities.jpg)
 
 ---
 

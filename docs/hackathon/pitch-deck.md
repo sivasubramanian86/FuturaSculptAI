@@ -49,6 +49,7 @@
 ### Visual Layout
 - Closed Control Loop Diagram:
   $$\textbf{Sense} \longrightarrow \textbf{Model} \longrightarrow \textbf{Simulate} \longrightarrow \textbf{Sculpt} \longrightarrow \textbf{Govern} \longrightarrow \textbf{Learn}$$
+- **Visual Artifact:** ![FuturaSculptAI User Journey](file:///d:/Siva/Books/CAREER/HACKATHON/FuturaSculptAI/docs/assets/diagrams/user-journey-flow.jpg)
 - 3 Pillar Pillars:
   1. **Grounding:** Multimodal ingestion locks sensor logs and video streams into SHA-256 cryptographically sealed Evidence Envelopes.
   2. **Orchestration:** Google ADK Multi-Agent Swarm with 9 specialized agents deliberates redesign trajectories under A0-A4 bounded autonomy.
@@ -77,11 +78,12 @@
 ## Slide 5: System Architecture & Google Cloud Integration
 
 ### Visual Layout
-- Architectural C4 Diagram:
-  - **Presentation Layer:** React 18 + Vite + TypeScript (WCAG 2.1 AA Accessible Glassmorphic Cockpit).
-  - **Application Gateway:** FastAPI on Google Cloud Run v2 (Multi-stage container, non-root user).
-  - **Intelligence Mesh:** Google ADK Specialist Swarm + Vertex AI Dynamic Model Gateway (Gemini 2.5 Flash, Pro, Thinking) + Context Caching.
-  - **Data & Governance:** BigQuery (Temporal graph & outcome ledger), Cloud Storage (Evidence Envelopes), Cloud DLP ($k \ge 10$ redaction), Secret Manager.
+- **Architectural Diagram:** ![FuturaSculptAI Architecture](file:///d:/Siva/Books/CAREER/HACKATHON/FuturaSculptAI/docs/assets/diagrams/system-architecture.jpg)
+- **Infrastructure Topology:** ![Google Cloud Infrastructure](file:///d:/Siva/Books/CAREER/HACKATHON/FuturaSculptAI/docs/assets/diagrams/gcp-infrastructure.jpg)
+- **Presentation Layer:** React 18 + Vite + TypeScript (WCAG 2.1 AA Accessible Glassmorphic Cockpit).
+- **Application Gateway:** FastAPI on Google Cloud Run v2 (Multi-stage container, non-root user).
+- **Intelligence Mesh:** Google ADK Specialist Swarm + Vertex AI Dynamic Model Gateway (Gemini 2.5 Flash, Pro, Thinking) + Context Caching.
+- **Data & Governance:** BigQuery (Temporal graph & outcome ledger), Cloud Storage (Evidence Envelopes), Cloud DLP ($k \ge 10$ redaction), Secret Manager.
 
 ### Speaker Notes
 > "Our architecture is 100% native Google Cloud. Cloud Run v2 provides serverless scale-to-zero compute. Vertex AI powers our dynamic model gateway, routing 80% of routine traffic to Gemini 2.5 Flash and reserving Pro and Thinking for adversarial review. Vertex context caching yields a 67.5% token discount, delivering enterprise intelligence at less than $150 per month."
