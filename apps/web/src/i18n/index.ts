@@ -8,6 +8,11 @@ import { ta } from './locales/ta';
 import { hi } from './locales/hi';
 import { es } from './locales/es';
 import { ja } from './locales/ja';
+import { te } from './locales/te';
+import { ml } from './locales/ml';
+import { kn } from './locales/kn';
+import { fr } from './locales/fr';
+import { de } from './locales/de';
 
 export type LanguageCode =
   | 'en'
@@ -36,16 +41,16 @@ export const SUPPORTED_LANGUAGES: SupportedLanguage[] = [
   { code: 'en', name: 'English (Global)', flag: '🌐' },
   { code: 'ta', name: 'தமிழ் (Tamil)', flag: '🇮🇳' },
   { code: 'hi', name: 'हिन्दी (Hindi)', flag: '🇮🇳' },
-  { code: 'es', name: 'Español (Spanish)', flag: '🇪🇸' },
-  { code: 'ja', name: '日本語 (Japanese)', flag: '🇯🇵' },
-  { code: 'fr', name: 'Français (French)', flag: '🇫🇷' },
-  { code: 'de', name: 'Deutsch (German)', flag: '🇩🇪' },
-  { code: 'zh', name: '简体中文 (Mandarin)', flag: '🇨🇳' },
-  { code: 'ar', name: 'العربية (Arabic)', flag: '🇦🇪', dir: 'rtl' },
-  { code: 'pt', name: 'Português (Portuguese)', flag: '🇧🇷' },
   { code: 'te', name: 'తెలుగు (Telugu)', flag: '🇮🇳' },
   { code: 'ml', name: 'മലയാളം (Malayalam)', flag: '🇮🇳' },
   { code: 'kn', name: 'ಕನ್ನಡ (Kannada)', flag: '🇮🇳' },
+  { code: 'es', name: 'Español (Spanish)', flag: '🇪🇸' },
+  { code: 'fr', name: 'Français (French)', flag: '🇫🇷' },
+  { code: 'de', name: 'Deutsch (German)', flag: '🇩🇪' },
+  { code: 'ja', name: '日本語 (Japanese)', flag: '🇯🇵' },
+  { code: 'zh', name: '简体中文 (Mandarin)', flag: '🇨🇳' },
+  { code: 'ar', name: 'العربية (Arabic)', flag: '🇦🇪', dir: 'rtl' },
+  { code: 'pt', name: 'Português (Portuguese)', flag: '🇧🇷' },
   { code: 'ko', name: '한국어 (Korean)', flag: '🇰🇷' },
 ];
 
@@ -53,7 +58,12 @@ const LOCALES_REGISTRY: Record<string, TranslationKeys> = {
   en,
   ta,
   hi,
+  te,
+  ml,
+  kn,
   es,
+  fr,
+  de,
   ja,
 };
 

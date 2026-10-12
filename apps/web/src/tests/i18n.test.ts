@@ -25,6 +25,26 @@ describe('Internationalization (i18n) Engine', () => {
     const jaDict = getTranslations('ja');
     expect(jaDict.navOverview).toBe('概要');
     expect(jaDict.pillarZeroLayoffTitle).toBe('解雇ゼロの保護原則');
+
+    const teDict = getTranslations('te');
+    expect(teDict.navOverview).toBe('అవలోకనం');
+    expect(teDict.pillarZeroLayoffTitle).toBe('జీరో తొలగింపు రక్షణ');
+
+    const mlDict = getTranslations('ml');
+    expect(mlDict.navOverview).toBe('അവലോകനം');
+    expect(mlDict.pillarZeroLayoffTitle).toBe('പിരിച്ചുവിടൽ രഹിത സുരക്ഷ');
+
+    const knDict = getTranslations('kn');
+    expect(knDict.navOverview).toBe('ಅವಲೋಕನ');
+    expect(knDict.pillarZeroLayoffTitle).toBe('ಶೂನ್ಯ ಉದ್ಯೋಗ ಕಡಿತ ರಕ್ಷಣೆ');
+
+    const frDict = getTranslations('fr');
+    expect(frDict.navOverview).toBe("Vue d'Ensemble");
+    expect(frDict.pillarZeroLayoffTitle).toBe('Protection Zéro Licenciement');
+
+    const deDict = getTranslations('de');
+    expect(deDict.navOverview).toBe('Übersicht');
+    expect(deDict.pillarZeroLayoffTitle).toBe('Kündigungsschutz-Garantie');
   });
 
   it('falls back gracefully to English for unregistered languages', () => {

@@ -47,4 +47,14 @@ describe('CitizenOverview Component', () => {
     fireEvent.click(screen.getByText(i18n.quickActionSwarmDesc));
     expect(onNav).toHaveBeenCalledWith('agent_swarm');
   });
+
+  it('triggers onOpenTour callback when One-Click Guided Tour button is clicked', () => {
+    const onOpenTour = vi.fn();
+    render(<CitizenOverview i18n={i18n} onNavigateTab={vi.fn()} onOpenTour={onOpenTour} />);
+
+    const tourBtn = screen.getByRole('button', { name: /One-Click Guided Tour/i });
+    expect(tourBtn).toBeInTheDocument();
+    fireEvent.click(tourBtn);
+    expect(onOpenTour).toHaveBeenCalledTimes(1);
+  });
 });

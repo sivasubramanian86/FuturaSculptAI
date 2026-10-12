@@ -7,6 +7,7 @@ interface CitizenOverviewProps {
   trustScore?: number;
   taskCount?: number;
   resilienceScore?: number;
+  onOpenTour?: () => void;
 }
 
 export const CitizenOverview: React.FC<CitizenOverviewProps> = ({
@@ -15,6 +16,7 @@ export const CitizenOverview: React.FC<CitizenOverviewProps> = ({
   trustScore = 94.3,
   taskCount = 18,
   resilienceScore = 78.4,
+  onOpenTour,
 }) => {
   return (
     <div className="citizen-overview-container" style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
@@ -67,6 +69,26 @@ export const CitizenOverview: React.FC<CitizenOverviewProps> = ({
               <span>🧬</span>
               <span>{i18n.quickActionSculptTitle}</span>
             </button>
+            {onOpenTour && (
+              <button
+                type="button"
+                onClick={onOpenTour}
+                className="btn-secondary"
+                style={{
+                  padding: '10px 22px',
+                  fontSize: '14px',
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  borderColor: 'var(--accent-cyan)',
+                  color: '#fff',
+                }}
+              >
+                <span>✨</span>
+                <span>One-Click Guided Tour</span>
+              </button>
+            )}
             <button
               type="button"
               onClick={() => onNavigateTab('opportunity')}

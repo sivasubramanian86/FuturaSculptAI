@@ -13,6 +13,7 @@ import { ScenarioCard } from './components/ScenarioCard';
 import { TrustScoreCard } from './components/TrustScoreCard';
 import { EvidenceDrawer } from './components/EvidenceDrawer';
 import { OnboardingModal } from './components/OnboardingModal';
+import { GuidedTourModal } from './components/GuidedTourModal';
 import { AgentSwarmConsole } from './components/AgentSwarmConsole';
 import { TaskSculptor } from './components/TaskSculptor';
 import { OpportunityEngine } from './components/OpportunityEngine';
@@ -42,6 +43,7 @@ export const App: React.FC = () => {
   const [currentLanguage, setCurrentLanguage] = useState<LanguageCode>('en');
   const [isCitizenMode, setIsCitizenMode] = useState<boolean>(true);
   const [currentRole, setCurrentRole] = useState<UserRole>('citizen_worker');
+  const [isTourOpen, setIsTourOpen] = useState<boolean>(false);
 
   const [nodes, setNodes] = useState<WorkGraphNode[]>([]);
   const [edges, setEdges] = useState<WorkGraphEdge[]>([]);
@@ -150,6 +152,8 @@ export const App: React.FC = () => {
         i18n={i18n}
         currentRole={currentRole}
         onSelectRole={handleSelectRole}
+        onOpenTour={() => setIsTourOpen(true)}
+        onSelectSector={(newSector) => setSector(newSector)}
       >
         {statusMessage && (
           <div
@@ -201,6 +205,7 @@ export const App: React.FC = () => {
                 trustScore={trustBoard?.trust_score ?? 94.3}
                 taskCount={nodes.length || 18}
                 resilienceScore={roleResilience?.score ?? 78.4}
+                onOpenTour={() => setIsTourOpen(true)}
               />
             )}
 
@@ -264,6 +269,11 @@ export const App: React.FC = () => {
           isOpen={isOnboardingOpen}
           onClose={() => setIsOnboardingOpen(false)}
           onSubmit={handleOnboardSubmit}
+        />
+        <GuidedTourModal
+          isOpen={isTourOpen}
+          onClose={() => setIsTourOpen(false)}
+          onNavigateTab={setActiveTab}
         />
       </AppShell>
     </ErrorBoundary>

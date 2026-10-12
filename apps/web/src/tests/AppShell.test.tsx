@@ -73,6 +73,41 @@ describe('AppShell Component', () => {
     expect(onBootstrap).toHaveBeenCalled();
   });
 
+  it('handles guided tour launch and industry sector selection', () => {
+    const onOpenTour = vi.fn();
+    const onSelectSector = vi.fn();
+
+    render(
+      <AppShell
+        activeTab="overview"
+        onTabChange={vi.fn()}
+        currentLanguage="en"
+        onChangeLanguage={vi.fn()}
+        isCitizenMode={true}
+        onToggleCitizenMode={vi.fn()}
+        tenantId="tenant-food-mfg-01"
+        sector="food_manufacturing"
+        onOpenOnboard={vi.fn()}
+        onRefresh={vi.fn()}
+        onOpenTour={onOpenTour}
+        onSelectSector={onSelectSector}
+        i18n={i18n}
+      >
+        <div>Content</div>
+      </AppShell>
+    );
+
+    const tourBtn = screen.getByTitle('Launch Guided Tour');
+    expect(tourBtn).toBeInTheDocument();
+    fireEvent.click(tourBtn);
+    expect(onOpenTour).toHaveBeenCalledTimes(1);
+
+    const sectorSelect = screen.getByLabelText('Select Industry Simulation Sector');
+    expect(sectorSelect).toBeInTheDocument();
+    fireEvent.change(sectorSelect, { target: { value: 'automotive_manufacturing' } });
+    expect(onSelectSector).toHaveBeenCalledWith('automotive_manufacturing');
+  });
+
   it('renders enterprise architect mode, handles brand click, and navigates across all categories', () => {
     const onTabChange = vi.fn();
     const onToggleMode = vi.fn();

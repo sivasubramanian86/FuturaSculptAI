@@ -25,6 +25,8 @@ interface AppShellProps {
   i18n: TranslationKeys;
   currentRole?: UserRole;
   onSelectRole?: (role: UserRole) => void;
+  onOpenTour?: () => void;
+  onSelectSector?: (sector: string) => void;
   children: React.ReactNode;
 }
 
@@ -42,6 +44,8 @@ export const AppShell: React.FC<AppShellProps> = ({
   i18n,
   currentRole = 'citizen_worker',
   onSelectRole,
+  onOpenTour,
+  onSelectSector,
   children,
 }) => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
@@ -139,7 +143,55 @@ export const AppShell: React.FC<AppShellProps> = ({
             <span>{isCitizenMode ? i18n.citizenMode : i18n.architectMode}</span>
           </button>
 
-          {/* IAM Persona Role Switcher */}
+          {/* Industry Simulation Sector Switcher */}
+          <div style={{ position: 'relative' }}>
+            <select
+              aria-label="Select Industry Simulation Sector"
+              value={sector}
+              onChange={(e) => onSelectSector?.(e.target.value)}
+              className="select-custom"
+              style={{
+                padding: '6px 12px',
+                fontSize: '12px',
+                borderRadius: '8px',
+                background: 'rgba(0, 0, 0, 0.4)',
+                color: 'var(--text-primary)',
+                border: '1px solid var(--border-subtle)',
+                cursor: 'pointer',
+              }}
+            >
+              <option value="food_manufacturing">🍞 Food Manufacturing</option>
+              <option value="automotive_manufacturing">🚗 Automotive EV</option>
+              <option value="healthcare">🏥 Healthcare Clinical</option>
+              <option value="advanced_manufacturing">⚙️ Precision Robotics</option>
+              <option value="banking">🏦 FinTech & Banking</option>
+            </select>
+          </div>
+
+          {/* One-Click Interactive Guided Tour Button */}
+          <button
+            type="button"
+            onClick={onOpenTour}
+            className="btn-tour-pill"
+            style={{
+              padding: '6px 14px',
+              fontSize: '12px',
+              fontWeight: 700,
+              borderRadius: '20px',
+              background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.25) 0%, rgba(99, 102, 241, 0.35) 100%)',
+              border: '1px solid var(--accent-cyan)',
+              color: '#fff',
+              boxShadow: '0 0 12px rgba(6, 182, 212, 0.3)',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+            title="Launch Guided Tour"
+          >
+            <span>🚀</span>
+            <span>Guided Tour</span>
+          </button>
           <div style={{ position: 'relative' }}>
             <select
               aria-label="Select IAM Persona"

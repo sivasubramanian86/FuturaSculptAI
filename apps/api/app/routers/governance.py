@@ -17,7 +17,7 @@ from app.models.governance import (
 )
 from app.services.governance_service import governance_service
 
-router = APIRouter(prefix="/governance", tags=["governance"])
+router = APIRouter(tags=["governance"])
 
 
 @router.get(
