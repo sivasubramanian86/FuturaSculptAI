@@ -69,8 +69,9 @@ Thumbs.db
 scratch/
 tmp/
 *.bak
-*Blueprint*
-*blueprint*
+docs/*Blueprint*
+docs/*blueprint*
+!apps/api/app/agents/subagents/agent_blueprint.py
 *.pdf
 phase-*.md
 *brainstorm*

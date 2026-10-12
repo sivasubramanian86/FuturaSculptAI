@@ -13,7 +13,7 @@ on:
           - production
 
 env:
-  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID || 'genai-apac-2026-491004' }}
+  PROJECT_ID: ${{ vars.GCP_PROJECT_ID || 'genai-apac-2026-491004' }}
   REGION: asia-southeast1
   GAR_REPO: futurasculpt-containers
 
