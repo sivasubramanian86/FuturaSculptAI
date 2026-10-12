@@ -1,12 +1,13 @@
 /**
  * Main Enterprise Cockpit Application for FuturaSculptAI.
  * Orchestrates WorkGraph digital twin, future scenarios, governance TrustBoard,
- * multi-agent swarm deliberation console, and cryptographic evidence ledger.
+ * multi-agent swarm deliberation console, multimodal studio, citizen overview, and i18n.
  * Conforms to WCAG 2.1 AA accessibility with full landmark structure and Error Boundary isolation.
  */
 
 import React, { useEffect, useState } from 'react';
-import { Header } from './components/Header';
+import { AppShell } from './components/AppShell';
+import { CitizenOverview } from './components/CitizenOverview';
 import { WorkGraphView } from './components/WorkGraphView';
 import { ScenarioCard } from './components/ScenarioCard';
 import { TrustScoreCard } from './components/TrustScoreCard';
@@ -16,8 +17,13 @@ import { AgentSwarmConsole } from './components/AgentSwarmConsole';
 import { TaskSculptor } from './components/TaskSculptor';
 import { OpportunityEngine } from './components/OpportunityEngine';
 import { TrustBoardWorkbench } from './components/TrustBoardWorkbench';
+import { MultiModalMediaStudio } from './components/MultiModalMediaStudio';
+import { FAQHelp } from './components/FAQHelp';
+import { AboutFuturaSculpt } from './components/AboutFuturaSculpt';
+import { SettingsStudio } from './components/SettingsStudio';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { api } from './services/api';
+import { getTranslations, LanguageCode } from './i18n';
 import {
   EvidenceEnvelope,
   FutureScenario,
@@ -31,6 +37,10 @@ import {
 export const App: React.FC = () => {
   const [tenantId, setTenantId] = useState<string>('tenant-food-mfg-01');
   const [sector, setSector] = useState<string>('food_manufacturing');
+  const [activeTab, setActiveTab] = useState<string>('overview');
+  const [currentLanguage, setCurrentLanguage] = useState<LanguageCode>('en');
+  const [isCitizenMode, setIsCitizenMode] = useState<boolean>(true);
+
   const [nodes, setNodes] = useState<WorkGraphNode[]>([]);
   const [edges, setEdges] = useState<WorkGraphEdge[]>([]);
   const [selectedNode, setSelectedNode] = useState<WorkGraphNode | null>(null);
@@ -41,6 +51,8 @@ export const App: React.FC = () => {
   const [isOnboardingOpen, setIsOnboardingOpen] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+
+  const i18n = getTranslations(currentLanguage);
 
   const loadData = async (): Promise<void> => {
     try {
@@ -103,19 +115,25 @@ export const App: React.FC = () => {
 
   return (
     <ErrorBoundary>
-      <div className="cockpit-container">
-        {/* Skip Navigation Link for WCAG 2.1 AA Compliance */}
-        <a href="#main-content" className="skip-link">
-          Skip to main content
-        </a>
+      {/* Skip Navigation Link for WCAG 2.1 AA Compliance */}
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
 
-        <Header
-          tenantId={tenantId}
-          sector={sector}
-          onOpenOnboard={() => setIsOnboardingOpen(true)}
-          onRefresh={loadData}
-        />
-
+      <AppShell
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        currentLanguage={currentLanguage}
+        onChangeLanguage={setCurrentLanguage}
+        isCitizenMode={isCitizenMode}
+        onToggleCitizenMode={setIsCitizenMode}
+        tenantId={tenantId}
+        sector={sector}
+        trustScore={trustBoard?.trust_score ?? 94.3}
+        onOpenOnboard={() => setIsOnboardingOpen(true)}
+        onRefresh={loadData}
+        i18n={i18n}
+      >
         {statusMessage && (
           <div
             role="status"
@@ -130,6 +148,7 @@ export const App: React.FC = () => {
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
+              marginBottom: '20px',
             }}
           >
             <span>✨ {statusMessage}</span>
@@ -144,21 +163,35 @@ export const App: React.FC = () => {
           </div>
         )}
 
-        <main id="main-content" role="main" tabIndex={-1}>
-          {loading ? (
-            <div
-              role="status"
-              aria-live="polite"
-              className="glass-panel panel-card"
-              style={{ textAlign: 'center', padding: '40px' }}
-            >
-              <div style={{ fontSize: '18px', fontWeight: 600 }}>Sculpting Work Transformation Digital Twin...</div>
-              <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginTop: '8px' }}>
-                Traversing temporal graph, compiling scenarios, and calculating governance scores.
-              </p>
-            </div>
-          ) : (
-            <>
+        {loading ? (
+          <div
+            role="status"
+            aria-live="polite"
+            className="glass-panel panel-card"
+            style={{ textAlign: 'center', padding: '40px' }}
+          >
+            <div style={{ fontSize: '18px', fontWeight: 600 }}>Sculpting Work Transformation Digital Twin...</div>
+            <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginTop: '8px' }}>
+              Traversing temporal graph, compiling scenarios, and calculating governance scores.
+            </p>
+          </div>
+        ) : (
+          <>
+            {activeTab === 'overview' && (
+              <CitizenOverview
+                i18n={i18n}
+                onNavigateTab={setActiveTab}
+                trustScore={trustBoard?.trust_score ?? 94.3}
+                taskCount={nodes.length || 18}
+                resilienceScore={roleResilience?.score ?? 78.4}
+              />
+            )}
+
+            {activeTab === 'task_sculptor' && <TaskSculptor />}
+
+            {activeTab === 'opportunity' && <OpportunityEngine />}
+
+            {activeTab === 'workgraph' && (
               <div className="grid-main">
                 {/* Left Column: Future Scenarios + WorkGraph Visualizer */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -174,36 +207,47 @@ export const App: React.FC = () => {
 
                 {/* Right Column: Governance TrustBoard + Role Resilience Index */}
                 <div>
-                  <TrustScoreCard
-                    trustBoard={trustBoard}
-                    roleResilience={roleResilience}
-                  />
+                  <TrustScoreCard trustBoard={trustBoard} roleResilience={roleResilience} />
                 </div>
               </div>
+            )}
 
-              {/* Bottom Sections: Task Redesign Sculptor, Opportunity Engine, Governance TrustBoard, Multi-Agent Swarm Console & Evidence Ledger */}
-              <TaskSculptor />
+            {activeTab === 'multimodal' && <MultiModalMediaStudio i18n={i18n} />}
 
-              <OpportunityEngine />
+            {activeTab === 'agent_swarm' && <AgentSwarmConsole />}
 
-              <TrustBoardWorkbench />
+            {activeTab === 'governance' && <TrustBoardWorkbench />}
 
-              <AgentSwarmConsole />
+            {activeTab === 'evidence' && (
+              <EvidenceDrawer evidenceLedger={evidenceLedger} onUploadFile={handleUploadFile} />
+            )}
 
-              <EvidenceDrawer
-                evidenceLedger={evidenceLedger}
-                onUploadFile={handleUploadFile}
+            {activeTab === 'faq_help' && <FAQHelp i18n={i18n} />}
+
+            {activeTab === 'about' && <AboutFuturaSculpt i18n={i18n} />}
+
+            {activeTab === 'settings' && (
+              <SettingsStudio
+                currentLanguage={currentLanguage}
+                onChangeLanguage={setCurrentLanguage}
+                isCitizenMode={isCitizenMode}
+                onToggleCitizenMode={setIsCitizenMode}
+                tenantId={tenantId}
+                onChangeTenant={setTenantId}
+                sector={sector}
+                onChangeSector={setSector}
+                i18n={i18n}
               />
-            </>
-          )}
-        </main>
+            )}
+          </>
+        )}
 
         <OnboardingModal
           isOpen={isOnboardingOpen}
           onClose={() => setIsOnboardingOpen(false)}
           onSubmit={handleOnboardSubmit}
         />
-      </div>
+      </AppShell>
     </ErrorBoundary>
   );
 };

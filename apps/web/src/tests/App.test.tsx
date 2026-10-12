@@ -98,195 +98,81 @@ describe('App Component', () => {
     tasks: [
       {
         task_id: 'TSK-001',
-        tenant_id: 'tenant-food-mfg-01',
-        workflow_id: 'WKF-001',
-        task_name: 'Continuous Surface Defect Screening',
-        role_id: 'ROL-001',
-        role_name: 'Packaging Quality Inspector',
-        classification: 'AUTOMATE',
-        rationale: 'Repetitive high-frequency visual inspection.',
-        target_agent_id: 'PackagingVisionAgent',
-        target_system: 'Edge-TPU Vision Pipeline',
-        baseline_cycle_time_seconds: 45.0,
-        target_cycle_time_seconds: 3.0,
-        cycle_time_reduction_pct: 93.3,
+        task_name: 'Optical Defect Rejection',
+        name: 'Optical Defect Rejection',
+        role_name: 'Packaging Inspector',
+        classification: 'AUTOMATE' as const,
+        description: 'Auto divert packages with seal defects.',
+        current_taxonomy: 'AUTOMATE' as const,
+        suggested_taxonomy: 'AUTOMATE' as const,
         human_share_pct: 0.0,
         agent_share_pct: 100.0,
-        status: 'DRAFT',
-        approved_by: null,
-        approval_timestamp: null,
-        approval_notes: null,
+        current_cycle_time_sec: 45.0,
+        projected_cycle_time_sec: 3.0,
+        target_agent: 'VisionDefectAgent',
+        target_system: 'Edge-TPU Diverter',
+        taxonomy_rationale: 'Fully automatable vision task.',
         evidence_ids: ['EV-001'],
-        created_at: '2026-03-01T10:00:00Z',
-        updated_at: '2026-03-01T10:00:00Z',
+        approval_gate_level: 'A2' as const,
+        approval_status: 'PENDING' as const,
       },
     ],
   };
 
   const mockOpportunityMetrics = {
     tenant_id: 'tenant-food-mfg-01',
-    role_resilience: {
-      role_id: 'ROL-001',
-      role_name: 'Packaging Quality Inspector',
-      score: 82.5,
-      tier: 'HIGH_RESILIENCE',
-      formula_version: '2026.1-rri',
-      components: [
-        {
-          name: 'Non-routine Judgment',
-          weight: 0.35,
-          raw_value: 85,
-          weighted_value: 29.75,
-          rationale: 'Visual testing',
-          evidence_ids: ['EV-001'],
-        },
-      ],
-      recommended_pathway: 'Edge AI Systems Operator',
-      calculated_at: '2026-03-01T10:00:00Z',
-    },
-    transition_readiness: [
-      {
-        from_role_id: 'ROL-001',
-        to_role_id: 'ROL-EMG-01',
-        score: 77.0,
-        shared_skills_pct: 70.0,
-        critical_gap_pct: 15.0,
-        learning_velocity_pct: 80.0,
-        feasibility_tier: 'HIGH_FEASIBILITY',
-        formula_version: '2026.1-trs',
-        components: [],
-        evidence_ids: ['EV-001'],
-        calculated_at: '2026-03-01T10:00:00Z',
-      },
-    ],
-    workforce_adaptability: {
-      tenant_id: 'tenant-food-mfg-01',
-      score: 81.25,
-      learning_velocity_pct: 85.0,
-      tech_absorption_pct: 80.0,
-      skill_mobility_rate_pct: 75.0,
-      culture_readiness_pct: 85.0,
-      adaptability_tier: 'HIGH_ADAPTABILITY',
-      cohort_size: 25,
-      k_anonymity_passed: true,
-      formula_version: '2026.1-wai',
-      components: [],
-      evidence_ids: ['EV-001'],
-      calculated_at: '2026-03-01T10:00:00Z',
-    },
-    human_opportunity_score: {
-      tenant_id: 'tenant-food-mfg-01',
-      score: 71.43,
-      new_roles_count: 3,
-      augmented_tasks_count: 8,
-      automated_tasks_count: 2,
-      sentiment_tier: 'NET_POSITIVE_TRANSFORMATION',
-      formula_version: '2026.1-hos',
-      evidence_ids: ['EV-001'],
-      calculated_at: '2026-03-01T10:00:00Z',
-    },
-    cohort_size: 25,
-    k_anonymity_passed: true,
-    pathways: [
-      {
-        pathway_id: 'PTH-001',
-        tenant_id: 'tenant-food-mfg-01',
-        source_role_id: 'ROL-001',
-        source_role_name: 'Packaging Quality Inspector',
-        target_role_id: 'ROL-EMG-01',
-        target_role_name: 'Edge AI Systems Operator',
-        transition_readiness: {
-          from_role_id: 'ROL-001',
-          to_role_id: 'ROL-EMG-01',
-          score: 77.0,
-          shared_skills_pct: 70.0,
-          critical_gap_pct: 15.0,
-          learning_velocity_pct: 80.0,
-          feasibility_tier: 'HIGH_FEASIBILITY',
-          formula_version: '2026.1-trs',
-          components: [],
-          evidence_ids: ['EV-001'],
-          calculated_at: '2026-03-01T10:00:00Z',
-        },
-        skill_overlap_pct: 70.0,
-        skill_gaps: ['Edge ML Telemetry'],
-        curriculum: [
-          {
-            module_id: 'MOD-01',
-            title: 'Industrial Computer Vision',
-            duration_weeks: 4,
-            skill_gaps_addressed: ['Edge ML Telemetry'],
-            delivery_format: 'HYBRID',
-            certification: 'Level 1 Certified',
-          },
-        ],
-        estimated_duration_weeks: 12,
-        wage_impact_pct: 18.5,
-        status: 'ACTIVE',
-        evidence_ids: ['EV-001'],
-        created_at: '2026-03-01T10:00:00Z',
-      },
-    ],
+    total_workers_analyzed: 50,
+    differential_privacy_k: 10,
+    is_privacy_masked: false,
+    privacy_disclosure: 'Cohort k>=10 protected.',
+    average_rri: 78.4,
+    average_trs: 84.1,
+    average_wai: 88.0,
+    average_hos: 91.2,
+    role_pathways_count: 3,
+    active_appeals_count: 0,
+    pathways: [],
+    recent_appeals: [],
   };
 
   const mockGovernancePosture = {
     tenant_id: 'tenant-food-mfg-01',
-    overall_trust_score: 93.5,
-    gate_status: 'PASSED',
+    overall_score: 94.3,
+    overall_trust_score: 94.3,
+    policy_version: 'v1.0.0',
     red_lines_breached: 0,
-    policy_version: '2026.1-trustboard',
-    pillars: [
-      {
-        pillar: 'Security, Privacy & SAIF',
-        score: 100.0,
-        weight_pct: 20.0,
-        status: 'PASSED',
-        failed_checks_count: 0,
-        remediation_owner: 'Lead SecOps',
-        evidence_ids: ['EV-001'],
-      },
-    ],
-    saif_controls: [
-      {
-        control_id: 'SAIF-01',
-        domain: 'EXPAND_ECOSYSTEM',
-        title: 'Supply Chain Integrity',
-        description: 'Pinned dependencies',
-        status: 'VERIFIED',
-        evidence_ids: ['EV-001'],
-        verifier_component: 'Artifact Registry',
-        remediation_owner: 'Lead SecOps',
-        notes: null,
-      },
-    ],
-    evaluated_at: '2026-03-01T10:00:00Z',
+    gate_status: 'APPROVED' as const,
+    active_blocker: false,
+    blocker_reason: null,
+    framework: 'Google Cloud Well-Architected Framework (8 Pillars)',
+    pillars: [],
+    saif_controls: [],
+    saif_matrix: [],
   };
 
   const mockInvestorLens = {
     tenant_id: 'tenant-food-mfg-01',
-    organization_name: 'Apex Food Mfg',
-    transformation_thesis: 'Autonomous Work Transformation unlocks EBITDA expansion.',
-    projected_ebitda_impact_usd: 1250000.0,
-    transition_cost_usd: 200000.0,
+    organization_name: 'Apex Food Processing',
+    simulation_timestamp: '2026-03-31T00:00:00Z',
+    transformation_thesis: 'Operator upskilling and vision telemetry.',
+    disclaimer: 'Forward-looking simulation.',
+    projected_ebitda_impact_usd: 1250000,
+    transition_capex_usd: 200000,
+    three_year_net_npv_usd: 2975000,
     net_roi_multiple: 6.25,
     payback_period_months: 1.9,
-    defensibility_moat_score: 94.5,
+    diligence_pack_certificate: 'DIL-TEST-12345',
     assumptions_applied: {
       wage_uplift_multiplier: 1.0,
       automation_yield_factor: 1.0,
-      transition_capex_usd: 200000.0,
+      transition_capex_usd: 200000,
+      capex_investment_usd: 200000,
+      annual_opex_savings_usd: 650000,
+      annual_throughput_gain_usd: 600000,
+      discount_rate_pct: 8.5,
+      projection_years: 3,
     },
-    roadmaps: [
-      {
-        horizon: '30_DAYS',
-        title: 'Edge Ingestion',
-        deliverables: ['Deploy sensors'],
-        target_roi_multiplier: 1.2,
-        governance_checkpoint: 'A0 Autonomy Gate',
-      },
-    ],
-    disclaimer: 'Simulated scenario projection.',
-    generated_at: '2026-03-01T10:00:00Z',
+    ebitda_unlock_annual_usd: 1250000,
   };
 
   beforeEach(() => {
@@ -305,17 +191,15 @@ describe('App Component', () => {
     vi.restoreAllMocks();
   });
 
-  it('renders loading state initially and then displays the complete cockpit dashboard', async () => {
+  it('renders loading state initially and then displays the citizen overview', async () => {
     render(<App />);
 
     expect(screen.getByText(/Sculpting Work Transformation Digital Twin/i)).toBeInTheDocument();
 
     await waitFor(() => {
       expect(screen.getByText('FuturaSculptAI')).toBeInTheDocument();
-      expect(screen.getAllByText('Zero Recalls').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getByText('Augmented Ops')).toBeInTheDocument();
-      expect(screen.getByText('Packaging Inspector')).toBeInTheDocument();
-      expect(screen.getByText('Plant QA')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { level: 1, name: /Work Transformation Built for People/i })).toBeInTheDocument();
+      expect(screen.getByText(/Zero Layoff Protection/i)).toBeInTheDocument();
     });
   });
 
@@ -335,7 +219,7 @@ describe('App Component', () => {
       expect(screen.getByText('FuturaSculptAI')).toBeInTheDocument();
     });
 
-    const refreshBtn = screen.getByRole('button', { name: /Refresh Data/i });
+    const refreshBtn = screen.getByTitle('Refresh Data');
     fireEvent.click(refreshBtn);
 
     await waitFor(() => {
@@ -357,7 +241,7 @@ describe('App Component', () => {
     });
 
     // Open onboarding modal
-    const onboardBtn = screen.getByRole('button', { name: /Onboard Organization/i });
+    const onboardBtn = screen.getByRole('button', { name: /Bootstrap/i });
     fireEvent.click(onboardBtn);
 
     expect(screen.getByText(/Onboard Enterprise Transformation/i)).toBeInTheDocument();
@@ -372,7 +256,69 @@ describe('App Component', () => {
     });
   });
 
-  it('handles file upload in evidence drawer', async () => {
+  it('switches between all navigation tabs cleanly', async () => {
+    render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByText('FuturaSculptAI')).toBeInTheDocument();
+    });
+
+    // Navigate to Task Sculptor
+    fireEvent.click(screen.getByTitle(/Task Sculptor/i));
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /Task Redesign Matrix/i })).toBeInTheDocument();
+    });
+
+    // Navigate to Opportunity
+    fireEvent.click(screen.getByTitle(/Career Opportunities/i));
+    await waitFor(() => {
+      expect(screen.getByText(/Workforce Opportunity Engine/i)).toBeInTheDocument();
+    });
+
+    // Navigate to WorkGraph
+    fireEvent.click(screen.getByTitle(/WorkGraph Twin/i));
+    await waitFor(() => {
+      expect(screen.getAllByText('Zero Recalls').length).toBeGreaterThan(0);
+    });
+
+    // Navigate to MultiModal Studio
+    fireEvent.click(screen.getByTitle(/MultiModal Studio/i));
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /MultiModal Media Studio/i })).toBeInTheDocument();
+    });
+
+    // Navigate to Specialist Swarm
+    fireEvent.click(screen.getByTitle(/Specialist Swarm/i));
+    await waitFor(() => {
+      expect(screen.getByText(/Google ADK Multi-Agent Swarm/i)).toBeInTheDocument();
+    });
+
+    // Navigate to Governance TrustBoard
+    fireEvent.click(screen.getByTitle(/Governance TrustBoard/i));
+    await waitFor(() => {
+      expect(screen.getByText(/Governance TrustBoard & Investor Lens/i)).toBeInTheDocument();
+    });
+
+    // Navigate to FAQ & Help
+    fireEvent.click(screen.getByTitle(/FAQ & Help/i));
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /Frequently Asked Questions & Citizen Help/i })).toBeInTheDocument();
+    });
+
+    // Navigate to About
+    fireEvent.click(screen.getByTitle(/About FuturaSculptAI/i));
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { level: 2, name: /About FuturaSculptAI/i })).toBeInTheDocument();
+    });
+
+    // Navigate to Settings
+    fireEvent.click(screen.getByTitle(/Settings/i));
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { level: 2, name: /Studio Settings & Preferences/i })).toBeInTheDocument();
+    });
+  });
+
+  it('handles file upload in evidence tab', async () => {
     const uploadedEnvelope = {
       evidence_id: 'EV-UPLOADED-99',
       tenant_id: 'tenant-food-mfg-01',
@@ -403,6 +349,9 @@ describe('App Component', () => {
       expect(screen.getByText('FuturaSculptAI')).toBeInTheDocument();
     });
 
+    // Switch to evidence tab
+    fireEvent.click(screen.getByTitle(/Evidence Vault/i));
+
     const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
     const file = new File(['file contents'], 'packaging_audit.pdf', { type: 'application/pdf' });
     fireEvent.change(fileInput, { target: { files: [file] } });
@@ -417,7 +366,7 @@ describe('App Component', () => {
     expect(screen.queryByText(/Ingested packaging_audit.pdf/i)).not.toBeInTheDocument();
   });
 
-  it('handles horizon switching and error catching in App', async () => {
+  it('handles horizon switching and error in WorkGraph tab', async () => {
     const mockTemporalSuccess = {
       horizon_year: 3,
       graph: {
@@ -450,6 +399,9 @@ describe('App Component', () => {
     await waitFor(() => {
       expect(screen.getByText('FuturaSculptAI')).toBeInTheDocument();
     });
+
+    // Navigate to WorkGraph tab
+    fireEvent.click(screen.getByTitle(/WorkGraph Twin/i));
 
     // Click Yr 3 tab
     const yr3Btn = screen.getByRole('tab', { name: /Yr 3: Autonomous/i });

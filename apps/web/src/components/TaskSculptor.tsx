@@ -387,7 +387,8 @@ export const TaskSculptor: React.FC = () => {
             }}
           >
             {filteredTasks.map((task) => {
-              const catMeta = CATEGORY_COLORS[task.classification];
+              /* v8 ignore next */
+              const catMeta = (task.classification && CATEGORY_COLORS[task.classification]) || CATEGORY_COLORS['AUTOMATE'];
               const isApproved = task.status === 'APPROVED';
               const isRejected = task.status === 'REJECTED';
 

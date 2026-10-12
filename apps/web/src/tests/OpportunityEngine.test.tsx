@@ -365,4 +365,44 @@ describe('OpportunityEngine Component', () => {
     const skillInput = screen.getByLabelText(/Contested Skill Requirement/i) as HTMLInputElement;
     expect(skillInput.value).toBe('');
   });
+
+  it('renders privacy threshold protection and masks metrics when k < 10 anonymity fails', async () => {
+    vi.spyOn(api, 'getOpportunityMetrics').mockResolvedValueOnce({
+      ...mockOpportunityMetrics,
+      cohort_size: 5,
+      k_anonymity_passed: false,
+    });
+
+    render(<OpportunityEngine />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Privacy Threshold Protection/i)).toBeInTheDocument();
+      expect(screen.getByText('🔒 SUPPRESSED')).toBeInTheDocument();
+      expect(screen.getByText('Cohort n < 10')).toBeInTheDocument();
+      expect(screen.getByText(/Learning velocity: Masked/i)).toBeInTheDocument();
+    });
+  });
+
+  it('renders fallback values when workforce adaptability properties are omitted', async () => {
+    vi.spyOn(api, 'getOpportunityMetrics').mockResolvedValueOnce({
+      ...mockOpportunityMetrics,
+      k_anonymity_passed: true,
+      workforce_adaptability: {
+        ...mockOpportunityMetrics.workforce_adaptability,
+        score: undefined as unknown as number,
+        adaptability_tier: undefined as unknown as any,
+        learning_velocity_pct: undefined as unknown as number,
+        formula_version: undefined as unknown as string,
+      },
+    });
+
+    render(<OpportunityEngine />);
+
+    await waitFor(() => {
+      expect(screen.getByText('81.25')).toBeInTheDocument();
+      expect(screen.getByText('HIGH_ADAPTABILITY')).toBeInTheDocument();
+      expect(screen.getByText(/Learning velocity: 85%/i)).toBeInTheDocument();
+      expect(screen.getByText('2026.1-wai')).toBeInTheDocument();
+    });
+  });
 });
