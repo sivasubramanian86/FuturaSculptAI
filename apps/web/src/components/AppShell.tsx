@@ -52,18 +52,18 @@ export const AppShell: React.FC<AppShellProps> = ({
 
   const navItems: NavItem[] = [
     // Core Transformation
-    { id: 'overview', label: i18n.navOverview, icon: '🏠', category: 'core', badge: 'CITIZEN' },
-    { id: 'task_sculptor', label: i18n.navTaskSculptor, icon: '🧬', category: 'core', badge: '6-TAX' },
-    { id: 'opportunity', label: i18n.navOpportunity, icon: '🚀', category: 'core', badge: 'k>=10' },
+    { id: 'overview', label: i18n.navOverview, icon: '🏠', category: 'core' },
+    { id: 'task_sculptor', label: i18n.navTaskSculptor, icon: '🧬', category: 'core' },
+    { id: 'opportunity', label: i18n.navOpportunity, icon: '🚀', category: 'core' },
     { id: 'workgraph', label: i18n.navWorkGraph, icon: '🌐', category: 'core' },
 
     // Intelligence & Media
-    { id: 'multimodal', label: i18n.navMultimodal, icon: '👁️', category: 'media', badge: 'GEMINI' },
-    { id: 'agent_swarm', label: i18n.navAgentSwarm, icon: '🤖', category: 'media', badge: '9-ADK' },
+    { id: 'multimodal', label: i18n.navMultimodal, icon: '👁️', category: 'media' },
+    { id: 'agent_swarm', label: i18n.navAgentSwarm, icon: '🤖', category: 'media' },
 
     // Governance & Trust
-    { id: 'governance', label: i18n.navGovernance, icon: '🛡️', category: 'trust', badge: 'SAIF' },
-    { id: 'evidence', label: i18n.navEvidence, icon: '📁', category: 'trust', badge: 'SHA-256' },
+    { id: 'governance', label: i18n.navGovernance, icon: '🛡️', category: 'trust' },
+    { id: 'evidence', label: i18n.navEvidence, icon: '📁', category: 'trust' },
 
     // Platform & Help
     { id: 'faq_help', label: i18n.navFaqHelp, icon: '❓', category: 'system' },
@@ -75,27 +75,36 @@ export const AppShell: React.FC<AppShellProps> = ({
     <div className={`app-shell-layout ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
       {/* Top Navigation Bar */}
       <header className="app-topbar glass-panel" role="banner">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+        <div className="brand-header-area" style={{ display: 'flex', alignItems: 'center', gap: '14px', flexShrink: 0 }}>
           <button
             type="button"
             className="sidebar-toggle-btn"
             onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
             aria-label={isSidebarCollapsed ? 'Expand navigation' : 'Collapse navigation'}
             title="Toggle Sidebar"
+            style={{ flexShrink: 0 }}
           >
             ☰
           </button>
 
           <div
-            className="brand-logo"
+            className="brand-identity"
             onClick={() => onTabChange('overview')}
-            style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}
+            style={{
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              flexShrink: 0,
+              userSelect: 'none',
+            }}
           >
             <div
+              className="brand-orb-icon"
               style={{
                 width: '40px',
                 height: '40px',
-                borderRadius: '14px',
+                borderRadius: '12px',
                 background: 'linear-gradient(135deg, #06b6d4 0%, #6366f1 50%, #ec4899 100%)',
                 display: 'flex',
                 alignItems: 'center',
@@ -111,9 +120,9 @@ export const AppShell: React.FC<AppShellProps> = ({
             >
               🔮
             </div>
-            <div>
+            <div className="brand-text-block" style={{ display: 'flex', flexDirection: 'column', minWidth: 'max-content' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontWeight: 800, fontSize: '17px', letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
+                <span style={{ fontWeight: 800, fontSize: '18px', letterSpacing: '-0.02em', color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>
                   {i18n.brandName}
                 </span>
                 <span
@@ -121,25 +130,27 @@ export const AppShell: React.FC<AppShellProps> = ({
                     fontSize: '10px',
                     fontWeight: 700,
                     padding: '2px 8px',
-                    borderRadius: '12px',
+                    borderRadius: '9999px',
                     background: 'rgba(6, 182, 212, 0.15)',
                     color: 'var(--accent-cyan)',
                     border: '1px solid rgba(6, 182, 212, 0.3)',
                     letterSpacing: '0.04em',
+                    textTransform: 'uppercase',
+                    whiteSpace: 'nowrap',
                   }}
                 >
-                  SANCTUARY PWA
+                  SANCTUARY
                 </span>
               </div>
-              <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                WORKFORCE SANCTUARY • {sector.replace('_', ' ').toUpperCase()}
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)', whiteSpace: 'nowrap', marginTop: '1px' }}>
+                Future Work & Transformation Operating System
               </div>
             </div>
           </div>
         </div>
 
         {/* Topbar Right Controls Track with Mobile Touch Scroll */}
-        <div className="topbar-controls-track" style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+        <div className="topbar-controls-track" style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'nowrap', overflowX: 'auto', flex: 1, justifyContent: 'flex-end', minWidth: 0 }}>
           {/* Persona View Mode Toggle Button */}
           <button
             type="button"

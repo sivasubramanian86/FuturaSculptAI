@@ -139,7 +139,7 @@ export const AboutFuturaSculpt: React.FC<AboutFuturaSculptProps> = ({ i18n }) =>
           </div>
           <div className="glass-panel" style={{ padding: '16px', borderRadius: '18px' }}>
             <div style={{ fontSize: '20px', marginBottom: '6px' }}>🎬 Cinema & Creative Arts</div>
-            <div style={{ fontWeight: 600, fontSize: '14px' }}>CineSculpt VFX (ThiraiKuzhuAI)</div>
+            <div style={{ fontWeight: 600, fontSize: '14px' }}>CineSculpt VFX Studio</div>
             <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>
               SAG-AFTRA digital likeness protection, synthetic voice contracts & smart royalty splits.
             </p>

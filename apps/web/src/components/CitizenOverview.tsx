@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { TranslationKeys } from '../i18n';
+import { TransformationRoadmapStudio } from './TransformationRoadmapStudio';
 
 interface CitizenOverviewProps {
   i18n: TranslationKeys;
@@ -253,6 +254,9 @@ export const CitizenOverview: React.FC<CitizenOverviewProps> = ({
         </div>
       )}
 
+      {/* Future Work Transformation Simulator (1Y, 3Y, 5Y, 10Y Roadmap) */}
+      <TransformationRoadmapStudio i18n={i18n} />
+
       {/* 4 Citizen Metric Highlights */}
       <div
         className="stats-grid"
@@ -375,7 +379,7 @@ export const CitizenOverview: React.FC<CitizenOverviewProps> = ({
           >
             <div style={{ fontSize: '26px', marginBottom: '8px' }}>🎬</div>
             <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#f472b6' }}>
-              Cinema, Film & Creative Arts (ThiraiKuzhuAI)
+              Cinema, Film & Creative Arts
             </h3>
             <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '6px', lineHeight: 1.5 }}>
               Protects actors, dubbing voices, and camera crew against uncompensated AI replication. Sculpts crew into

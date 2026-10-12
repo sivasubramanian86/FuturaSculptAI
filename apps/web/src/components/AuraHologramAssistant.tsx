@@ -287,8 +287,13 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
     }
 
     // Cinema & Movie Industry
-    if (q.includes('cinema') || q.includes('movie') || q.includes('film') || q.includes('actor') || q.includes('vfx') || q.includes('dubbing') || q.includes('thiraikuzhu')) {
+    if (q.includes('cinema') || q.includes('movie') || q.includes('film') || q.includes('actor') || q.includes('vfx') || q.includes('dubbing')) {
       return '🎬 For Cinema & Movie Industry: Camera crew, dubbing artists, and VFX editors are sculpted into Generative Prompt Directors and Synthetic IP Curators! We enforce SAG-AFTRA digital likeness contracts, cryptographic watermarks, and automated royalty splits.';
+    }
+
+    // 1Y, 3Y, 5Y, 10Y Future Work Transformation & Growth
+    if (q.includes('1y') || q.includes('3y') || q.includes('5y') || q.includes('10y') || q.includes('roadmap') || q.includes('future work') || q.includes('growth') || q.includes('unstructured') || q.includes('transform')) {
+      return '🔮 1Y, 3Y, 5Y & 10Y Transformation Roadmap: In Year 1, routine paper logging drops 45% and overtime falls 30% with guaranteed wage bonds (+15% pay). By Year 3, workers become Certified Digital Supervisors (+38% wage hike, 1.85x firm revenue). By Year 5, autonomous pipelines run smoothly and firm revenue hits 2.65x. By Year 10, the company achieves 5.8x valuation as a cognitive industry leader with workers as profit-sharing partners!';
     }
 
     // Freelancer / Gig Worker
@@ -328,6 +333,7 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
   };
 
   const QUICK_PROMPTS = [
+    { label: '🔮 1Y, 3Y, 5Y & 10Y Roadmap', prompt: 'Tell me the future work style and firm growth roadmap for the next 1y, 3y, 5y, and 10y!' },
     { label: '👶 5-Year-Old Explanation', prompt: 'How would you explain this to a 5-year-old kid?' },
     { label: '🧓 60+ Senior / Non-Tech', prompt: 'Will an elderly 60+ person or non-tech worker lose their job?' },
     { label: '💳 UPI & QR Payment Safety', prompt: 'How does this app provide safety for UPI and QR code payments?' },
