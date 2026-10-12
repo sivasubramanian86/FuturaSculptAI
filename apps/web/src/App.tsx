@@ -14,6 +14,7 @@ import { TrustScoreCard } from './components/TrustScoreCard';
 import { EvidenceDrawer } from './components/EvidenceDrawer';
 import { OnboardingModal } from './components/OnboardingModal';
 import { GuidedTourModal } from './components/GuidedTourModal';
+import { AuraHologramAssistant } from './components/AuraHologramAssistant';
 import { AgentSwarmConsole } from './components/AgentSwarmConsole';
 import { TaskSculptor } from './components/TaskSculptor';
 import { OpportunityEngine } from './components/OpportunityEngine';
@@ -274,6 +275,11 @@ export const App: React.FC = () => {
           isOpen={isTourOpen}
           onClose={() => setIsTourOpen(false)}
           onNavigateTab={setActiveTab}
+        />
+        <AuraHologramAssistant
+          currentLanguage={currentLanguage}
+          onNavigateTab={setActiveTab}
+          onSelectSector={setSector}
         />
       </AppShell>
     </ErrorBoundary>

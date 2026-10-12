@@ -82,9 +82,9 @@ export class ErrorBoundary extends Component<Props, State> {
             type="button"
             className="btn btn-primary"
             onClick={this.handleReset}
-            aria-label="Reload cockpit interface"
+            aria-label="Reload cockpit interface (Workforce Sanctuary)"
           >
-            🔄 Reload Cockpit Interface
+            🔄 Reload Sanctuary Interface
           </button>
         </div>
       );

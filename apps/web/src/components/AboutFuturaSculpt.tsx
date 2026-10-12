@@ -109,25 +109,39 @@ export const AboutFuturaSculpt: React.FC<AboutFuturaSculptProps> = ({ i18n }) =>
           🏭 Industry Grounding & Extensibility Capsules
         </h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px' }}>
-          <div className="glass-panel" style={{ padding: '16px' }}>
+          <div className="glass-panel" style={{ padding: '16px', borderRadius: '18px' }}>
             <div style={{ fontSize: '20px', marginBottom: '6px' }}>🥫 Food Manufacturing</div>
             <div style={{ fontWeight: 600, fontSize: '14px' }}>Apex Food Line 4 (Deep Dive)</div>
             <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>
               8.4% scrap rate reduction, automated optical sorting, HACCP hygiene verification.
             </p>
           </div>
-          <div className="glass-panel" style={{ padding: '16px' }}>
+          <div className="glass-panel" style={{ padding: '16px', borderRadius: '18px' }}>
             <div style={{ fontSize: '20px', marginBottom: '6px' }}>🏥 Healthcare & Nursing</div>
             <div style={{ fontWeight: 600, fontSize: '14px' }}>ICU Clinical Handoff</div>
             <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>
               Shift change charting acceleration, EHR transcription, medical error shield.
             </p>
           </div>
-          <div className="glass-panel" style={{ padding: '16px' }}>
-            <div style={{ fontSize: '20px', marginBottom: '6px' }}>🏦 Banking & FinTech</div>
-            <div style={{ fontWeight: 600, fontSize: '14px' }}>Level-2 AML Alert Triage</div>
+          <div className="glass-panel" style={{ padding: '16px', borderRadius: '18px' }}>
+            <div style={{ fontSize: '20px', marginBottom: '6px' }}>💳 UPI & QR FinTech</div>
+            <div style={{ fontWeight: 600, fontSize: '14px' }}>Level-2 AML Alert Triage & UPI Merchant Guard</div>
             <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>
-              Suspicious activity investigation, FinCEN SAR drafting, audit trail sealing.
+              Zero-click exploit defense, Cloud DLP UPI tokenization, reverse QR spoofing mitigation.
+            </p>
+          </div>
+          <div className="glass-panel" style={{ padding: '16px', borderRadius: '18px' }}>
+            <div style={{ fontSize: '20px', marginBottom: '6px' }}>🚖 Autonomous Mobility</div>
+            <div style={{ fontWeight: 600, fontSize: '14px' }}>Uber / Ola Fleet Tele-Ops</div>
+            <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>
+              Transitioning drivers to remote safety marshals & tele-operators with 90-day wage bonds.
+            </p>
+          </div>
+          <div className="glass-panel" style={{ padding: '16px', borderRadius: '18px' }}>
+            <div style={{ fontSize: '20px', marginBottom: '6px' }}>🎬 Cinema & Creative Arts</div>
+            <div style={{ fontWeight: 600, fontSize: '14px' }}>CineSculpt VFX (ThiraiKuzhuAI)</div>
+            <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>
+              SAG-AFTRA digital likeness protection, synthetic voice contracts & smart royalty splits.
             </p>
           </div>
         </div>

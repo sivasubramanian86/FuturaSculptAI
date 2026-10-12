@@ -57,4 +57,33 @@ describe('CitizenOverview Component', () => {
     fireEvent.click(tourBtn);
     expect(onOpenTour).toHaveBeenCalledTimes(1);
   });
+
+  it('toggles Simple Voice & Visual Mode and triggers audio speak readout', () => {
+    const mockSpeak = vi.fn();
+    Object.defineProperty(window, 'speechSynthesis', {
+      value: { speak: mockSpeak, cancel: vi.fn() },
+      writable: true,
+    });
+    class MockUtterance {
+      text: string;
+      constructor(text: string) {
+        this.text = text;
+      }
+    }
+    (window as any).SpeechSynthesisUtterance = MockUtterance;
+    (globalThis as any).SpeechSynthesisUtterance = MockUtterance;
+
+    render(<CitizenOverview i18n={i18n} onNavigateTab={vi.fn()} />);
+
+    const toggleBtn = screen.getByRole('button', { name: /Switch to Simple Voice & Visual Mode/i });
+    fireEvent.click(toggleBtn);
+
+    expect(screen.getByText(/Simple Mode — No Tech Jargon/i)).toBeInTheDocument();
+    expect(screen.getByText(/Am I Safe\?/i)).toBeInTheDocument();
+
+    const listenBtns = screen.getAllByRole('button', { name: /Listen in Your Language/i });
+    expect(listenBtns.length).toBeGreaterThan(0);
+    fireEvent.click(listenBtns[0]);
+    expect(mockSpeak).toHaveBeenCalled();
+  });
 });

@@ -89,54 +89,74 @@ export const AppShell: React.FC<AppShellProps> = ({
           <div
             className="brand-logo"
             onClick={() => onTabChange('overview')}
-            style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }}
+            style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}
           >
             <div
               style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: '10px',
-                background: 'linear-gradient(135deg, #06b6d4 0%, #6366f1 100%)',
+                width: '40px',
+                height: '40px',
+                borderRadius: '14px',
+                background: 'linear-gradient(135deg, #06b6d4 0%, #6366f1 50%, #ec4899 100%)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: '18px',
+                fontSize: '20px',
                 fontWeight: 800,
                 color: '#fff',
-                boxShadow: '0 0 15px rgba(99, 102, 241, 0.4)',
+                boxShadow: '0 0 20px rgba(6, 182, 212, 0.6), inset 0 1px 2px rgba(255, 255, 255, 0.6)',
+                border: '1px solid rgba(255, 255, 255, 0.35)',
+                animation: 'logo-shimmer 6s infinite ease-in-out',
+                flexShrink: 0,
               }}
             >
-              F
+              🔮
             </div>
             <div>
-              <div style={{ fontWeight: 800, fontSize: '16px', letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
-                {i18n.brandName}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontWeight: 800, fontSize: '17px', letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
+                  {i18n.brandName}
+                </span>
+                <span
+                  style={{
+                    fontSize: '10px',
+                    fontWeight: 700,
+                    padding: '2px 8px',
+                    borderRadius: '12px',
+                    background: 'rgba(6, 182, 212, 0.15)',
+                    color: 'var(--accent-cyan)',
+                    border: '1px solid rgba(6, 182, 212, 0.3)',
+                    letterSpacing: '0.04em',
+                  }}
+                >
+                  SANCTUARY PWA
+                </span>
               </div>
               <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                {sector.replace('_', ' ').toUpperCase()} • GOOGLE CLOUD
+                WORKFORCE SANCTUARY • {sector.replace('_', ' ').toUpperCase()}
               </div>
             </div>
           </div>
         </div>
 
-        {/* Topbar Right Controls */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        {/* Topbar Right Controls Track with Mobile Touch Scroll */}
+        <div className="topbar-controls-track" style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
           {/* Persona View Mode Toggle Button */}
           <button
             type="button"
             onClick={() => onToggleCitizenMode(!isCitizenMode)}
             className="btn-subtle"
             style={{
-              padding: '6px 14px',
+              padding: '8px 16px',
               fontSize: '12px',
               fontWeight: 600,
-              borderRadius: '20px',
+              borderRadius: '9999px',
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              background: isCitizenMode ? 'rgba(6, 182, 212, 0.15)' : 'rgba(99, 102, 241, 0.15)',
+              background: isCitizenMode ? 'rgba(6, 182, 212, 0.18)' : 'rgba(99, 102, 241, 0.18)',
               borderColor: isCitizenMode ? 'var(--accent-cyan)' : 'var(--accent-indigo)',
               color: isCitizenMode ? 'var(--accent-cyan)' : 'var(--text-primary)',
+              boxShadow: 'inset 0 1px 1px rgba(255, 255, 255, 0.15), 0 2px 8px rgba(0, 0, 0, 0.2)',
             }}
           >
             <span>{isCitizenMode ? '👤' : '🏢'}</span>
@@ -151,20 +171,23 @@ export const AppShell: React.FC<AppShellProps> = ({
               onChange={(e) => onSelectSector?.(e.target.value)}
               className="select-custom"
               style={{
-                padding: '6px 12px',
+                padding: '8px 14px',
                 fontSize: '12px',
-                borderRadius: '8px',
-                background: 'rgba(0, 0, 0, 0.4)',
+                borderRadius: '9999px',
+                background: 'rgba(15, 23, 42, 0.85)',
                 color: 'var(--text-primary)',
-                border: '1px solid var(--border-subtle)',
+                border: '1px solid rgba(255, 255, 255, 0.18)',
                 cursor: 'pointer',
+                boxShadow: 'inset 0 1px 1px rgba(255, 255, 255, 0.1)',
               }}
             >
               <option value="food_manufacturing">🍞 Food Manufacturing</option>
               <option value="automotive_manufacturing">🚗 Automotive EV</option>
               <option value="healthcare">🏥 Healthcare Clinical</option>
               <option value="advanced_manufacturing">⚙️ Precision Robotics</option>
-              <option value="banking">🏦 FinTech & Banking</option>
+              <option value="banking">💳 FinTech & UPI Payments</option>
+              <option value="mobility_autonomous">🚖 Uber / Ola Autonomous Fleet</option>
+              <option value="cinema_creative">🎬 Cinema & Creative Arts</option>
             </select>
           </div>
 
@@ -174,14 +197,14 @@ export const AppShell: React.FC<AppShellProps> = ({
             onClick={onOpenTour}
             className="btn-tour-pill"
             style={{
-              padding: '6px 14px',
+              padding: '8px 16px',
               fontSize: '12px',
               fontWeight: 700,
-              borderRadius: '20px',
-              background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.25) 0%, rgba(99, 102, 241, 0.35) 100%)',
+              borderRadius: '9999px',
+              background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.3) 0%, rgba(99, 102, 241, 0.4) 100%)',
               border: '1px solid var(--accent-cyan)',
               color: '#fff',
-              boxShadow: '0 0 12px rgba(6, 182, 212, 0.3)',
+              boxShadow: '0 0 16px rgba(6, 182, 212, 0.35)',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -199,13 +222,14 @@ export const AppShell: React.FC<AppShellProps> = ({
               onChange={(e) => onSelectRole?.(e.target.value as UserRole)}
               className="select-custom"
               style={{
-                padding: '6px 12px',
+                padding: '8px 14px',
                 fontSize: '12px',
-                borderRadius: '8px',
-                background: 'rgba(0, 0, 0, 0.4)',
+                borderRadius: '9999px',
+                background: 'rgba(15, 23, 42, 0.85)',
                 color: 'var(--text-primary)',
-                border: '1px solid var(--border-subtle)',
+                border: '1px solid rgba(255, 255, 255, 0.18)',
                 cursor: 'pointer',
+                boxShadow: 'inset 0 1px 1px rgba(255, 255, 255, 0.1)',
               }}
             >
               {Object.values(PERSONA_PROFILES).map((persona) => (
@@ -224,13 +248,14 @@ export const AppShell: React.FC<AppShellProps> = ({
               onChange={(e) => onChangeLanguage(e.target.value as LanguageCode)}
               className="select-custom"
               style={{
-                padding: '6px 12px',
+                padding: '8px 14px',
                 fontSize: '12px',
-                borderRadius: '8px',
-                background: 'rgba(0, 0, 0, 0.4)',
+                borderRadius: '9999px',
+                background: 'rgba(15, 23, 42, 0.85)',
                 color: 'var(--text-primary)',
-                border: '1px solid var(--border-subtle)',
+                border: '1px solid rgba(255, 255, 255, 0.18)',
                 cursor: 'pointer',
+                boxShadow: 'inset 0 1px 1px rgba(255, 255, 255, 0.1)',
               }}
             >
               {SUPPORTED_LANGUAGES.map((lang) => (
@@ -245,12 +270,14 @@ export const AppShell: React.FC<AppShellProps> = ({
           <div
             className="badge badge-emerald"
             style={{
-              padding: '6px 12px',
+              padding: '8px 14px',
               fontSize: '12px',
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              borderRadius: '20px',
+              borderRadius: '9999px',
+              background: 'rgba(16, 185, 129, 0.16)',
+              border: '1px solid rgba(16, 185, 129, 0.35)',
             }}
           >
             <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981' }} />
@@ -262,7 +289,7 @@ export const AppShell: React.FC<AppShellProps> = ({
             type="button"
             onClick={onOpenOnboard}
             className="btn-subtle"
-            style={{ padding: '6px 12px', fontSize: '12px' }}
+            style={{ padding: '8px 16px', fontSize: '12px', borderRadius: '9999px' }}
           >
             ⚡ {i18n.onboardOrg}
           </button>
@@ -272,7 +299,7 @@ export const AppShell: React.FC<AppShellProps> = ({
             type="button"
             onClick={onRefresh}
             className="btn-subtle"
-            style={{ padding: '6px 10px', fontSize: '12px' }}
+            style={{ padding: '8px 12px', fontSize: '13px', borderRadius: '9999px' }}
             title="Refresh Data"
             aria-label="Refresh Data"
           >
