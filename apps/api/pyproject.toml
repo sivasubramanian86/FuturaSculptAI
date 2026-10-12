@@ -85,7 +85,11 @@ ignore = [
     "E501", # Line too long (handled by formatting)
     "S101", # Use of assert in tests
     "B008", # FastAPI Depends/Form/File in function defaults
+    "I001", # Import block is un-sorted or un-formatted (prevent cross-runner drift)
 ]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"

@@ -34,7 +34,7 @@ jobs:
           pip install -r requirements.txt -r requirements-dev.txt
 
       - name: Enforce Polyglot Standards with Ruff Linter
-        run: python -m ruff check app tests
+        run: python -m ruff check --fix app tests
 
       - name: AST Security Scan with Bandit (SAIF Standard)
         run: python -m bandit -r app
