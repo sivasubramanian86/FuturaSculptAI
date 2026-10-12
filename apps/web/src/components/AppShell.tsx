@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { LanguageCode, SUPPORTED_LANGUAGES, TranslationKeys } from '../i18n';
+import { PERSONA_PROFILES, UserRole } from '../services/firebase';
 
 export interface NavItem {
   id: string;
@@ -22,6 +23,8 @@ interface AppShellProps {
   onOpenOnboard: () => void;
   onRefresh: () => void;
   i18n: TranslationKeys;
+  currentRole?: UserRole;
+  onSelectRole?: (role: UserRole) => void;
   children: React.ReactNode;
 }
 
@@ -37,6 +40,8 @@ export const AppShell: React.FC<AppShellProps> = ({
   onOpenOnboard,
   onRefresh,
   i18n,
+  currentRole = 'citizen_worker',
+  onSelectRole,
   children,
 }) => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
@@ -133,6 +138,31 @@ export const AppShell: React.FC<AppShellProps> = ({
             <span>{isCitizenMode ? '👤' : '🏢'}</span>
             <span>{isCitizenMode ? i18n.citizenMode : i18n.architectMode}</span>
           </button>
+
+          {/* IAM Persona Role Switcher */}
+          <div style={{ position: 'relative' }}>
+            <select
+              aria-label="Select IAM Persona"
+              value={currentRole}
+              onChange={(e) => onSelectRole?.(e.target.value as UserRole)}
+              className="select-custom"
+              style={{
+                padding: '6px 12px',
+                fontSize: '12px',
+                borderRadius: '8px',
+                background: 'rgba(0, 0, 0, 0.4)',
+                color: 'var(--text-primary)',
+                border: '1px solid var(--border-subtle)',
+                cursor: 'pointer',
+              }}
+            >
+              {Object.values(PERSONA_PROFILES).map((persona) => (
+                <option key={persona.role} value={persona.role}>
+                  {persona.avatar} {persona.displayName} ({persona.title.split(' ')[0]})
+                </option>
+              ))}
+            </select>
+          </div>
 
           {/* Language Selector Dropdown */}
           <div style={{ position: 'relative' }}>

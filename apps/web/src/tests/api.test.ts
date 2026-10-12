@@ -837,5 +837,33 @@ describe('ApiClient', () => {
       'Failed to export diligence pack: Forbidden'
     );
   });
+
+  it('inspects DLP content and handles failure', async () => {
+    const mockResult = {
+      original_text: 'SSN: 000-11-2222',
+      redacted_text: 'SSN: [REDACTED_SSN]',
+      redacted_items_count: 1,
+      findings: [{ info_type: 'US_SOCIAL_SECURITY_NUMBER', likelihood: 'VERY_LIKELY', quote: '000-11-2222' }],
+      has_violations: true,
+    };
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockResult,
+    } as Response);
+
+    const res = await client.inspectDlp('SSN: 000-11-2222');
+    expect(res).toEqual(mockResult);
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: false,
+      statusText: 'Service Unavailable',
+    } as Response);
+
+    await expect(client.inspectDlp('SSN: 000-11-2222', false)).rejects.toThrow(
+      'Failed to inspect DLP content: Service Unavailable'
+    );
+  });
 });
+
 

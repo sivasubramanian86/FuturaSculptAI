@@ -57,6 +57,11 @@ describe('AppShell Component', () => {
     fireEvent.change(langSelect, { target: { value: 'ta' } });
     expect(onChangeLang).toHaveBeenCalledWith('ta');
 
+    // Switch IAM Persona
+    const personaSelect = screen.getByLabelText(/Select IAM Persona/i);
+    expect(personaSelect).toBeInTheDocument();
+    fireEvent.change(personaSelect, { target: { value: 'investor' } });
+
     // Click refresh
     const refreshBtn = screen.getByTitle('Refresh Data');
     fireEvent.click(refreshBtn);

@@ -13,16 +13,22 @@ import {
   ScenarioSimulationRequest,
   ScenarioSimulationResponse,
 } from '../types';
+import { TranslationKeys } from '../i18n';
+import { en } from '../i18n/locales/en';
 
 export interface ScenarioCardProps {
   /** Array of simulated future workforce scenarios. */
   scenarios: FutureScenario[];
   /** Optional custom simulation runner for testing or mocking. */
   onSimulate?: (req: ScenarioSimulationRequest) => Promise<ScenarioSimulationResponse>;
+  /** Optional localized translations dictionary. */
+  i18n?: TranslationKeys;
 }
 
-export const ScenarioCard: React.FC<ScenarioCardProps> = ({ scenarios, onSimulate }) => {
+export const ScenarioCard: React.FC<ScenarioCardProps> = ({ scenarios, onSimulate, i18n }) => {
+  const t = i18n || en;
   const [activeTab, setActiveTab] = useState<string>(
+
     scenarios.length > 0 ? scenarios[0].scenario_id : 'SCEN-001'
   );
 
@@ -125,7 +131,7 @@ export const ScenarioCard: React.FC<ScenarioCardProps> = ({ scenarios, onSimulat
     <div className="glass-panel panel-card" role="region" aria-label="Future Scenario Foundry">
       <div className="section-header">
         <h2 className="section-title">
-          <span>🔮</span> Future Scenario Foundry
+          <span>🔮</span> {t.wgScenariosTitle}
         </h2>
         <span
           className="badge"

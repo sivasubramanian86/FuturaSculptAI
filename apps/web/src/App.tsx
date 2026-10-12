@@ -23,6 +23,7 @@ import { AboutFuturaSculpt } from './components/AboutFuturaSculpt';
 import { SettingsStudio } from './components/SettingsStudio';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { api } from './services/api';
+import { firebaseAuth, UserRole } from './services/firebase';
 import { getTranslations, LanguageCode } from './i18n';
 import {
   EvidenceEnvelope,
@@ -40,6 +41,7 @@ export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('overview');
   const [currentLanguage, setCurrentLanguage] = useState<LanguageCode>('en');
   const [isCitizenMode, setIsCitizenMode] = useState<boolean>(true);
+  const [currentRole, setCurrentRole] = useState<UserRole>('citizen_worker');
 
   const [nodes, setNodes] = useState<WorkGraphNode[]>([]);
   const [edges, setEdges] = useState<WorkGraphEdge[]>([]);
@@ -53,6 +55,19 @@ export const App: React.FC = () => {
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
   const i18n = getTranslations(currentLanguage);
+
+  const handleSelectRole = async (role: UserRole): Promise<void> => {
+    setCurrentRole(role);
+    await firebaseAuth.switchPersona(role, tenantId);
+    const profile = firebaseAuth.getPersonaProfile(role);
+    setStatusMessage(`Switched IAM Persona: ${profile.displayName} (${profile.title})`);
+    if (role === 'citizen_worker') {
+      setIsCitizenMode(true);
+    } else {
+      setIsCitizenMode(false);
+    }
+  };
+
 
   const loadData = async (): Promise<void> => {
     try {
@@ -133,6 +148,8 @@ export const App: React.FC = () => {
         onOpenOnboard={() => setIsOnboardingOpen(true)}
         onRefresh={loadData}
         i18n={i18n}
+        currentRole={currentRole}
+        onSelectRole={handleSelectRole}
       >
         {statusMessage && (
           <div
@@ -187,39 +204,40 @@ export const App: React.FC = () => {
               />
             )}
 
-            {activeTab === 'task_sculptor' && <TaskSculptor />}
+            {activeTab === 'task_sculptor' && <TaskSculptor i18n={i18n} />}
 
-            {activeTab === 'opportunity' && <OpportunityEngine />}
+            {activeTab === 'opportunity' && <OpportunityEngine i18n={i18n} />}
 
             {activeTab === 'workgraph' && (
               <div className="grid-main">
                 {/* Left Column: Future Scenarios + WorkGraph Visualizer */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                  <ScenarioCard scenarios={scenarios} />
+                  <ScenarioCard scenarios={scenarios} i18n={i18n} />
                   <WorkGraphView
                     nodes={nodes}
                     edges={edges}
                     selectedNode={selectedNode}
                     onSelectNode={(node) => setSelectedNode(node)}
                     onHorizonChange={handleHorizonChange}
+                    i18n={i18n}
                   />
                 </div>
 
                 {/* Right Column: Governance TrustBoard + Role Resilience Index */}
                 <div>
-                  <TrustScoreCard trustBoard={trustBoard} roleResilience={roleResilience} />
+                  <TrustScoreCard trustBoard={trustBoard} roleResilience={roleResilience} i18n={i18n} />
                 </div>
               </div>
             )}
 
             {activeTab === 'multimodal' && <MultiModalMediaStudio i18n={i18n} />}
 
-            {activeTab === 'agent_swarm' && <AgentSwarmConsole />}
+            {activeTab === 'agent_swarm' && <AgentSwarmConsole i18n={i18n} />}
 
-            {activeTab === 'governance' && <TrustBoardWorkbench />}
+            {activeTab === 'governance' && <TrustBoardWorkbench i18n={i18n} />}
 
             {activeTab === 'evidence' && (
-              <EvidenceDrawer evidenceLedger={evidenceLedger} onUploadFile={handleUploadFile} />
+              <EvidenceDrawer evidenceLedger={evidenceLedger} onUploadFile={handleUploadFile} i18n={i18n} />
             )}
 
             {activeTab === 'faq_help' && <FAQHelp i18n={i18n} />}

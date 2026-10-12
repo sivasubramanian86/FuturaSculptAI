@@ -7,6 +7,7 @@ import {
   BlastRadiusResponse,
   ClaimVerificationResult,
   DiligencePackExport,
+  DlpRedactionResult,
   EvidenceEnvelope,
   FutureScenario,
   GovernancePostureResponse,
@@ -37,6 +38,7 @@ import {
   TrustScoreResult,
   WorkGraphResponse,
 } from '../types';
+import { firebaseAuth } from './firebase';
 
 const API_BASE = '/api/v1';
 
@@ -45,6 +47,7 @@ export class ApiClient {
 
   setTenantId(tenantId: string) {
     this.tenantId = tenantId;
+    firebaseAuth.setTenant(tenantId);
   }
 
   getTenantId(): string {
@@ -55,6 +58,7 @@ export class ApiClient {
     return {
       'Content-Type': 'application/json',
       'X-Tenant-ID': this.tenantId,
+      ...firebaseAuth.getAuthHeaders(),
     };
   }
 
@@ -416,6 +420,25 @@ export class ApiClient {
     }
     return res.json();
   }
+
+  async inspectDlp(
+    content: string,
+    redactSensitiveFields: boolean = true
+  ): Promise<DlpRedactionResult> {
+    const res = await fetch(`${API_BASE}/evidence/inspect-dlp`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify({
+        content,
+        redact_sensitive_fields: redactSensitiveFields,
+      }),
+    });
+    if (!res.ok) {
+      throw new Error(`Failed to inspect DLP content: ${res.statusText}`);
+    }
+    return res.json();
+  }
 }
 
 export const api = new ApiClient();
+

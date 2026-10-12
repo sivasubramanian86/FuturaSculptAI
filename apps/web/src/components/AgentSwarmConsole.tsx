@@ -8,15 +8,22 @@
 import React, { useState } from 'react';
 import { api } from '../services/api';
 import { SwarmRunRequest, SwarmRunResponse } from '../types';
+import { TranslationKeys } from '../i18n';
+import { en } from '../i18n/locales/en';
 
 export interface AgentSwarmConsoleProps {
   /** Optional custom executor for multi-agent swarm deliberation. */
   onRunSwarm?: (request: SwarmRunRequest) => Promise<SwarmRunResponse>;
+  /** Optional localized translations dictionary. */
+  i18n?: TranslationKeys;
 }
 
 export const AgentSwarmConsole: React.FC<AgentSwarmConsoleProps> = ({
   onRunSwarm,
+  i18n,
 }) => {
+  const t = i18n || en;
+
   const [prompt, setPrompt] = useState<string>(
     'Augment high-speed seal verification with Edge-TPU vision sensors.'
   );
@@ -75,7 +82,7 @@ export const AgentSwarmConsole: React.FC<AgentSwarmConsoleProps> = ({
     >
       <div className="section-header">
         <h2 className="section-title">
-          <span>🤖</span> Google ADK Multi-Agent Swarm Orchestrator
+          <span>🤖</span> {t.swarmTitle}
         </h2>
         <span
           className="badge"

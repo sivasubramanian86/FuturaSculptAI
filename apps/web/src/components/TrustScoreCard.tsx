@@ -7,18 +7,25 @@
 
 import React from 'react';
 import { RoleResilienceResult, TrustScoreResult } from '../types';
+import { TranslationKeys } from '../i18n';
+import { en } from '../i18n/locales/en';
 
 export interface TrustScoreCardProps {
   /** Composite TrustBoard governance result. */
   trustBoard: TrustScoreResult | null;
   /** Evaluated Role Resilience Index result. */
   roleResilience: RoleResilienceResult | null;
+  /** Optional localized translations dictionary. */
+  i18n?: TranslationKeys;
 }
 
 export const TrustScoreCard: React.FC<TrustScoreCardProps> = ({
   trustBoard,
   roleResilience,
+  i18n,
 }) => {
+  const t = i18n || en;
+
   if (!trustBoard || !roleResilience) {
     return (
       <div className="glass-panel panel-card" role="status" aria-live="polite">
@@ -48,7 +55,7 @@ export const TrustScoreCard: React.FC<TrustScoreCardProps> = ({
       <div className="glass-panel panel-card" role="region" aria-label="TrustBoard Governance Card">
         <div className="section-header">
           <h2 className="section-title">
-            <span>🛡️</span> TrustBoard Governance
+            <span>🛡️</span> {t.govTitle}
           </h2>
           <span
             className="badge"

@@ -16,9 +16,17 @@ import {
   SAIFControlItem,
   SAIFDomain,
 } from '../types';
+import { TranslationKeys } from '../i18n';
+import { en } from '../i18n/locales/en';
 
-export const TrustBoardWorkbench: React.FC = () => {
+export interface TrustBoardWorkbenchProps {
+  i18n?: TranslationKeys;
+}
+
+export const TrustBoardWorkbench: React.FC<TrustBoardWorkbenchProps> = ({ i18n }) => {
+  const t = i18n || en;
   const [activeTab, setActiveTab] = useState<'trustboard' | 'investor_lens'>('trustboard');
+
   const [posture, setPosture] = useState<GovernancePostureResponse | null>(null);
   const [investorLens, setInvestorLens] = useState<InvestorLensResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -149,7 +157,7 @@ export const TrustBoardWorkbench: React.FC = () => {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <h2 id="trustboard-workbench-heading" style={{ fontSize: '18px', fontWeight: 700, letterSpacing: '-0.01em' }}>
-              Governance TrustBoard & Investor Lens
+              {t.govTitle}
             </h2>
             <span
               style={{

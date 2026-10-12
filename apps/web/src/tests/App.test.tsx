@@ -421,4 +421,26 @@ describe('App Component', () => {
       expect(api.getTemporalWorkGraph).toHaveBeenCalledWith(1);
     });
   });
+
+  it('handles IAM persona switching between citizen and enterprise roles', async () => {
+    render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByText('FuturaSculptAI')).toBeInTheDocument();
+    });
+
+    const personaSelect = screen.getByLabelText(/Select IAM Persona/i);
+    fireEvent.change(personaSelect, { target: { value: 'governance_officer' } });
+
+    await waitFor(() => {
+      expect(screen.getByText(/Switched IAM Persona: Dr. Marcus Vance/i)).toBeInTheDocument();
+    });
+
+    fireEvent.change(personaSelect, { target: { value: 'citizen_worker' } });
+
+    await waitFor(() => {
+      expect(screen.getByText(/Switched IAM Persona: Maya Lin/i)).toBeInTheDocument();
+    });
+  });
 });
+

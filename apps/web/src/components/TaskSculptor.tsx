@@ -15,6 +15,8 @@ import {
   TaskRedesignItem,
   TaskRedesignUpdateRequest,
 } from '../types';
+import { TranslationKeys } from '../i18n';
+import { en } from '../i18n/locales/en';
 
 const CATEGORY_COLORS: Record<TaskClassificationCategory, { bg: string; text: string; border: string }> = {
   AUTOMATE: { bg: 'rgba(16, 185, 129, 0.15)', text: '#10b981', border: 'rgba(16, 185, 129, 0.35)' },
@@ -35,8 +37,14 @@ const CATEGORIES: ('ALL' | TaskClassificationCategory)[] = [
   'RETIRE',
 ];
 
-export const TaskSculptor: React.FC = () => {
+export interface TaskSculptorProps {
+  i18n?: TranslationKeys;
+}
+
+export const TaskSculptor: React.FC<TaskSculptorProps> = ({ i18n }) => {
+  const t = i18n || en;
   const [matrix, setMatrix] = useState<TaskMatrixResponse | null>(null);
+
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState<'ALL' | TaskClassificationCategory>('ALL');
@@ -158,7 +166,7 @@ export const TaskSculptor: React.FC = () => {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <h2 id="task-sculptor-heading" style={{ fontSize: '18px', fontWeight: 700, letterSpacing: '-0.01em' }}>
-              Task Redesign Matrix & Sculptor
+              {t.tsTitle}
             </h2>
             <span
               style={{
@@ -188,7 +196,7 @@ export const TaskSculptor: React.FC = () => {
             </span>
           </div>
           <p style={{ color: 'var(--text-secondary)', fontSize: '13px', marginTop: '4px' }}>
-            Autonomous 6-part task allocation across humans and agents with strict sign-off gates.
+            {t.tsSubtitle}
           </p>
         </div>
 
@@ -207,7 +215,7 @@ export const TaskSculptor: React.FC = () => {
             fontWeight: 600,
           }}
         >
-          🔄 Refresh Matrix
+          🔄 {t.tsRefresh}
         </button>
       </div>
 
@@ -372,7 +380,20 @@ export const TaskSculptor: React.FC = () => {
                     transition: 'all 0.15s ease',
                   }}
                 >
-                  {cat} ({count})
+                  {cat === 'AUTOMATE'
+                    ? t.tsCategoryAutomate
+                    : cat === 'AUGMENT'
+                    ? t.tsCategoryAugment
+                    : cat === 'ASSIST'
+                    ? t.tsCategoryAssist
+                    : cat === 'RETAIN'
+                    ? t.tsCategoryRetain
+                    : cat === 'REDESIGN'
+                    ? t.tsCategoryRedesign
+                    : cat === 'RETIRE'
+                    ? t.tsCategoryRetire
+                    : t.tsCategoryAll}{' '}
+                  ({count})
                 </button>
               );
             })}

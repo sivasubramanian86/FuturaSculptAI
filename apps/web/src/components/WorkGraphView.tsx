@@ -10,6 +10,8 @@ import {
   WorkGraphEdge,
   WorkGraphNode,
 } from '../types';
+import { TranslationKeys } from '../i18n';
+import { en } from '../i18n/locales/en';
 
 export interface WorkGraphViewProps {
   /** Array of WorkGraph ontology nodes. */
@@ -26,6 +28,8 @@ export interface WorkGraphViewProps {
   onHorizonChange?: (year: number) => void;
   /** Optional custom handler for blast radius calculation. */
   onInspectBlastRadius?: (nodeId: string) => Promise<BlastRadiusResponse>;
+  /** Optional localized translations dictionary. */
+  i18n?: TranslationKeys;
 }
 
 export const WorkGraphView: React.FC<WorkGraphViewProps> = ({
@@ -36,7 +40,9 @@ export const WorkGraphView: React.FC<WorkGraphViewProps> = ({
   currentHorizonYear = 0,
   onHorizonChange,
   onInspectBlastRadius,
+  i18n,
 }) => {
+  const t = i18n || en;
   const [filterType, setFilterType] = useState<string>('all');
   const [horizonYear, setHorizonYear] = useState<number>(currentHorizonYear);
 
@@ -111,7 +117,7 @@ export const WorkGraphView: React.FC<WorkGraphViewProps> = ({
     <div className="glass-panel panel-card" role="region" aria-label="Temporal Work Transformation Graph">
       <div className="section-header" style={{ flexWrap: 'wrap', gap: '10px' }}>
         <h2 className="section-title">
-          <span>🌐</span> Temporal Work Transformation Graph
+          <span>🌐</span> {t.wgTitle}
         </h2>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
           {/* Horizon Year Tabs */}

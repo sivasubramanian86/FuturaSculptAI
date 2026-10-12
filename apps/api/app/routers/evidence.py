@@ -4,10 +4,14 @@ from typing import List
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 
+from pydantic import BaseModel
+
+from app.adapters.dlp_adapter import dlp_adapter
 from app.core.tenant import get_current_tenant_id
 from app.models.evidence import (
     ClaimVerificationRequest,
     ClaimVerificationResult,
+    DlpRedactionResult,
     EvidenceEnvelope,
     IntegrityCheckResult,
     SensitivityTier,
@@ -22,6 +26,12 @@ from app.services.ingestion_service import (
 )
 
 router = APIRouter(prefix="/api/v1/evidence", tags=["Evidence"])
+
+
+class DlpInspectRequest(BaseModel):
+    """Payload to preview automated PII de-identification."""
+
+    text: str
 
 
 @router.post("/upload", response_model=EvidenceEnvelope, status_code=status.HTTP_201_CREATED)
@@ -131,3 +141,17 @@ def verify_scenario_claim(
         ClaimVerificationResult: Entailment verdict, confidence, and cited segments.
     """
     return verify_claim_against_ledger(tenant_id, request)
+
+
+@router.post("/inspect-dlp", response_model=DlpRedactionResult)
+def inspect_dlp_redaction(request: DlpInspectRequest) -> DlpRedactionResult:
+    """Inspect and preview automated PII de-identification before document ingestion.
+
+    Args:
+        request: Raw text input containing potential sensitive attributes.
+
+    Returns:
+        DlpRedactionResult: Sanitized string, detected PII info types, and redaction count.
+    """
+    return dlp_adapter.redact_text(request.text)
+

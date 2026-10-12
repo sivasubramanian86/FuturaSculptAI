@@ -60,6 +60,76 @@ export const en = {
   quickActionSwarmTitle: 'Consult Specialist Swarm',
   quickActionSwarmDesc: 'Ask 9 specialized Google ADK agents about safety, ergonomics, and skill evolution.',
 
+  // Task Sculptor
+  tsTitle: 'Task Redesign Matrix & Sculptor',
+  tsSubtitle: 'Autonomous 6-part task allocation across humans and agents with strict sign-off gates.',
+  tsRefresh: 'Refresh Matrix',
+  tsCategoryAll: 'All Categories',
+  tsCategoryAutomate: 'Automate',
+  tsCategoryAugment: 'Augment',
+  tsCategoryAssist: 'Assist',
+  tsCategoryRetain: 'Retain',
+  tsCategoryRedesign: 'Redesign',
+  tsCategoryRetire: 'Retire',
+  tsCognitiveLoad: 'Cognitive Load',
+  tsHumanAgency: 'Human Agency',
+  tsModelAssigned: 'Assigned Model',
+  tsRedesignModalTitle: 'Redesign Task Allocation',
+  tsSignOffModalTitle: 'A2 Governance Sign-Off Gate',
+  tsAuthorizeCommit: 'Authorize Task Redesign & Commit',
+  tsApprovedBadge: 'Approved',
+  tsPendingBadge: 'Pending Review',
+
+  // Opportunity Engine
+  oppTitle: 'Workforce Opportunity Engine & Pathways',
+  oppSubtitle: 'Deterministic consequential indices, career mobility adjacency, and micro-credential pathways.',
+  oppRriIndex: 'Reskilling Readiness (RRI)',
+  oppWageMobility: 'Wage Mobility Index',
+  oppTransitionFriction: 'Transition Friction Score',
+  oppSafetyNet: 'Social Safety Net Allocation',
+  oppAppealModalTitle: 'Citizen Right to Appeal',
+  oppAppealBtn: 'File Appeal & Request Review',
+  oppPathwaysTitle: 'Role Transition Pathways',
+  oppGuaranteeBadge: 'Protected by Policy',
+
+  // WorkGraph Twin & Scenarios
+  wgTitle: 'Temporal Work Transformation Graph',
+  wgSubtitle: 'Ontological graph of tasks, roles, capabilities, and future horizon projections',
+  wgHorizonLabel: 'Select Horizon Year',
+  wgBlastRadiusTitle: 'Automation Blast Radius',
+  wgScenariosTitle: 'Future Scenario Foundry',
+
+  // Specialist Swarm
+  swarmTitle: 'Google ADK Multi-Agent Swarm Orchestrator',
+  swarmSubtitle: '9 specialized neuro-symbolic subagents deliberating under consensus rules',
+  swarmConsultBtn: 'Consult Specialist Swarm',
+  swarmAgentStates: 'Specialist Agent Execution States',
+
+  // Governance TrustBoard & DLP
+  govTitle: 'Governance TrustBoard & Investor Lens',
+  govSubtitle: 'Well-Architected 8-pillar assurance, Google SAIF matrix verification, and defensible investment diligence.',
+  govTrustScore: 'Platform Trust Score',
+  govExportDiligence: 'Export Diligence Pack',
+  govDlpTitle: 'Cloud DLP PII Redaction & Least-Privilege IAM',
+  govDlpPreview: 'Live PII Redaction Preview',
+  govDlpDesc: 'Cloud DLP automatically redacts SSNs, emails, phone numbers, and compensation before processing.',
+
+  // Evidence Vault
+  evTitle: 'Cryptographic Evidence Ledger & Multimodal Ingestion',
+  evSubtitle: 'Tamper-evident audit trail with SHA-256 cryptographic hashes and claim entailment',
+  evUploadBtn: 'Ingest Evidence Asset',
+  evVerifyBtn: 'Verify Ledger Integrity',
+  evDlpRedactedBadge: 'PII Redacted',
+
+  // IAM & RBAC
+  rbacCitizenWorker: 'Citizen / Worker',
+  rbacEnterpriseArchitect: 'Enterprise Architect',
+  rbacInvestor: 'Investor',
+  rbacHrExecutive: 'HR Executive',
+  rbacCustomerCare: 'Workforce Care Lead',
+  rbacGovernanceOfficer: 'AI Safety Officer',
+  rbacActivePersona: 'Active IAM Persona',
+
   // MultiModal Studio
   mediaStudioTitle: 'MultiModal Media Studio',
   mediaStudioDesc: 'Analyze workplace photos, voice shift memos, video streams, and SOP scans with Google Vertex AI.',

@@ -12,6 +12,8 @@ import {
   EvidenceEnvelope,
   IntegrityCheckResult,
 } from '../types';
+import { TranslationKeys } from '../i18n';
+import { en } from '../i18n/locales/en';
 
 export interface EvidenceDrawerProps {
   /** Array of ingested EvidenceEnvelope records. */
@@ -25,6 +27,8 @@ export interface EvidenceDrawerProps {
     claimText: string,
     evidenceIds?: string[]
   ) => Promise<ClaimVerificationResult>;
+  /** Optional localized translations dictionary. */
+  i18n?: TranslationKeys;
 }
 
 export const EvidenceDrawer: React.FC<EvidenceDrawerProps> = ({
@@ -32,7 +36,10 @@ export const EvidenceDrawer: React.FC<EvidenceDrawerProps> = ({
   onUploadFile,
   onVerifyIntegrity,
   onVerifyClaim,
+  i18n,
 }) => {
+  const t = i18n || en;
+
   const [selectedEvidence, setSelectedEvidence] = useState<EvidenceEnvelope | null>(
     evidenceLedger.length > 0 ? evidenceLedger[0] : null
   );
@@ -106,11 +113,11 @@ export const EvidenceDrawer: React.FC<EvidenceDrawerProps> = ({
     >
       <div className="section-header">
         <h2 className="section-title">
-          <span>📜</span> Cryptographic Evidence Ledger & Multimodal Ingestion
+          <span>📜</span> {t.evTitle}
         </h2>
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
           <label className="btn btn-secondary" style={{ cursor: 'pointer' }}>
-            {isUploading ? 'Ingesting...' : '+ Ingest Evidence Asset'}
+            {isUploading ? 'Ingesting...' : `+ ${t.evUploadBtn}`}
             <input
               type="file"
               style={{ display: 'none' }}

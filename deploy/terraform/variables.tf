@@ -27,3 +27,16 @@ variable "web_image" {
   type        = string
   default     = "asia-southeast1-docker.pkg.dev/genai-apac-2026-491004/futurasculpt-containers/web:latest"
 }
+
+variable "enable_vpc_sc" {
+  description = "Whether to provision Google Cloud VPC Service Controls perimeter (requires Organization admin permissions)."
+  type        = bool
+  default     = false
+}
+
+variable "access_policy_id" {
+  description = "Access Context Manager Policy ID for VPC Service Controls perimeter attachment."
+  type        = string
+  default     = ""
+}
+

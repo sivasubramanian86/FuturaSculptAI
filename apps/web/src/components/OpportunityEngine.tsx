@@ -14,9 +14,17 @@ import {
   PathwayAppealRequest,
   RoleTransitionPathway,
 } from '../types';
+import { TranslationKeys } from '../i18n';
+import { en } from '../i18n/locales/en';
 
-export const OpportunityEngine: React.FC = () => {
+export interface OpportunityEngineProps {
+  i18n?: TranslationKeys;
+}
+
+export const OpportunityEngine: React.FC<OpportunityEngineProps> = ({ i18n }) => {
+  const t = i18n || en;
   const [metrics, setMetrics] = useState<OpportunityMetricsResponse | null>(null);
+
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [cohortSize, setCohortSize] = useState<number>(25);
@@ -101,7 +109,7 @@ export const OpportunityEngine: React.FC = () => {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <h2 id="opportunity-engine-heading" style={{ fontSize: '18px', fontWeight: 700, letterSpacing: '-0.01em' }}>
-              Workforce Opportunity Engine & Pathways
+              {t.oppTitle}
             </h2>
             <span
               style={{
@@ -131,7 +139,7 @@ export const OpportunityEngine: React.FC = () => {
             </span>
           </div>
           <p style={{ color: 'var(--text-secondary)', fontSize: '13px', marginTop: '4px' }}>
-            Deterministic consequential indices, career mobility adjacency, and micro-credential pathways.
+            {t.oppSubtitle}
           </p>
         </div>
 

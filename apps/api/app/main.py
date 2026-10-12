@@ -12,6 +12,7 @@ from app.core.exceptions import FuturaSculptException
 from app.core.logging import configure_logging, get_log_tenant, get_logger, set_log_tenant
 from app.routers import (
     agents,
+    auth,
     evidence,
     governance,
     health,
@@ -120,6 +121,7 @@ async def handle_unhandled_exception(request: Request, exc: Exception):
 
 # Register routers
 app.include_router(health.router)
+app.include_router(auth.router)
 app.include_router(onboarding.router)
 app.include_router(workgraph.router)
 app.include_router(scenarios.router)

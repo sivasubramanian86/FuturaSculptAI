@@ -47,3 +47,38 @@ resource "google_bigquery_dataset_access" "sa_data_editor" {
   role          = "roles/bigquery.dataEditor"
   user_by_email = google_service_account.cloudrun_sa.email
 }
+
+# 6. Least-Privilege Custom IAM Roles for Enterprise Personas
+resource "google_project_iam_custom_role" "citizen_worker_role" {
+  role_id     = "futurasculpt_citizen_worker"
+  title       = "FuturaSculptAI Citizen Worker"
+  description = "Read-only access to role resilience, transition pathways, and appeal filing"
+  permissions = [
+    "run.routes.get",
+    "run.services.get",
+  ]
+}
+
+resource "google_project_iam_custom_role" "governance_officer_role" {
+  role_id     = "futurasculpt_governance_officer"
+  title       = "FuturaSculptAI Governance & Compliance Officer"
+  description = "Audit access to DLP redactions, SAIF verification, and evidence envelopes"
+  permissions = [
+    "run.routes.get",
+    "run.services.get",
+    "dlp.jobs.get",
+    "dlp.inspectTemplates.get",
+    "storage.objects.get",
+  ]
+}
+
+resource "google_project_iam_custom_role" "investor_lens_role" {
+  role_id     = "futurasculpt_investor"
+  title       = "FuturaSculptAI Investor Lens"
+  description = "Read-only access to TrustBoard, valuation models, and diligence pack exports"
+  permissions = [
+    "run.routes.get",
+    "run.services.get",
+  ]
+}
+

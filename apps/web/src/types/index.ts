@@ -585,3 +585,18 @@ export interface DiligencePackExport {
   exported_at: string;
   disclaimer: string;
 }
+
+export interface DlpFinding {
+  info_type: string;
+  likelihood: string;
+  quote: string;
+}
+
+export interface DlpRedactionResult {
+  original_text: string;
+  redacted_text: string;
+  redacted_items_count: number;
+  findings: DlpFinding[];
+  has_violations: boolean;
+}
+
