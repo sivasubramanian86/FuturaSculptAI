@@ -1,6 +1,7 @@
 """Adversarial Critic Agent red-teaming proposals for groundedness and ethical loopholes."""
 
 from app.agents.base import AgentContext, BaseSwarmAgent
+from app.agents.prompt_orchestrator import prompt_orchestrator
 from app.agents.tools.evidence_tools import verify_claim_groundedness
 from app.agents.tools.governance_tools import detect_adverse_employment_actions
 from app.models.agent_swarm import (
@@ -41,17 +42,15 @@ class AdversarialCriticAgent(BaseSwarmAgent):
         verification = verify_claim_groundedness(claims, context.citations)
         has_redline = detect_adverse_employment_actions(req.scenario_prompt)
 
+        # Execute dynamic Gemini LLM reasoning via Prompt Orchestrator
+        critic_output = await prompt_orchestrator.execute_critic_reasoning(context, has_redline)
+
         audit_result = AdversarialAuditResult(
             is_grounded=verification["is_grounded"] and not has_redline,
             groundedness_score=verification["groundedness_score"] if not has_redline else 0.0,
             hallucination_rate=verification["hallucination_rate"],
             red_line_violation=has_redline,
-            critique_notes=(
-                "Zero unsupported claims detected. Groundedness verified against cryptographic evidence envelopes. "
-                "Hardware failsafe and supervisor override confirmed in blueprint."
-            )
-            if not has_redline
-            else "CRITICAL RED-LINE BREACH DETECTED: Proposal attempts prohibited adverse personnel action.",
+            critique_notes=critic_output.critique_notes,
         )
 
         context.shared_memory["adversarial_audit"] = audit_result

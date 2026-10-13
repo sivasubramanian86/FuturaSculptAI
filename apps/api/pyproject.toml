@@ -72,6 +72,11 @@ addopts = "-ra -q --cov=app --cov-report=term-missing"
 testpaths = ["tests"]
 pythonpath = ["."]
 asyncio_mode = "auto"
+markers = [
+    "unit: Isolated unit tests for models, deterministic scoring calculators, and policy rules.",
+    "integration: Subsystem integration tests for routers, database ledgers, adapters, and prompt orchestrators.",
+    "e2e: End-to-end full lifecycle tests and multi-agent deliberation workflows.",
+]
 
 [tool.ruff]
 line-length = 120

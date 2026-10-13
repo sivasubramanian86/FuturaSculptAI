@@ -8,6 +8,9 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "test": "vitest run",
+    "test:unit": "vitest run src/tests/unit",
+    "test:integration": "vitest run src/tests/integration",
+    "test:e2e": "vitest run src/tests/e2e",
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {

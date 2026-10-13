@@ -3,6 +3,7 @@
 from typing import List
 
 from app.agents.base import AgentContext, BaseSwarmAgent
+from app.agents.prompt_orchestrator import prompt_orchestrator
 from app.models.agent_swarm import (
     AgentRole,
     AgentStep,
@@ -32,9 +33,10 @@ class TaskRedesignAgent(BaseSwarmAgent):
         Returns:
             AgentStep: Work allocation analysis and task decomposition.
         """
-        req = context.request
-        human_work_pct = 100.0 - min(80.0, float(req.horizon_years) * 26.0)
-        agent_work_pct = 100.0 - human_work_pct
+        # Execute dynamic Gemini LLM reasoning via Prompt Orchestrator
+        decomposer_output = await prompt_orchestrator.execute_decomposer_reasoning(context)
+        human_work_pct = decomposer_output.human_work_pct
+        agent_work_pct = decomposer_output.agent_work_pct
 
         context.shared_memory["human_work_pct"] = human_work_pct
         context.shared_memory["agent_work_pct"] = agent_work_pct

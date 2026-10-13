@@ -30,6 +30,10 @@ class Settings(BaseSettings):
     # Vertex AI / Model Gateway
     default_model_fast: str = "gemini-2.5-flash"
     default_model_pro: str = "gemini-2.5-pro"
+    model_workhorse: str = "gemini-2.5-flash"
+    model_deep_reasoning: str = "gemini-2.5-pro"
+    model_high_volume_utility: str = "gemini-2.5-flash-lite"
+    vertex_context_cache_enabled: bool = True
     mock_llm_mode: bool = True  # Allows offline testing with local adapters
 
     # Session budget & FinOps limits

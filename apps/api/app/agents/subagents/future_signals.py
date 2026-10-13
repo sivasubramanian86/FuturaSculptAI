@@ -1,6 +1,7 @@
 """Future Signals Agent ingesting technology maturity curves and regulatory mandates."""
 
 from app.agents.base import AgentContext, BaseSwarmAgent
+from app.agents.prompt_orchestrator import prompt_orchestrator
 from app.models.agent_swarm import AgentRole, AgentStep, AutonomyTier
 
 
@@ -28,10 +29,13 @@ class FutureSignalsAgent(BaseSwarmAgent):
         sector = req.sector or "food_manufacturing"
         horizon = req.horizon_years
 
+        # Execute dynamic Gemini LLM reasoning via Prompt Orchestrator
+        scout_output = await prompt_orchestrator.execute_scout_reasoning(context)
+
         signals = {
-            "technology_readiness_level": 8 if horizon >= 3 else 7,
-            "relevant_regulations": ["EU AI Act High-Risk Standard", "FDA 21 CFR Part 11 Audit Trail"],
-            "sector_adoption_velocity": "Accelerated (CAGR 34.2%)",
+            "technology_readiness_level": scout_output.technology_readiness_level,
+            "relevant_regulations": scout_output.relevant_regulations,
+            "sector_adoption_velocity": scout_output.sector_adoption_velocity,
         }
         context.shared_memory["future_signals"] = signals
 
