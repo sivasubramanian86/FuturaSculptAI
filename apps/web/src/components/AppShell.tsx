@@ -342,9 +342,6 @@ export const AppShell: React.FC<AppShellProps> = ({
                 >
                   <span className="nav-icon">{item.icon}</span>
                   {!isSidebarCollapsed && <span className="nav-label">{item.label}</span>}
-                  {!isSidebarCollapsed && item.badge && (
-                    <span className="nav-badge">{item.badge}</span>
-                  )}
                 </button>
               ))}
 
@@ -362,9 +359,6 @@ export const AppShell: React.FC<AppShellProps> = ({
                 >
                   <span className="nav-icon">{item.icon}</span>
                   {!isSidebarCollapsed && <span className="nav-label">{item.label}</span>}
-                  {!isSidebarCollapsed && item.badge && (
-                    <span className="nav-badge">{item.badge}</span>
-                  )}
                 </button>
               ))}
 
@@ -382,9 +376,6 @@ export const AppShell: React.FC<AppShellProps> = ({
                 >
                   <span className="nav-icon">{item.icon}</span>
                   {!isSidebarCollapsed && <span className="nav-label">{item.label}</span>}
-                  {!isSidebarCollapsed && item.badge && (
-                    <span className="nav-badge">{item.badge}</span>
-                  )}
                 </button>
               ))}
 

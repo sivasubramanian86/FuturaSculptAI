@@ -8,6 +8,8 @@ describe('AuraHologramAssistant Component', () => {
   let mockUtteranceInstance: any = null;
 
   beforeEach(() => {
+    Element.prototype.scrollIntoView = vi.fn();
+
     // Mock SpeechSynthesis
     const mockSpeechSynthesis = {
       speak: vi.fn((utterance) => {
@@ -152,11 +154,27 @@ describe('AuraHologramAssistant Component', () => {
       expect(screen.getByText(/FuturaSculptAI Workforce Sanctuary: We transform work ethically/i)).toBeInTheDocument();
     });
 
-    // Test jump to section buttons inside message
-    const jumpTaskSculptorBtns = screen.getAllByRole('button', { name: /Task Sculptor/i });
+    // Ask 1y, 3y, 5y, 10y roadmap question
+    fireEvent.change(input, { target: { value: 'What is the 1y, 3y, 5y, 10y future work transformation roadmap?' } });
+    fireEvent.click(sendBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText(/1Y, 3Y, 5Y & 10Y Transformation Roadmap/i)).toBeInTheDocument();
+    });
+
+    // Test jump to Task Sculptor button inside message
+    const jumpTaskSculptorBtns = screen.getAllByRole('button', { name: /🧬 Task Sculptor/i });
     expect(jumpTaskSculptorBtns.length).toBeGreaterThan(0);
     fireEvent.click(jumpTaskSculptorBtns[0]);
     expect(onNav).toHaveBeenCalledWith('task_sculptor');
+
+    // Reopen modal and test jump to sector focus button inside message
+    fireEvent.click(screen.getByLabelText(/Launch Aura 3D Virtual Live Assistant/i));
+    const jumpSectorBtns = screen.getAllByRole('button', { name: /Sector Focus/i });
+    expect(jumpSectorBtns.length).toBeGreaterThan(0);
+    fireEvent.click(jumpSectorBtns[0]);
+    expect(onNav).toHaveBeenCalledWith('task_sculptor');
+    expect(onSelectSector).toHaveBeenCalledWith('logistics');
 
     // Reopen modal and test jump to SAIF
     fireEvent.click(screen.getByLabelText(/Launch Aura 3D Virtual Live Assistant/i));
@@ -164,6 +182,19 @@ describe('AuraHologramAssistant Component', () => {
     expect(jumpSaifBtns.length).toBeGreaterThan(0);
     fireEvent.click(jumpSaifBtns[0]);
     expect(onNav).toHaveBeenCalledWith('governance');
+
+    // Reopen modal and test synth speak error catch
+    fireEvent.click(screen.getByLabelText(/Launch Aura 3D Virtual Live Assistant/i));
+    (window.speechSynthesis.speak as any).mockImplementationOnce(() => {
+      throw new Error('synth error');
+    });
+    fireEvent.change(screen.getByPlaceholderText(/Ask Aura anything/i), { target: { value: 'Test synth error catch' } });
+    fireEvent.click(screen.getByRole('button', { name: /Send/i }));
+
+    // Test close button
+    const closeBtn = screen.getByLabelText(/Close Aura Assistant/i);
+    fireEvent.click(closeBtn);
+    expect(screen.queryByText(/Aura — 3D Virtual Live Assistant/i)).not.toBeInTheDocument();
   });
 
   it('triggers quick prompt pills for UPI QR, Uber drivers, and Cinema industry', async () => {
@@ -259,6 +290,24 @@ describe('AuraHologramAssistant Component', () => {
       mockUtteranceInstance.onerror();
     }
 
+    // Test speaking state visualization (covers isSpeaking branch)
+    (window.speechSynthesis.speak as any).mockImplementationOnce((utterance: any) => {
+      mockUtteranceInstance = utterance;
+      if (utterance.onstart) utterance.onstart();
+    });
+    const testInput = screen.getByPlaceholderText(/Ask Aura anything/i);
+    fireEvent.change(testInput, { target: { value: 'Activate speaking node' } });
+    fireEvent.click(screen.getByRole('button', { name: /Send/i }));
+    if (mockUtteranceInstance && mockUtteranceInstance.onend) {
+      mockUtteranceInstance.onend();
+    }
+
+    // Test microphone start exception catch
+    mockStart.mockImplementationOnce(() => {
+      throw new Error('mic start failure');
+    });
+    fireEvent.click(screen.getByLabelText(/Start speaking with microphone/i));
+
     // Test backdrop overlay click to close
     const overlay = screen.getByText(/Aura Quantum Holo-Node/i).closest('.modal-overlay');
     expect(overlay).not.toBeNull();
@@ -286,5 +335,56 @@ describe('AuraHologramAssistant Component', () => {
     fireEvent.click(micBtn);
 
     expect(alertSpy).toHaveBeenCalledWith('Speech Recognition is not supported by your current browser.');
+  });
+
+  it('falls back to en-US for unsupported language in SpeechRecognition and SpeechSynthesis', () => {
+    let capturedRecognition: any = null;
+    const MockSpeechRecognition = vi.fn().mockImplementation(() => {
+      capturedRecognition = {
+        start: vi.fn(),
+        stop: vi.fn(),
+        continuous: false,
+        interimResults: true,
+        lang: '',
+      };
+      return capturedRecognition;
+    });
+    (window as any).SpeechRecognition = MockSpeechRecognition;
+
+    render(
+      <AuraHologramAssistant
+        currentLanguage={'unsupported_lang' as any}
+        onNavigateTab={vi.fn()}
+      />
+    );
+
+    expect(capturedRecognition.lang).toBe('en-US');
+
+    fireEvent.click(screen.getByLabelText(/Launch Aura 3D Virtual Live Assistant/i));
+    expect(mockUtteranceInstance.lang).toBe('en-US');
+  });
+
+  it('handles null canvas 2d context and null speech synthesis gracefully', () => {
+    HTMLCanvasElement.prototype.getContext = vi.fn().mockReturnValue(null);
+    Object.defineProperty(window, 'speechSynthesis', {
+      value: null,
+      writable: true,
+    });
+
+    render(
+      <AuraHologramAssistant
+        currentLanguage="en"
+        onNavigateTab={vi.fn()}
+      />
+    );
+
+    fireEvent.click(screen.getByLabelText(/Launch Aura 3D Virtual Live Assistant/i));
+
+    // Send text when speechSynthesis is null (covers if (!synthRef.current) return)
+    const input = screen.getByPlaceholderText(/Ask Aura anything/i);
+    fireEvent.change(input, { target: { value: 'Test without speech synthesis' } });
+    fireEvent.click(screen.getByRole('button', { name: /Send/i }));
+
+    expect(screen.getByText(/Test without speech synthesis/i)).toBeInTheDocument();
   });
 });

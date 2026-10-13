@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom/vitest';
 import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { TransformationRoadmapStudio } from '../components/TransformationRoadmapStudio';
 import { getTranslations } from '../i18n';
 
@@ -103,15 +103,28 @@ describe('TransformationRoadmapStudio Component', () => {
     expect(screen.getByText(/Imagen Architecture Twin: 2036 Workspace Blueprint/i)).toBeInTheDocument();
     expect(screen.getByText(/Zone 1: Human Sanctuary/i)).toBeInTheDocument();
 
+    // Switch back to Strategic 1Y - 10Y Timeline sub-tab
+    const roadmapTab = screen.getByRole('button', { name: /Strategic 1Y - 10Y Timeline/i });
+    fireEvent.click(roadmapTab);
+    expect(screen.getByText(/Transformation Narrative & Strategic Horizons/i)).toBeInTheDocument();
+
     // Tab 2: Lyria Podcast
     const podcastTab = screen.getByRole('button', { name: /Lyria Future Podcast/i });
     fireEvent.click(podcastTab);
     expect(screen.getByText(/Lyria Podcast: Echoes of 2036/i)).toBeInTheDocument();
 
+    // Speed buttons
+    fireEvent.click(screen.getByRole('button', { name: '1.25x' }));
+    fireEvent.click(screen.getByRole('button', { name: '1.5x' }));
+
     // Play podcast
+    let capturedPodcastUtterance: any = null;
+    mockSpeak.mockImplementation((u) => { capturedPodcastUtterance = u; });
     const playPodcastBtn = screen.getByRole('button', { name: /Play Future Podcast/i });
     fireEvent.click(playPodcastBtn);
     expect(mockSpeak).toHaveBeenCalled();
+    if (capturedPodcastUtterance?.onend) capturedPodcastUtterance.onend();
+    if (capturedPodcastUtterance?.onerror) capturedPodcastUtterance.onerror();
 
     // Pause podcast
     const pausePodcastBtn = screen.getByRole('button', { name: /Pause Future Podcast/i });
@@ -124,9 +137,30 @@ describe('TransformationRoadmapStudio Component', () => {
     expect(screen.getByText(/Veo Video Walkthrough: Day in the Life \(2036\)/i)).toBeInTheDocument();
     expect(screen.getByText(/AERIAL CAMPUS VIEW/i)).toBeInTheDocument();
 
-    // Switch camera angle
+    // Toggle video play / pause and test timer tick
+    vi.useFakeTimers();
+    const playVideoBtn = screen.getByText('▶');
+    fireEvent.click(playVideoBtn);
+    expect(screen.getByText('⏸')).toBeInTheDocument();
+    act(() => {
+      vi.advanceTimersByTime(2500);
+    });
+
+    // Change video scrubber to 45 and tick to test loop reset
+    const scrubber = screen.getByRole('slider');
+    fireEvent.change(scrubber, { target: { value: '45' } });
+    act(() => {
+      vi.advanceTimersByTime(1100);
+    });
+
+    fireEvent.click(screen.getByText('⏸'));
+    vi.useRealTimers();
+
+    // Switch camera angles
     fireEvent.click(screen.getByRole('button', { name: 'HUD' }));
     expect(screen.getByText(/FIRST-PERSON HUD COGNITIVE WORKSPACE/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /SYNERGY/i }));
+    expect(screen.getByText(/COLLABORATIVE MULTI-AGENT SYNERGY POD/i)).toBeInTheDocument();
 
     // Tab 4: Multi-Agentic RAG Evidence
     const evidenceTab = screen.getByRole('button', { name: /Multi-Agentic RAG Evidence/i });
@@ -186,9 +220,13 @@ describe('TransformationRoadmapStudio Component', () => {
     expect(screen.getByText(/Now \(Traditional Style\)/i)).toBeInTheDocument();
 
     // Voice Speak button
+    let capturedVoiceUtterance: any = null;
+    mockSpeak.mockImplementation((u) => { capturedVoiceUtterance = u; });
     const speakBtn = screen.getByRole('button', { name: /Listen to Narrative/i });
     fireEvent.click(speakBtn);
     expect(mockSpeak).toHaveBeenCalled();
+    if (capturedVoiceUtterance?.onend) capturedVoiceUtterance.onend();
+    if (capturedVoiceUtterance?.onerror) capturedVoiceUtterance.onerror();
 
     // Toggle voice to stop
     fireEvent.click(screen.getByRole('button', { name: /Stop Voice/i }));
@@ -203,5 +241,96 @@ describe('TransformationRoadmapStudio Component', () => {
     const copyBtn = screen.getByRole('button', { name: /Copy Brief/i });
     fireEvent.click(copyBtn);
     expect(screen.getByText(/Copied Brief/i)).toBeInTheDocument();
+  });
+
+  it('simulates transportation fleet roadmap from preset', () => {
+    render(<TransformationRoadmapStudio i18n={i18n} simulationDelayMs={0} />);
+    const taxiPreset = screen.getByRole('button', { name: /Taxi & Regional Transport Fleet/i });
+    fireEvent.click(taxiPreset);
+    fireEvent.click(screen.getByRole('button', { name: /Generate 1Y, 3Y, 5Y & 10Y Roadmap/i }));
+    expect(screen.getAllByText(/Mobility & Autonomous Fleet Logistics/i).length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('simulates cinema production roadmap from preset', () => {
+    render(<TransformationRoadmapStudio i18n={i18n} simulationDelayMs={0} />);
+    const cinemaPreset = screen.getByRole('button', { name: /Independent Film & Creative Production/i });
+    fireEvent.click(cinemaPreset);
+    fireEvent.click(screen.getByRole('button', { name: /Generate 1Y, 3Y, 5Y & 10Y Roadmap/i }));
+    expect(screen.getAllByText(/Creative Film & Digital Media Production/i).length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('simulates bakery roadmap from preset', () => {
+    render(<TransformationRoadmapStudio i18n={i18n} simulationDelayMs={0} />);
+    const bakeryPreset = screen.getByRole('button', { name: /Family Bakery & Packaged Foods/i });
+    fireEvent.click(bakeryPreset);
+    fireEvent.click(screen.getByRole('button', { name: /Generate 1Y, 3Y, 5Y & 10Y Roadmap/i }));
+    expect(screen.getAllByText(/Food Processing & Artisan Bakery/i).length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('simulates public health clinic roadmap from preset', () => {
+    render(<TransformationRoadmapStudio i18n={i18n} simulationDelayMs={0} />);
+    const clinicPreset = screen.getByRole('button', { name: /District General Hospital & Clinic/i });
+    fireEvent.click(clinicPreset);
+    fireEvent.click(screen.getByRole('button', { name: /Generate 1Y, 3Y, 5Y & 10Y Roadmap/i }));
+    expect(screen.getAllByText(/District General Hospital & Rural Health Network/i).length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('simulates retail supermarket and website URL roadmaps', () => {
+    render(<TransformationRoadmapStudio i18n={i18n} simulationDelayMs={0} />);
+    const textInput = screen.getByLabelText(/Traditional Work Description/i);
+    fireEvent.change(textInput, { target: { value: 'We run a neighborhood retail grocery supermarket shop with inventory' } });
+    fireEvent.click(screen.getByRole('button', { name: /Generate 1Y, 3Y, 5Y & 10Y Roadmap/i }));
+    expect(screen.getAllByText(/Modernized Retail & Omni-Channel Commerce/i).length).toBeGreaterThanOrEqual(1);
+
+    const urlModeBtn = screen.getByRole('button', { name: /Enter Company Website URL/i });
+    fireEvent.click(urlModeBtn);
+    const urlInput = screen.getByLabelText(/Company Website URL/i);
+    fireEvent.change(urlInput, { target: { value: 'https://example-bakery.com/about' } });
+    fireEvent.click(screen.getByRole('button', { name: /Generate 1Y, 3Y, 5Y & 10Y Roadmap/i }));
+    expect(screen.getAllByText(/Food Processing & Artisan Bakery/i).length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('handles non-zero simulation delay with setTimeout and loading state', () => {
+    vi.useFakeTimers();
+    render(<TransformationRoadmapStudio i18n={i18n} simulationDelayMs={200} />);
+
+    const generateBtn = screen.getByRole('button', { name: /Generate 1Y, 3Y, 5Y & 10Y Roadmap/i });
+    fireEvent.click(generateBtn);
+
+    expect(screen.getByText(/Synthesizing Multi-Agent Evidence & 100x Model\.\.\./i)).toBeInTheDocument();
+
+    act(() => {
+      vi.advanceTimersByTime(250);
+    });
+
+    expect(screen.getByText(/Transformation Narrative & Strategic Horizons/i)).toBeInTheDocument();
+    vi.useRealTimers();
+  });
+
+  it('simulates Microsoft, Anthropic and African Community School roadmaps from presets', () => {
+    render(<TransformationRoadmapStudio i18n={i18n} simulationDelayMs={0} />);
+
+    const msPreset = screen.getByRole('button', { name: /Microsoft/i });
+    fireEvent.click(msPreset);
+    fireEvent.click(screen.getByRole('button', { name: /Generate 1Y, 3Y, 5Y & 10Y Roadmap/i }));
+    expect(screen.getAllByText(/Microsoft Corporation/i).length).toBeGreaterThanOrEqual(1);
+
+    const anthropicPreset = screen.getByRole('button', { name: /Anthropic/i });
+    fireEvent.click(anthropicPreset);
+    fireEvent.click(screen.getByRole('button', { name: /Generate 1Y, 3Y, 5Y & 10Y Roadmap/i }));
+    expect(screen.getAllByText(/Anthropic PBC/i).length).toBeGreaterThanOrEqual(1);
+
+    const africaPreset = screen.getByRole('button', { name: /Community School \(Sub-Saharan Africa\)/i });
+    fireEvent.click(africaPreset);
+    fireEvent.click(screen.getByRole('button', { name: /Generate 1Y, 3Y, 5Y & 10Y Roadmap/i }));
+    expect(screen.getAllByText(/Community Primary & Vocational Network \(Sub-Saharan Africa\)/i).length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('handles target enterprise name input onChange in company mode', () => {
+    render(<TransformationRoadmapStudio i18n={i18n} simulationDelayMs={0} />);
+    fireEvent.click(screen.getByRole('button', { name: /Company \/ Global Institution Name/i }));
+    const input = screen.getByLabelText(/Target Enterprise or Institution Name/i);
+    fireEvent.change(input, { target: { value: 'Global Agro Logistics' } });
+    expect((input as HTMLInputElement).value).toBe('Global Agro Logistics');
   });
 });

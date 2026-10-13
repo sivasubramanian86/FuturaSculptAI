@@ -59,13 +59,17 @@ describe('CitizenOverview Component', () => {
   });
 
   it('toggles Simple Voice & Visual Mode and triggers audio speak readout', () => {
-    const mockSpeak = vi.fn();
+    let capturedUtterance: any = null;
+    const mockSpeak = vi.fn((utterance) => {
+      capturedUtterance = utterance;
+    });
     Object.defineProperty(window, 'speechSynthesis', {
       value: { speak: mockSpeak, cancel: vi.fn() },
       writable: true,
     });
     class MockUtterance {
       text: string;
+      onend: (() => void) | null = null;
       constructor(text: string) {
         this.text = text;
       }
@@ -85,5 +89,16 @@ describe('CitizenOverview Component', () => {
     expect(listenBtns.length).toBeGreaterThan(0);
     fireEvent.click(listenBtns[0]);
     expect(mockSpeak).toHaveBeenCalled();
+
+    // Trigger onend to clear spokenAudioText
+    expect(capturedUtterance).not.toBeNull();
+    if (capturedUtterance?.onend) {
+      capturedUtterance.onend();
+    }
+
+    // Branch where UtteranceClass is absent
+    delete (window as any).SpeechSynthesisUtterance;
+    delete (globalThis as any).SpeechSynthesisUtterance;
+    fireEvent.click(listenBtns[0]);
   });
 });

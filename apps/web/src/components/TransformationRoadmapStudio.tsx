@@ -173,34 +173,34 @@ export const TransformationRoadmapStudio: React.FC<TransformationRoadmapStudioPr
       if (lower.includes('google') || lower.includes('alphabet')) {
         detectedDomain = 'Google (Alphabet Inc.)';
         category = 'tech_titan';
-      } else if (lower.includes('microsoft') || lower.includes('azure')) {
+      } else if (lower.includes('microsoft')) {
         detectedDomain = 'Microsoft Corporation';
         category = 'tech_titan';
-      } else if (lower.includes('anthropic') || lower.includes('claude')) {
+      } else if (lower.includes('anthropic')) {
         detectedDomain = 'Anthropic PBC';
         category = 'tech_titan';
-      } else if (lower.includes('india') && (lower.includes('school') || lower.includes('education') || lower.includes('govt'))) {
+      } else if (lower.includes('india')) {
         detectedDomain = 'Government School System (India)';
         category = 'public_education';
-      } else if (lower.includes('africa') || (lower.includes('community') && lower.includes('school'))) {
+      } else if (lower.includes('africa')) {
         detectedDomain = 'Community Primary & Vocational Network (Sub-Saharan Africa)';
         category = 'public_education';
-      } else if (lower.includes('hospital') || lower.includes('clinic') || lower.includes('health') || lower.includes('doctor')) {
+      } else if (lower.includes('hospital')) {
         detectedDomain = 'District General Hospital & Rural Health Network';
         category = 'public_health';
-      } else if (lower.includes('bakery') || lower.includes('food') || lower.includes('snack')) {
+      } else if (lower.includes('bakery')) {
         detectedDomain = 'Food Processing & Artisan Bakery';
         category = 'commercial_enterprise';
-      } else if (lower.includes('auto') || lower.includes('mechanic') || lower.includes('repair') || lower.includes('machine')) {
+      } else if (lower.includes('auto')) {
         detectedDomain = 'Precision Automotive & Engineering Services';
         category = 'commercial_enterprise';
-      } else if (lower.includes('taxi') || lower.includes('cab') || lower.includes('fleet') || lower.includes('transport') || lower.includes('uber') || lower.includes('ola')) {
+      } else if (lower.includes('taxi') || lower.includes('cab') || lower.includes('transport') || lower.includes('fleet')) {
         detectedDomain = 'Mobility & Autonomous Fleet Logistics';
         category = 'commercial_enterprise';
-      } else if (lower.includes('film') || lower.includes('cinema') || lower.includes('movie') || lower.includes('vfx') || lower.includes('video')) {
+      } else if (lower.includes('film') || lower.includes('movie') || lower.includes('video') || lower.includes('cinema')) {
         detectedDomain = 'Creative Film & Digital Media Production';
         category = 'commercial_enterprise';
-      } else if (lower.includes('retail') || lower.includes('shop') || lower.includes('store') || lower.includes('wholesale')) {
+      } else if (lower.includes('retail')) {
         detectedDomain = 'Modernized Retail & Omni-Channel Commerce';
         category = 'commercial_enterprise';
       }
@@ -424,9 +424,8 @@ export const TransformationRoadmapStudio: React.FC<TransformationRoadmapStudioPr
   };
 
   const handleCopyNarrative = () => {
-    if (!roadmap) return;
-    const current = roadmap.horizons[activeHorizon];
-    const textToCopy = `FUTURASCULPTAI TRANSFORMATION ROADMAP: ${roadmap.firmTitle}\n\nHORIZON: ${current.year} (${current.badge})\nPRODUCTIVITY MULTIPLIER: ${current.productivityMultiplier}\nHEADLINE: ${current.headline}\n\nWORK STYLE: ${current.workStyle}\nWORKER EXPERIENCE: ${current.workerExperience}\n\nFIRM GROWTH METRICS:\n- Revenue/Reach: ${current.firmMetrics.revenueMultiple}\n- Margin/Savings: ${current.firmMetrics.netMargin}\n- Creative Freedom: ${current.firmMetrics.creativeTimePct}%\n- Wage Growth: ${current.firmMetrics.wageIncrease}\n- Turnaround Speed: ${current.firmMetrics.turnaround}\n\nKEY MILESTONES:\n${current.keyMilestones.map((m) => `• ${m}`).join('\n')}\n\nEXECUTIVE SUMMARY:\n${roadmap.executiveSummary}\n\nSOCIETAL IMPACT:\n${roadmap.societalImpactNarrative}`;
+    const current = roadmap!.horizons[activeHorizon];
+    const textToCopy = `FUTURASCULPTAI TRANSFORMATION ROADMAP: ${roadmap!.firmTitle}\n\nHORIZON: ${current.year} (${current.badge})\nPRODUCTIVITY MULTIPLIER: ${current.productivityMultiplier}\nHEADLINE: ${current.headline}\n\nWORK STYLE: ${current.workStyle}\nWORKER EXPERIENCE: ${current.workerExperience}\n\nFIRM GROWTH METRICS:\n- Revenue/Reach: ${current.firmMetrics.revenueMultiple}\n- Margin/Savings: ${current.firmMetrics.netMargin}\n- Creative Freedom: ${current.firmMetrics.creativeTimePct}%\n- Wage Growth: ${current.firmMetrics.wageIncrease}\n- Turnaround Speed: ${current.firmMetrics.turnaround}\n\nKEY MILESTONES:\n${current.keyMilestones.map((m) => `• ${m}`).join('\n')}\n\nEXECUTIVE SUMMARY:\n${roadmap!.executiveSummary}\n\nSOCIETAL IMPACT:\n${roadmap!.societalImpactNarrative}`;
 
     if (navigator.clipboard) {
       navigator.clipboard.writeText(textToCopy);
@@ -436,7 +435,6 @@ export const TransformationRoadmapStudio: React.FC<TransformationRoadmapStudioPr
   };
 
   const handleSpeakNarrative = () => {
-    if (!roadmap) return;
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       if (isPlayingAudio) {
         window.speechSynthesis.cancel();
@@ -445,10 +443,10 @@ export const TransformationRoadmapStudio: React.FC<TransformationRoadmapStudioPr
       }
 
       window.speechSynthesis.cancel();
-      const current = roadmap.horizons[activeHorizon];
-      const speech = `${roadmap.firmTitle}. ${current.year}. ${current.headline}. Productivity multiplier: ${current.productivityMultiplier}. Work Style: ${current.workStyle}. Worker Experience: ${current.workerExperience}. Revenue growth: ${current.firmMetrics.revenueMultiple}.`;
+      const current = roadmap!.horizons[activeHorizon];
+      const speech = `${roadmap!.firmTitle}. ${current.year}. ${current.headline}. Productivity multiplier: ${current.productivityMultiplier}. Work Style: ${current.workStyle}. Worker Experience: ${current.workerExperience}. Revenue growth: ${current.firmMetrics.revenueMultiple}.`;
 
-      const Utterance = (window as any).SpeechSynthesisUtterance || (globalThis as any).SpeechSynthesisUtterance;
+      const Utterance = (window as any).SpeechSynthesisUtterance;
       if (Utterance) {
         const u = new Utterance(speech);
         u.rate = 0.95;
@@ -461,7 +459,6 @@ export const TransformationRoadmapStudio: React.FC<TransformationRoadmapStudioPr
   };
 
   const handleTogglePodcast = () => {
-    if (!roadmap) return;
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       if (isPlayingPodcast) {
         window.speechSynthesis.cancel();
@@ -470,9 +467,9 @@ export const TransformationRoadmapStudio: React.FC<TransformationRoadmapStudioPr
       }
 
       window.speechSynthesis.cancel();
-      const script = `Welcome to Future Resonance by Lyria. I am your host, Dr. Aris Thorne. Today we look at the year 2036 transformation of ${roadmap.firmTitle}. We are joined by an onsite team director. They report that productivity has surged to 100x multi-fold. Routine toil is completely gone. Human workers spend 95% of their day on creative direction and community empathy. Let us explore the journey from 2026 to 2036.`;
+      const script = `Welcome to Future Resonance by Lyria. I am your host, Dr. Aris Thorne. Today we look at the year 2036 transformation of ${roadmap!.firmTitle}. We are joined by an onsite team director. They report that productivity has surged to 100x multi-fold. Routine toil is completely gone. Human workers spend 95% of their day on creative direction and community empathy. Let us explore the journey from 2026 to 2036.`;
 
-      const Utterance = (window as any).SpeechSynthesisUtterance || (globalThis as any).SpeechSynthesisUtterance;
+      const Utterance = (window as any).SpeechSynthesisUtterance;
       if (Utterance) {
         const u = new Utterance(script);
         u.rate = podcastSpeed;
