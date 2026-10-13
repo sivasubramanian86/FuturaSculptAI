@@ -219,6 +219,50 @@ npx firebase deploy --only hosting
 
 ---
 
+## 5. Deployment & Evolution Playbook (Phases 1 to 5)
+
+### Phase 1: Google Cloud Run Deployment (Backend API)
+- **Containerization:** Multi-stage Docker build with non-root runtime security.
+- **Service Deployment:** Deploy `futurasculpt-api` to Google Cloud Run (`us-central1`) via `scripts/deploy_cloudrun.ps1` or `gcloud run deploy`.
+- **Health Verification:** Confirm `/healthz` and `/api/v1/health` return HTTP 200 OK.
+- **Service URL Capture:** Store Cloud Run public HTTPS URL for frontend and proxy configuration.
+
+### Phase 2: Firebase Hosting Deployment (Web Client)
+- **API Base Configuration:** Point frontend client to the deployed Cloud Run API service URL.
+- **Reverse Proxy Routing:** Configure `firebase.json` for single-page app rewrites and `/api/**` proxying to Cloud Run.
+- **Build & Publish:** Execute `npm run build` in `apps/web` and deploy via `npx firebase deploy --only hosting`.
+- **Custom Domain / SSL:** Verify global CDN availability and TLS certificate termination.
+
+### Phase 3: Real Gemini LLM Integration (Vertex AI & Gemini API)
+- **Dynamic Model Selection:**
+  - Fast, low-latency tasks (triage, quick chat, voice synthesis script): `gemini-1.5-flash` / `gemini-2.0-flash`.
+  - Deep cognitive reasoning (10Y roadmap synthesis, multi-agent consensus, counterfactual impact): `gemini-1.5-pro` / `gemini-2.5-pro`.
+  - Context caching on Vertex AI for immutable enterprise policies and regulatory corpus to slash token latency and FinOps budget.
+- **Dynamic Prompt Generation:**
+  - Context-aware prompt templating for all 9 agents (Scout, Decomposer, Mobility, Critic, FinOps, etc.).
+  - Real-time parameter injection: enterprise domain, historical workforce size, traditional vs. autonomous task mix, regional language context.
+  - Guardrail enforcement: Output validation via Pydantic v2 schemas and deterministic sanitization.
+
+### Phase 4: Multi-Tier Testing Suite (Unit, Integration, E2E)
+- **Unit Testing:** Maintain **100.0% statement, branch, function, and line coverage** across both `apps/api` and `apps/web`.
+- **Integration Testing:**
+  - Live Gemini API client fallback test suites with mocked and authenticated Vertex AI fixtures.
+  - Agent-to-agent trajectory verification using Google ADK test harnesses.
+  - API Gateway to Cloud Run integration contracts.
+- **End-to-End (E2E) Testing:**
+  - Automated Playwright / Vitest E2E user flows from Onboarding -> Roadmap generation -> Aura Voice Assistant -> Governance appeal.
+  - Accessibility & WCAG 2.1 AA compliance audit automation.
+
+### Phase 5: Live E2E Verification & Cloud Smokes
+- **Automated Health Probe:** Execute `python scripts/health_check.py --target-url <LIVE_URL>` across all microservices.
+- **Live User Journey Smokes:**
+  - Input company name (Google, Microsoft, Anthropic) or public school (India / Africa).
+  - Verify live Gemini-powered roadmap generation across 1Y, 2Y, 3Y, 5Y, and 10Y horizons.
+  - Verify live Aura 3D Hologram voice interaction in multilingual modes.
+  - Verify tamper-proof `EvidenceEnvelope` SHA-256 signatures generated in production.
+
+---
+
 ## 6. Git & GitHub Actions Status
 
 ### Modified Files Staged for Commit
@@ -241,19 +285,9 @@ Workflows in `.github/workflows/`:
 When starting the next session, use these steps to immediately proceed:
 
 1. **Review this file (`futurasculptai.md`)** for context.
-2. **Verify working directory is clean**:
-   ```powershell
-   git status
-   ```
-3. **Execute Deployment to Google Cloud Run & Firebase**:
-   ```powershell
-   # Run the deployment helper or follow Section 5 steps
-   .\scripts\deploy_cloudrun.ps1
-   npx firebase deploy --only hosting
-   ```
-4. **Run Live Smoke Test**:
-   ```powershell
-   python scripts\health_check.py --target-url <DEPLOYED_URL>
-   ```
+2. **Execute Phase 1 & 2 Deployments (Cloud Run & Firebase)**.
+3. **Execute Phase 3 Real Gemini LLM Dynamic Model & Prompt Orchestration**.
+4. **Execute Phase 4 Multi-Tier Testing (Unit, Integration, E2E)**.
+5. **Execute Phase 5 Live E2E Verification & Production Smoke Validation**.
 
 *Everything is tested, validated, and ready for production launch.*
