@@ -73,5 +73,50 @@ describe('MultiModalMediaStudio Component', () => {
     expect(screen.getByText(/Attached: test_factory.jpg/i)).toBeInTheDocument();
     expect(screen.getByText(/Custom File: test_factory.jpg/i)).toBeInTheDocument();
   });
+
+  it('renders healthcare radiology and TPU cluster diagrams and exercises audio speech playback', () => {
+    let capturedUtterance: any = null;
+    const mockSpeak = vi.fn((u) => { capturedUtterance = u; });
+    const mockCancel = vi.fn();
+    Object.defineProperty(window, 'speechSynthesis', {
+      value: { speak: mockSpeak, cancel: mockCancel },
+      writable: true,
+    });
+    class MockUtterance {
+      text: string;
+      onend: (() => void) | null = null;
+      onerror: (() => void) | null = null;
+      constructor(text: string) {
+        this.text = text;
+      }
+    }
+    (window as any).SpeechSynthesisUtterance = MockUtterance;
+    (globalThis as any).SpeechSynthesisUtterance = MockUtterance;
+
+    render(<MultiModalMediaStudio i18n={i18n} />);
+
+    // Select Healthcare Radiology image
+    const radiologySample = screen.getByText(/Clinical Chest Radiography/i);
+    fireEvent.click(radiologySample);
+    expect(screen.getByText(/94% NODULE/i)).toBeInTheDocument();
+
+    // Select TPU Architecture diagram
+    const tpuSample = screen.getByText(/Google TPU v5e Cluster Architecture Diagram/i);
+    fireEvent.click(tpuSample);
+    expect(screen.getByText(/RING BUS: 4.8 TB\/s INTERCONNECT/i)).toBeInTheDocument();
+
+    // Switch to audio tab and exercise speech play and pause
+    fireEvent.click(screen.getByRole('tab', { name: /Voice & Acoustic/i }));
+    const playBtn = screen.getByRole('button', { name: /Play Memo/i });
+    fireEvent.click(playBtn);
+    expect(mockSpeak).toHaveBeenCalled();
+
+    const pauseBtn = screen.getByRole('button', { name: /Pause/i });
+    fireEvent.click(pauseBtn);
+    expect(mockCancel).toHaveBeenCalled();
+
+    if (capturedUtterance?.onend) capturedUtterance.onend();
+    if (capturedUtterance?.onerror) capturedUtterance.onerror();
+  });
 });
 

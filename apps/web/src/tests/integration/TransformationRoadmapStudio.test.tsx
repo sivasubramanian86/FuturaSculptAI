@@ -333,5 +333,114 @@ describe('TransformationRoadmapStudio Component', () => {
     fireEvent.change(input, { target: { value: 'Global Agro Logistics' } });
     expect((input as HTMLInputElement).value).toBe('Global Agro Logistics');
   });
+
+  it('filters presets by sector tabs and auto-selects entity when sector prop is passed', () => {
+    const { rerender } = render(<TransformationRoadmapStudio i18n={i18n} simulationDelayMs={0} sector="healthcare" />);
+    // Verify healthcare preset is active
+    expect(screen.getByRole('button', { name: /Mayo Clinic/i })).toBeInTheDocument();
+
+    // Switch sector filter chip to IT
+    fireEvent.click(screen.getByRole('button', { name: /IT Tech Titans/i }));
+    expect(screen.getByRole('button', { name: /Google/i })).toBeInTheDocument();
+
+    // Switch sector filter chip to All Sectors
+    fireEvent.click(screen.getByRole('button', { name: /All Sectors/i }));
+    expect(screen.getByRole('button', { name: /Tesla Gigafactory/i })).toBeInTheDocument();
+
+    // Rerender with it_technology sector prop
+    rerender(<TransformationRoadmapStudio i18n={i18n} simulationDelayMs={0} sector="it_technology" />);
+    expect(screen.getByRole('button', { name: /Microsoft/i })).toBeInTheDocument();
+  });
+
+  it('simulates Waymo autonomous fleet and Pixar animation studios roadmaps', () => {
+    render(<TransformationRoadmapStudio i18n={i18n} simulationDelayMs={0} />);
+
+    // Test Waymo
+    fireEvent.click(screen.getByRole('button', { name: /Company \/ Global Institution Name/i }));
+    const input = screen.getByLabelText(/Target Enterprise or Institution Name/i);
+    fireEvent.change(input, { target: { value: 'Waymo' } });
+    fireEvent.click(screen.getByRole('button', { name: /Generate 1Y, 3Y, 5Y & 10Y Roadmap/i }));
+    expect(screen.getAllByText(/Waymo Autonomous Ridehail Fleet/i).length).toBeGreaterThanOrEqual(1);
+
+    // Test Pixar
+    fireEvent.change(input, { target: { value: 'Pixar' } });
+    fireEvent.click(screen.getByRole('button', { name: /Generate 1Y, 3Y, 5Y & 10Y Roadmap/i }));
+    expect(screen.getAllByText(/Pixar Animation Studios/i).length).toBeGreaterThanOrEqual(1);
+
+    // Test UPI NPCI
+    fireEvent.change(input, { target: { value: 'UPI NPCI Network' } });
+    fireEvent.click(screen.getByRole('button', { name: /Generate 1Y, 3Y, 5Y & 10Y Roadmap/i }));
+    expect(screen.getAllByText(/NPCI & UPI High-Concurrency Network/i).length).toBeGreaterThanOrEqual(1);
+
+    // Test Stripe Payments
+    fireEvent.change(input, { target: { value: 'Stripe Payments' } });
+    fireEvent.click(screen.getByRole('button', { name: /Generate 1Y, 3Y, 5Y & 10Y Roadmap/i }));
+    expect(screen.getAllByText(/Stripe Global Payment Processing/i).length).toBeGreaterThanOrEqual(1);
+
+    // Test Nestlé
+    fireEvent.change(input, { target: { value: 'Nestlé Food Processing' } });
+    fireEvent.click(screen.getByRole('button', { name: /Generate 1Y, 3Y, 5Y & 10Y Roadmap/i }));
+    expect(screen.getAllByText(/Nestlé Agri-Supply & Packaged Foods/i).length).toBeGreaterThanOrEqual(1);
+
+    // Test JPMorgan Chase
+    fireEvent.change(input, { target: { value: 'JPMorgan Chase & Co' } });
+    fireEvent.click(screen.getByRole('button', { name: /Generate 1Y, 3Y, 5Y & 10Y Roadmap/i }));
+    expect(screen.getAllByText(/JPMorgan Chase & Global Clearing/i).length).toBeGreaterThanOrEqual(1);
+
+    // Test Tesla
+    fireEvent.change(input, { target: { value: 'Tesla Gigafactory' } });
+    fireEvent.click(screen.getByRole('button', { name: /Generate 1Y, 3Y, 5Y & 10Y Roadmap/i }));
+    expect(screen.getAllByText(/Tesla Gigafactory & Precision EV Assembly/i).length).toBeGreaterThanOrEqual(1);
+
+    // Test Toyota
+    fireEvent.change(input, { target: { value: 'Toyota Motor Manufacturing' } });
+    fireEvent.click(screen.getByRole('button', { name: /Generate 1Y, 3Y, 5Y & 10Y Roadmap/i }));
+    expect(screen.getAllByText(/Toyota Motor Manufacturing/i).length).toBeGreaterThanOrEqual(1);
+
+    // Test Mayo Clinic
+    fireEvent.change(input, { target: { value: 'Mayo Clinic' } });
+    fireEvent.click(screen.getByRole('button', { name: /Generate 1Y, 3Y, 5Y & 10Y Roadmap/i }));
+    expect(screen.getAllByText(/Mayo Clinic \(Rochester, USA\)/i).length).toBeGreaterThanOrEqual(1);
+
+    // Test Apollo Hospitals
+    fireEvent.change(input, { target: { value: 'Apollo Hospitals' } });
+    fireEvent.click(screen.getByRole('button', { name: /Generate 1Y, 3Y, 5Y & 10Y Roadmap/i }));
+    expect(screen.getAllByText(/Apollo Hospitals Enterprise \(Global Network\)/i).length).toBeGreaterThanOrEqual(1);
+
+    // Test NHS Foundation Trust
+    fireEvent.change(input, { target: { value: 'NHS Foundation Trust' } });
+    fireEvent.click(screen.getByRole('button', { name: /Generate 1Y, 3Y, 5Y & 10Y Roadmap/i }));
+    expect(screen.getAllByText(/NHS Foundation Trust \(UK\)/i).length).toBeGreaterThanOrEqual(1);
+
+    // Test Johns Hopkins
+    fireEvent.change(input, { target: { value: 'Johns Hopkins Medicine' } });
+    fireEvent.click(screen.getByRole('button', { name: /Generate 1Y, 3Y, 5Y & 10Y Roadmap/i }));
+    expect(screen.getAllByText(/Johns Hopkins Medicine \(USA\)/i).length).toBeGreaterThanOrEqual(1);
+
+    // Test AIIMS
+    fireEvent.change(input, { target: { value: 'AIIMS New Delhi' } });
+    fireEvent.click(screen.getByRole('button', { name: /Generate 1Y, 3Y, 5Y & 10Y Roadmap/i }));
+    expect(screen.getAllByText(/AIIMS New Delhi \(Apex Public Hospital\)/i).length).toBeGreaterThanOrEqual(1);
+
+    // Test Meta
+    fireEvent.change(input, { target: { value: 'Meta Platforms' } });
+    fireEvent.click(screen.getByRole('button', { name: /Generate 1Y, 3Y, 5Y & 10Y Roadmap/i }));
+    expect(screen.getAllByText(/Meta Platforms & FAIR AI/i).length).toBeGreaterThanOrEqual(1);
+
+    // Test TCS & Infosys
+    fireEvent.change(input, { target: { value: 'TCS & Infosys' } });
+    fireEvent.click(screen.getByRole('button', { name: /Generate 1Y, 3Y, 5Y & 10Y Roadmap/i }));
+    expect(screen.getAllByText(/TCS & Infosys Enterprise Solutions/i).length).toBeGreaterThanOrEqual(1);
+
+    // Test OpenAI
+    fireEvent.change(input, { target: { value: 'OpenAI Research' } });
+    fireEvent.click(screen.getByRole('button', { name: /Generate 1Y, 3Y, 5Y & 10Y Roadmap/i }));
+    expect(screen.getAllByText(/OpenAI Research & Deployment/i).length).toBeGreaterThanOrEqual(1);
+
+    // Test Retail
+    fireEvent.change(input, { target: { value: 'Modernized Retail' } });
+    fireEvent.click(screen.getByRole('button', { name: /Generate 1Y, 3Y, 5Y & 10Y Roadmap/i }));
+    expect(screen.getAllByText(/Modernized Retail & Omni-Channel Commerce/i).length).toBeGreaterThanOrEqual(1);
+  });
 });
 

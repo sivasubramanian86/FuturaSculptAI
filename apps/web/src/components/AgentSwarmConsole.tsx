@@ -125,16 +125,16 @@ export const AgentSwarmConsole: React.FC<AgentSwarmConsoleProps> = ({
 
         <select
           className="form-select"
-          style={{ width: 'auto', fontSize: '12px', padding: '6px 12px' }}
+          style={{ width: 'auto', fontSize: '12px', padding: '6px 12px', colorScheme: 'dark', backgroundColor: '#0f172a', color: '#f8fafc' }}
           value={horizonYears}
           onChange={(e) => setHorizonYears(Number(e.target.value))}
           disabled={isRunning}
           aria-label="Select horizon years"
         >
-          <option value={1}>Horizon: 1 Year</option>
-          <option value={2}>Horizon: 2 Years</option>
-          <option value={3}>Horizon: 3 Years</option>
-          <option value={5}>Horizon: 5 Years</option>
+          <option value={1} style={{ backgroundColor: '#0f172a', color: '#f8fafc' }}>Horizon: 1 Year</option>
+          <option value={2} style={{ backgroundColor: '#0f172a', color: '#f8fafc' }}>Horizon: 2 Years</option>
+          <option value={3} style={{ backgroundColor: '#0f172a', color: '#f8fafc' }}>Horizon: 3 Years</option>
+          <option value={5} style={{ backgroundColor: '#0f172a', color: '#f8fafc' }}>Horizon: 5 Years</option>
         </select>
 
         <button

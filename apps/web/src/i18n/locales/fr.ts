@@ -1,9 +1,9 @@
-import { TranslationKeys } from './en';
+import { LocaleTranslations } from './en';
 
 /**
  * French (Français) Translations for FuturaSculptAI
  */
-export const fr: TranslationKeys = {
+export const fr: LocaleTranslations = {
   brandName: 'FuturaSculptAI',
   brandTagline: 'Système d\'Exploitation Autonome de Transformation du Travail',
   trustScore: 'Score de Confiance',

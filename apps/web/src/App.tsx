@@ -56,8 +56,25 @@ export const App: React.FC = () => {
   const [isOnboardingOpen, setIsOnboardingOpen] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [googleUser, setGoogleUser] = useState<{ email: string; displayName: string; avatar?: string } | null>(null);
 
   const i18n = getTranslations(currentLanguage);
+
+  const handleGoogleSignIn = async (): Promise<void> => {
+    const session = await firebaseAuth.signInWithGoogle();
+    setGoogleUser({
+      email: session.email,
+      displayName: session.displayName,
+      avatar: session.avatar,
+    });
+    setStatusMessage(`Authenticated with Google Account: ${session.email} (${session.displayName})`);
+  };
+
+  const handleGoogleSignOut = async (): Promise<void> => {
+    await firebaseAuth.signOut();
+    setGoogleUser(null);
+    setStatusMessage('Signed out of Google account.');
+  };
 
   const handleSelectRole = async (role: UserRole): Promise<void> => {
     setCurrentRole(role);
@@ -154,7 +171,13 @@ export const App: React.FC = () => {
         currentRole={currentRole}
         onSelectRole={handleSelectRole}
         onOpenTour={() => setIsTourOpen(true)}
-        onSelectSector={(newSector) => setSector(newSector)}
+        onSelectSector={(newSector) => {
+          setSector(newSector);
+          setStatusMessage(`Switched Industry Digital Twin to ${newSector.replace(/_/g, ' ').toUpperCase()}`);
+        }}
+        googleUser={googleUser}
+        onGoogleSignIn={handleGoogleSignIn}
+        onGoogleSignOut={handleGoogleSignOut}
       >
         {statusMessage && (
           <div
@@ -207,6 +230,7 @@ export const App: React.FC = () => {
                 taskCount={nodes.length || 18}
                 resilienceScore={roleResilience?.score ?? 78.4}
                 onOpenTour={() => setIsTourOpen(true)}
+                sector={sector}
               />
             )}
 

@@ -19,6 +19,8 @@ export interface UserSession {
   tenantId: string;
   token: string;
   permissions: string[];
+  isGoogleAuthenticated?: boolean;
+  avatar?: string;
 }
 
 export interface PersonaProfile {
@@ -118,6 +120,32 @@ class FirebaseAuthService {
   public async switchPersona(role: UserRole, tenantId?: string): Promise<UserSession> {
     const tid = tenantId || this.currentSession.tenantId;
     this.currentSession = this.createSessionFromRole(role, tid);
+    this.notifyListeners();
+    return this.currentSession;
+  }
+
+  public async signInWithGoogle(
+    email: string = 'sivasubramanian86@gmail.com',
+    displayName: string = 'Google Cloud APAC Innovator',
+    avatar: string = 'https://www.gstatic.com/images/branding/product/2x/googleg_48dp.png'
+  ): Promise<UserSession> {
+    this.currentSession = {
+      userId: `google-${email.split('@')[0]}`,
+      email,
+      displayName,
+      role: 'enterprise_architect',
+      tenantId: this.currentSession.tenantId,
+      token: `google-oauth2-jwt-${Date.now()}`,
+      permissions: ['read:all', 'sculpt:tasks', 'simulate:scenarios', 'deploy:agents', 'google:authenticated'],
+      isGoogleAuthenticated: true,
+      avatar,
+    };
+    this.notifyListeners();
+    return this.currentSession;
+  }
+
+  public async signOut(): Promise<UserSession> {
+    this.currentSession = this.createSessionFromRole('citizen_worker', this.currentSession.tenantId);
     this.notifyListeners();
     return this.currentSession;
   }

@@ -148,5 +148,56 @@ describe('AppShell Component', () => {
     fireEvent.click(screen.getByTitle(/FAQ & Help/i));
     expect(onTabChange).toHaveBeenCalledWith('faq_help');
   });
+
+  it('handles Google login and sign-out actions', () => {
+    const onGoogleSignIn = vi.fn();
+    const onGoogleSignOut = vi.fn();
+
+    const { rerender } = render(
+      <AppShell
+        activeTab="overview"
+        onTabChange={vi.fn()}
+        currentLanguage="en"
+        onChangeLanguage={vi.fn()}
+        isCitizenMode={true}
+        onToggleCitizenMode={vi.fn()}
+        onOpenOnboard={vi.fn()}
+        onRefresh={vi.fn()}
+        onGoogleSignIn={onGoogleSignIn}
+        onGoogleSignOut={onGoogleSignOut}
+        i18n={i18n}
+      >
+        <div>Content</div>
+      </AppShell>
+    );
+
+    const loginBtn = screen.getByRole('button', { name: /Google Login/i });
+    fireEvent.click(loginBtn);
+    expect(onGoogleSignIn).toHaveBeenCalledTimes(1);
+
+    rerender(
+      <AppShell
+        activeTab="overview"
+        onTabChange={vi.fn()}
+        currentLanguage="en"
+        onChangeLanguage={vi.fn()}
+        isCitizenMode={true}
+        onToggleCitizenMode={vi.fn()}
+        onOpenOnboard={vi.fn()}
+        onRefresh={vi.fn()}
+        googleUser={{ displayName: 'Dr. Siva', email: 'siva@example.com' }}
+        onGoogleSignIn={onGoogleSignIn}
+        onGoogleSignOut={onGoogleSignOut}
+        i18n={i18n}
+      >
+        <div>Content</div>
+      </AppShell>
+    );
+
+    expect(screen.getByText('Dr. Siva')).toBeInTheDocument();
+    const signOutBtn = screen.getByRole('button', { name: /Sign Out/i });
+    fireEvent.click(signOutBtn);
+    expect(onGoogleSignOut).toHaveBeenCalledTimes(1);
+  });
 });
 

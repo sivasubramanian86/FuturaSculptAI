@@ -1,4 +1,5 @@
 :root {
+  color-scheme: dark;
   --bg-primary: #0a0d14;
   --bg-secondary: #101524;
   --bg-card: rgba(18, 24, 38, 0.7);
@@ -592,7 +593,7 @@ body::after {
   letter-spacing: 0.5px;
 }
 
-.form-input, .form-select, .form-textarea {
+.form-input, .form-select, .form-textarea, select {
   width: 100%;
   padding: 10px 14px;
   background: rgba(255, 255, 255, 0.05);
@@ -601,13 +602,20 @@ body::after {
   color: #fff;
   font-family: var(--font-sans);
   font-size: 14px;
+  color-scheme: dark;
   transition: border-color 0.2s ease;
 }
 
-.form-input:focus, .form-select:focus, .form-textarea:focus {
+.form-input:focus, .form-select:focus, .form-textarea:focus, select:focus {
   outline: none;
   border-color: var(--accent-cyan);
   box-shadow: 0 0 10px rgba(6, 182, 212, 0.2);
+}
+
+select option, .form-select option, .select-custom option {
+  background-color: #0b1329;
+  color: #f8fafc;
+  padding: 8px 12px;
 }
 
 /* Evidence Drawer */

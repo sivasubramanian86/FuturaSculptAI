@@ -85,5 +85,26 @@ describe('FirebaseAuthService', () => {
     expect(headers['X-Tenant-Id']).toBeDefined();
     expect(headers['Authorization']).toContain('Bearer fb-jwt-');
   });
+
+  it('signs in with Google account and signs out cleanly', async () => {
+    const listener = vi.fn();
+    const unsubscribe = firebaseAuth.onAuthStateChanged(listener);
+
+    const googleSession = await firebaseAuth.signInWithGoogle('test.innovator@gmail.com', 'Test Innovator');
+    expect(googleSession.email).toBe('test.innovator@gmail.com');
+    expect(googleSession.displayName).toBe('Test Innovator');
+    expect(googleSession.isGoogleAuthenticated).toBe(true);
+    expect(googleSession.role).toBe('enterprise_architect');
+
+    const defaultSession = await firebaseAuth.signInWithGoogle();
+    expect(defaultSession.email).toBe('sivasubramanian86@gmail.com');
+
+    const signedOutSession = await firebaseAuth.signOut();
+    expect(signedOutSession.role).toBe('citizen_worker');
+    expect(signedOutSession.isGoogleAuthenticated).toBeUndefined();
+
+    unsubscribe();
+  });
 });
+
 

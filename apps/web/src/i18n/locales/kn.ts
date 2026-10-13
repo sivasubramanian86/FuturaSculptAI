@@ -1,9 +1,9 @@
-import { TranslationKeys } from './en';
+import { LocaleTranslations } from './en';
 
 /**
  * Kannada (ಕನ್ನಡ) Translations for FuturaSculptAI
  */
-export const kn: TranslationKeys = {
+export const kn: LocaleTranslations = {
   brandName: 'FuturaSculptAI',
   brandTagline: 'ಸ್ವಾಯತ್ತ ಕೆಲಸ ಪರಿವರ್ತನೆಯ ಕಾರ್ಯಾಚರಣಾ ವ್ಯವಸ್ಥೆ',
   trustScore: 'ವಿಶ್ವಾಸಾರ್ಹತೆ ಸೂಚ್ಯಂಕ',

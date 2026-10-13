@@ -5,6 +5,7 @@ export interface TransformationRoadmapStudioProps {
   i18n: TranslationKeys;
   initialText?: string;
   simulationDelayMs?: number;
+  sector?: string;
 }
 
 export interface HorizonModel {
@@ -56,79 +57,218 @@ export interface TransformationRoadmapResult {
 }
 
 export const PRESET_ENTITIES = [
+  // Healthcare Sector
+  {
+    id: 'mayo_clinic',
+    name: '🏥 Mayo Clinic (USA)',
+    type: 'public_health' as const,
+    sectorKey: 'healthcare',
+    snippet: 'Mayo Clinic: Leading global medical center. 73,000 caregivers. Radiologists burdened by 4.5 hours daily EHR documentation and image triage backlog. Emergency room intake queues and multi-specialty clinical trial matching bottlenecks.',
+  },
+  {
+    id: 'apollo_hospitals',
+    name: '🏥 Apollo Hospitals (Global & Asia)',
+    type: 'public_health' as const,
+    sectorKey: 'healthcare',
+    snippet: 'Apollo Hospitals Enterprise: 73 hospital facilities with 10,000+ beds across Asia. Overburdened OPD triage nurses, multilingual patient discharge summary translation backlogs, and critical ICU bed telemetry handoff fatigue.',
+  },
+  {
+    id: 'nhs_trust',
+    name: '🏥 NHS Foundation Trust (UK)',
+    type: 'public_health' as const,
+    sectorKey: 'healthcare',
+    snippet: 'NHS Foundation Trust serving 650,000 citizens. Clinical paperwork backlogs, 4-hour A&E triage targets, staff shortages, paper pathology test request slips, and fragmented legacy trust databases.',
+  },
+  {
+    id: 'johns_hopkins',
+    name: '🏥 Johns Hopkins Medicine (USA)',
+    type: 'public_health' as const,
+    sectorKey: 'healthcare',
+    snippet: 'Johns Hopkins Medicine: Academic health system with 40,000 caregivers. Oncology clinical trial protocol matching, pathology charting toil, and complex nursing shift handoff coordination.',
+  },
+  {
+    id: 'aiims_delhi',
+    name: '🏥 AIIMS New Delhi (Public Hospital)',
+    type: 'public_health' as const,
+    sectorKey: 'healthcare',
+    snippet: 'All India Institute of Medical Sciences (AIIMS New Delhi): 10,000 daily outpatients. Paper token slips, overcrowded OPD triage corridors, diagnostic radiology scan queues, and overloaded frontline resident doctors.',
+  },
+  {
+    id: 'district_hospital',
+    name: '🏥 District General Hospital & Clinic',
+    type: 'public_health' as const,
+    sectorKey: 'healthcare',
+    snippet: 'Public District General Hospital serving 250,000 rural and semi-urban citizens. Overburdened nurses, paper medical case files, diagnostic imaging backlogs, and patient wait times exceeding 4 hours.',
+  },
+
+  // IT Enterprises & Tech Titans
   {
     id: 'google',
-    name: '🌐 Google (Alphabet)',
+    name: '🌐 Google (Alphabet & DeepMind)',
     type: 'tech_titan' as const,
+    sectorKey: 'it_technology',
     snippet: 'Google LLC: Global software & AI enterprise. 180,000+ employees. Piper monorepo with billions of lines of code. Engineers face complex code reviews, multi-team dependencies, and maintenance backlog across Search, Cloud, YouTube, Android, and DeepMind.',
   },
   {
     id: 'microsoft',
-    name: '🪟 Microsoft',
+    name: '🪟 Microsoft (Azure & OpenAI)',
     type: 'tech_titan' as const,
+    sectorKey: 'it_technology',
     snippet: 'Microsoft Corporation: Enterprise software titan with 220,000+ employees. Manages Azure cloud, Windows, Office 365, Teams, and GitHub. Workers grapple with multi-decade legacy enterprise integrations and complex customer migrations.',
   },
   {
     id: 'anthropic',
-    name: '🧠 Anthropic',
+    name: '🧠 Anthropic (Claude AI Research)',
     type: 'tech_titan' as const,
+    sectorKey: 'it_technology',
     snippet: 'Anthropic PBC: Frontier AI safety research lab. Claude frontier model development, constitutional AI, and interpretability research. Researchers face intense human red-teaming bottlenecks and massive compute calibration requirements.',
   },
+  {
+    id: 'meta',
+    name: '⚡ Meta (Llama Open Source & FAIR)',
+    type: 'tech_titan' as const,
+    sectorKey: 'it_technology',
+    snippet: 'Meta Platforms: Global social graph and open-source AI infrastructure. 67,000+ engineers managing PyTorch core, Llama frontier model training clusters, recommender pipeline telemetry, and content safety moderation.',
+  },
+  {
+    id: 'tcs_infosys',
+    name: '☁️ TCS & Infosys (Global IT Services)',
+    type: 'tech_titan' as const,
+    sectorKey: 'it_technology',
+    snippet: 'Tata Consultancy Services & Infosys: 600,000+ software engineers worldwide executing global enterprise migrations, cloud infrastructure modernization, regression test QA suites, and ERP maintenance.',
+  },
+  {
+    id: 'openai',
+    name: '🤖 OpenAI (Frontier Models & API)',
+    type: 'tech_titan' as const,
+    sectorKey: 'it_technology',
+    snippet: 'OpenAI: Frontier foundation model training and developer API ecosystem. Engineers balance massive GPU cluster orchestration, RLHF alignment data curation, and safety evaluations.',
+  },
+
+  // Automotive EV & Precision Engineering
+  {
+    id: 'automotive',
+    name: '🚗 Auto Repair & Precision Workshop',
+    type: 'commercial_enterprise' as const,
+    sectorKey: 'automotive_ev',
+    snippet: 'We operate an independent automotive repair and machining workshop with 16 mechanics. Jobs are tracked on paper clipboard job cards. Technicians inspect parts with manual calipers and write notes in a logbook. Parts ordering is done by phone with local distributors. Invoicing is keyed into legacy desktop software. Customers call frequently for status updates.',
+  },
+  {
+    id: 'tesla',
+    name: '⚡ Tesla Gigafactory & EV Assembly',
+    type: 'commercial_enterprise' as const,
+    sectorKey: 'automotive_ev',
+    snippet: 'Tesla Gigafactory: High-speed EV battery assembly and structural casting. Factory technicians inspect battery cells for micro-delamination and structural welds. Line operators monitor optical sensors and robot arm coordination.',
+  },
+  {
+    id: 'toyota',
+    name: '🚙 Toyota Motor Manufacturing',
+    type: 'commercial_enterprise' as const,
+    sectorKey: 'automotive_ev',
+    snippet: 'Toyota Motor Manufacturing: Global Just-In-Time automotive production. Assembly technicians perform manual and automated quality audits, stamping press monitoring, and supply-chain parts sequencing.',
+  },
+
+  // Food Manufacturing & Packaging
+  {
+    id: 'bakery',
+    name: '🍞 Family Bakery & Packaged Foods',
+    type: 'commercial_enterprise' as const,
+    sectorKey: 'food_manufacturing',
+    snippet: 'We run a 14-person bakery and snack packaging unit. Orders come via WhatsApp and phone calls. Bakers mix and bake by memory and manual timers. Packaging is done by hand into plastic pouches. Supervisors write daily inventory numbers on paper log sheets. Invoicing is done in Excel at night. We face order delays, inventory mismatches, and overtime fatigue.',
+  },
+  {
+    id: 'nestle',
+    name: '🥗 Nestlé Agri-Supply Processing',
+    type: 'commercial_enterprise' as const,
+    sectorKey: 'food_manufacturing',
+    snippet: 'Nestlé Food Processing & Dairy Operations: High-volume packaging lines with thermal sealing. Plant technicians monitor HACCP CCP food safety logs, cold-chain temperature telemetry, and metal detector verification.',
+  },
+
+  // FinTech, Banking & UPI
+  {
+    id: 'jpmorgan',
+    name: '💳 JPMorgan Chase & Global Clearing',
+    type: 'commercial_enterprise' as const,
+    sectorKey: 'fintech_banking',
+    snippet: 'JPMorgan Chase & Co.: Global financial services and payment clearing network. Operations analysts handle cross-border payments, AML transaction alerts, fraud exceptions, and commercial trade reconciliations.',
+  },
+  {
+    id: 'upi',
+    name: '📱 NPCI & UPI High-Concurrency Network',
+    type: 'commercial_enterprise' as const,
+    sectorKey: 'fintech_banking',
+    snippet: 'National Payments Corporation of India (UPI Network): Processing 14 Billion monthly instant payment transactions. Fraud telemetry monitoring, merchant QR code validation, and sub-second settlement clearing.',
+  },
+  {
+    id: 'stripe',
+    name: '🏦 Stripe Global Payment Processing',
+    type: 'commercial_enterprise' as const,
+    sectorKey: 'fintech_banking',
+    snippet: 'Stripe: Global economic infrastructure for the internet. Platform engineers handle fraud prevention radar models, merchant API integrations, multi-currency conversions, and tax compliance automation.',
+  },
+
+  // Mobility & Autonomous Fleet
+  {
+    id: 'transport',
+    name: '🚖 Taxi & Regional Transport Fleet',
+    type: 'commercial_enterprise' as const,
+    sectorKey: 'mobility_fleet',
+    snippet: 'We manage a fleet of 25 cabs and commercial delivery vans. Drivers receive trip allocations through manual phone calls and group chats. Fuel receipts and trip logs are turned in as paper receipts at week end. Drivers face long idle waits, night-shift fatigue, and vehicle maintenance is reactive after breakdowns occur.',
+  },
+  {
+    id: 'waymo',
+    name: '🤖 Waymo Autonomous Ridehail',
+    type: 'commercial_enterprise' as const,
+    sectorKey: 'mobility_fleet',
+    snippet: 'Waymo Autonomous Fleet Operations: Managing commercial driverless ridehail networks across major metropolitan areas. Remote fleet assistance specialists handle edge cases, depot charging, and sensor calibrations.',
+  },
+
+  // Cinema & Creative Production
+  {
+    id: 'cinema',
+    name: '🎬 Independent Film & Creative Production',
+    type: 'commercial_enterprise' as const,
+    sectorKey: 'cinema_creative',
+    snippet: 'We are a boutique video and movie production house with 12 editors, animators, and camera crew. Call sheets and shot logs are printed on paper. Footage tagging and color grading are done manually clip by clip. Rotoscoping takes weeks of frame-by-frame drawing. Freelance billing and royalty tracking are messy spreadsheets.',
+  },
+  {
+    id: 'pixar',
+    name: '🎥 Pixar Animation Studios',
+    type: 'commercial_enterprise' as const,
+    sectorKey: 'cinema_creative',
+    snippet: 'Pixar Animation Studios: Feature-length CGI filmmaking. Artists and animators manage complex 3D character rigging, lighting passes, storyboard sequences, rendering compute clusters, and lip-sync sound alignment.',
+  },
+
+  // Public Education & Good
   {
     id: 'india_school',
     name: '🏫 Government Rural School (India)',
     type: 'public_education' as const,
+    sectorKey: 'public_education',
     snippet: 'Government Rural Primary & Secondary School in rural India. 1 teacher managing 60 children across 3 grade levels. Chalkboards, paper attendance registers, mid-day meal log sheets, and high female student dropout rates after 8th grade.',
   },
   {
     id: 'africa_school',
     name: '🌍 Community School (Sub-Saharan Africa)',
     type: 'public_education' as const,
+    sectorKey: 'public_education',
     snippet: 'Rural Community Primary & Vocational School in Sub-Saharan Africa. 1 textbook per 8 pupils, intermittent solar power, and no broadband internet. Dedicated teachers overwhelmed by foundational literacy and numeracy gaps.',
-  },
-  {
-    id: 'district_hospital',
-    name: '🏥 District General Hospital & Clinic',
-    type: 'public_health' as const,
-    snippet: 'Public District General Hospital serving 250,000 rural and semi-urban citizens. Overburdened nurses, paper medical case files, diagnostic imaging backlogs, and patient wait times exceeding 4 hours.',
-  },
-  {
-    id: 'automotive',
-    name: '🚗 Auto Repair & Precision Workshop',
-    type: 'commercial_enterprise' as const,
-    snippet: 'We operate an independent automotive repair and machining workshop with 16 mechanics. Jobs are tracked on paper clipboard job cards. Technicians inspect parts with manual calipers and write notes in a logbook. Parts ordering is done by phone with local distributors. Invoicing is keyed into legacy desktop software. Customers call frequently for status updates.',
-  },
-  {
-    id: 'bakery',
-    name: '🍞 Family Bakery & Packaged Foods',
-    type: 'commercial_enterprise' as const,
-    snippet: 'We run a 14-person bakery and snack packaging unit. Orders come via WhatsApp and phone calls. Bakers mix and bake by memory and manual timers. Packaging is done by hand into plastic pouches. Supervisors write daily inventory numbers on paper log sheets. Invoicing is done in Excel at night. We face order delays, inventory mismatches, and overtime fatigue.',
-  },
-  {
-    id: 'transport',
-    name: '🚖 Taxi & Regional Transport Fleet',
-    type: 'commercial_enterprise' as const,
-    snippet: 'We manage a fleet of 25 cabs and commercial delivery vans. Drivers receive trip allocations through manual phone calls and group chats. Fuel receipts and trip logs are turned in as paper receipts at week end. Drivers face long idle waits, night-shift fatigue, and vehicle maintenance is reactive after breakdowns occur.',
-  },
-  {
-    id: 'cinema',
-    name: '🎬 Independent Film & Creative Production',
-    type: 'commercial_enterprise' as const,
-    snippet: 'We are a boutique video and movie production house with 12 editors, animators, and camera crew. Call sheets and shot logs are printed on paper. Footage tagging and color grading are done manually clip by clip. Rotoscoping takes weeks of frame-by-frame drawing. Freelance billing and royalty tracking are messy spreadsheets.',
   },
 ];
 
 export const TransformationRoadmapStudio: React.FC<TransformationRoadmapStudioProps> = ({
-  i18n: _i18n,
+  i18n,
   initialText = '',
   simulationDelayMs = 600,
+  sector,
 }) => {
-  const [inputText, setInputText] = useState<string>(initialText || PRESET_ENTITIES[6].snippet);
+  const [inputText, setInputText] = useState<string>(initialText || PRESET_ENTITIES[12].snippet);
   const [companyName, setCompanyName] = useState<string>('Google');
   const [websiteUrl, setWebsiteUrl] = useState<string>('');
   const [inputMode, setInputMode] = useState<'text' | 'company' | 'url'>('text');
   const [activeHorizon, setActiveHorizon] = useState<'baseline' | 'year1' | 'year2' | 'year3' | 'year5' | 'year10'>('year1');
   const [activeTab, setActiveTab] = useState<'roadmap' | 'infographic' | 'podcast' | 'video' | 'evidence' | 'society'>('roadmap');
+  const [presetSectorFilter, setPresetSectorFilter] = useState<string>(sector || 'all');
 
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [isCopied, setIsCopied] = useState<boolean>(false);
@@ -141,6 +281,18 @@ export const TransformationRoadmapStudio: React.FC<TransformationRoadmapStudioPr
 
   const [roadmap, setRoadmap] = useState<TransformationRoadmapResult | null>(null);
   const videoIntervalRef = useRef<any>(null);
+
+  // Sync with sector switcher from topbar
+  useEffect(() => {
+    if (sector) {
+      setPresetSectorFilter(sector);
+      const match = PRESET_ENTITIES.find((p) => p.sectorKey === sector);
+      if (match) {
+        setInputText(match.snippet);
+        setCompanyName(match.name.replace(/^[^\w\s]+/, '').trim());
+      }
+    }
+  }, [sector]);
 
   useEffect(() => {
     if (isVideoPlaying) {
@@ -170,32 +322,95 @@ export const TransformationRoadmapStudio: React.FC<TransformationRoadmapStudioPr
       let detectedDomain = 'Precision Automotive & Engineering Services';
       let category: TransformationRoadmapResult['category'] = 'commercial_enterprise';
 
-      if (lower.includes('google') || lower.includes('alphabet')) {
-        detectedDomain = 'Google (Alphabet Inc.)';
-        category = 'tech_titan';
-      } else if (lower.includes('microsoft')) {
-        detectedDomain = 'Microsoft Corporation';
-        category = 'tech_titan';
-      } else if (lower.includes('anthropic')) {
-        detectedDomain = 'Anthropic PBC';
-        category = 'tech_titan';
-      } else if (lower.includes('india')) {
-        detectedDomain = 'Government School System (India)';
-        category = 'public_education';
-      } else if (lower.includes('africa')) {
-        detectedDomain = 'Community Primary & Vocational Network (Sub-Saharan Africa)';
-        category = 'public_education';
-      } else if (lower.includes('hospital')) {
+      // Healthcare Entities & Global Hospitals
+      if (lower.includes('mayo')) {
+        detectedDomain = 'Mayo Clinic (Rochester, USA)';
+        category = 'public_health';
+      } else if (lower.includes('apollo')) {
+        detectedDomain = 'Apollo Hospitals Enterprise (Global Network)';
+        category = 'public_health';
+      } else if (lower.includes('nhs')) {
+        detectedDomain = 'NHS Foundation Trust (UK)';
+        category = 'public_health';
+      } else if (lower.includes('johns hopkins')) {
+        detectedDomain = 'Johns Hopkins Medicine (USA)';
+        category = 'public_health';
+      } else if (lower.includes('aiims')) {
+        detectedDomain = 'AIIMS New Delhi (Apex Public Hospital)';
+        category = 'public_health';
+      } else if (lower.includes('hospital') || lower.includes('clinic') || lower.includes('healthcare') || lower.includes('medical')) {
         detectedDomain = 'District General Hospital & Rural Health Network';
         category = 'public_health';
-      } else if (lower.includes('bakery')) {
+      }
+      // Tech Titans & IT Enterprises
+      else if (lower.includes('google') || lower.includes('alphabet') || lower.includes('deepmind')) {
+        detectedDomain = 'Google (Alphabet Inc.)';
+        category = 'tech_titan';
+      } else if (lower.includes('microsoft') || lower.includes('azure')) {
+        detectedDomain = 'Microsoft Corporation';
+        category = 'tech_titan';
+      } else if (lower.includes('anthropic') || lower.includes('claude')) {
+        detectedDomain = 'Anthropic PBC';
+        category = 'tech_titan';
+      } else if (lower.includes('meta') || lower.includes('facebook') || lower.includes('llama')) {
+        detectedDomain = 'Meta Platforms & FAIR AI';
+        category = 'tech_titan';
+      } else if (lower.includes('tcs') || lower.includes('infosys')) {
+        detectedDomain = 'TCS & Infosys Enterprise Solutions';
+        category = 'tech_titan';
+      } else if (lower.includes('openai') || lower.includes('chatgpt')) {
+        detectedDomain = 'OpenAI Research & Deployment';
+        category = 'tech_titan';
+      }
+      // Education & Public Good
+      else if (lower.includes('india') && lower.includes('school')) {
+        detectedDomain = 'Government School System (India)';
+        category = 'public_education';
+      } else if (lower.includes('africa') && lower.includes('school')) {
+        detectedDomain = 'Community Primary & Vocational Network (Sub-Saharan Africa)';
+        category = 'public_education';
+      }
+      // Automotive EV & Precision
+      else if (lower.includes('tesla') || lower.includes('gigafactory')) {
+        detectedDomain = 'Tesla Gigafactory & Precision EV Assembly';
+        category = 'commercial_enterprise';
+      } else if (lower.includes('toyota')) {
+        detectedDomain = 'Toyota Motor Manufacturing';
+        category = 'commercial_enterprise';
+      } else if (lower.includes('auto') || lower.includes('mechanic') || lower.includes('repair')) {
+        detectedDomain = 'Precision Automotive & Engineering Services';
+        category = 'commercial_enterprise';
+      }
+      // Food Manufacturing
+      else if (lower.includes('bakery') || lower.includes('bread') || lower.includes('snack')) {
         detectedDomain = 'Food Processing & Artisan Bakery';
         category = 'commercial_enterprise';
-      } else if (lower.includes('auto')) {
-        detectedDomain = 'Precision Automotive & Engineering Services';
+      } else if (lower.includes('nestle') || lower.includes('nestlé')) {
+        detectedDomain = 'Nestlé Agri-Supply & Packaged Foods';
+        category = 'commercial_enterprise';
+      }
+      // FinTech, Banking & UPI
+      else if (lower.includes('jpmorgan') || lower.includes('chase')) {
+        detectedDomain = 'JPMorgan Chase & Global Clearing';
+        category = 'commercial_enterprise';
+      } else if (lower.includes('upi') || lower.includes('npci')) {
+        detectedDomain = 'NPCI & UPI High-Concurrency Network';
+        category = 'commercial_enterprise';
+      } else if (lower.includes('stripe')) {
+        detectedDomain = 'Stripe Global Payment Processing';
+        category = 'commercial_enterprise';
+      }
+      // Mobility & Fleet
+      else if (lower.includes('waymo')) {
+        detectedDomain = 'Waymo Autonomous Ridehail Fleet';
         category = 'commercial_enterprise';
       } else if (lower.includes('taxi') || lower.includes('cab') || lower.includes('transport') || lower.includes('fleet')) {
         detectedDomain = 'Mobility & Autonomous Fleet Logistics';
+        category = 'commercial_enterprise';
+      }
+      // Cinema & Creative
+      else if (lower.includes('pixar')) {
+        detectedDomain = 'Pixar Animation Studios';
         category = 'commercial_enterprise';
       } else if (lower.includes('film') || lower.includes('movie') || lower.includes('video') || lower.includes('cinema')) {
         detectedDomain = 'Creative Film & Digital Media Production';
@@ -505,14 +720,14 @@ export const TransformationRoadmapStudio: React.FC<TransformationRoadmapStudioPr
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
               <h2 style={{ fontSize: '22px', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>
-                Future Work Transformation Simulator
+                {i18n.simTitle}
               </h2>
               <span className="badge badge-indigo" style={{ fontSize: '11px', borderRadius: '9999px', padding: '3px 10px' }}>
                 Multi-Agentic RAG • 1Y to 10Y • 100x Productivity Multiplier
               </span>
             </div>
             <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>
-              Enter any enterprise (Google, Microsoft, Anthropic) or public institution (Rural Government School in India or Africa) — Get an instant multi-horizon roadmap with grounded evidence, infographics, podcast & short video preview!
+              {i18n.simSubtitle}
             </p>
           </div>
         </div>
@@ -535,7 +750,7 @@ export const TransformationRoadmapStudio: React.FC<TransformationRoadmapStudioPr
               color: inputMode === 'company' ? 'var(--accent-cyan)' : 'var(--text-secondary)',
             }}
           >
-            🏢 Company / Global Institution Name
+            {i18n.simModeCompany}
           </button>
           <button
             type="button"
@@ -551,7 +766,7 @@ export const TransformationRoadmapStudio: React.FC<TransformationRoadmapStudioPr
               color: inputMode === 'text' ? 'var(--accent-cyan)' : 'var(--text-secondary)',
             }}
           >
-            📝 Paste Traditional Work Notes
+            {i18n.simModeText}
           </button>
           <button
             type="button"
@@ -567,17 +782,57 @@ export const TransformationRoadmapStudio: React.FC<TransformationRoadmapStudioPr
               color: inputMode === 'url' ? '#a5b4fc' : 'var(--text-secondary)',
             }}
           >
-            🌐 Enter Company Website URL
+            {i18n.simModeUrl}
           </button>
         </div>
 
-        {/* 1-Click Quick Presets Grid */}
+        {/* 1-Click Quick Presets Grid with Sector Filter */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            ⚡ 1-Click Presets (Tech Titans, Public Good & Commercial SMBs):
-          </span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+            <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              {i18n.simPresetsLabel}
+            </span>
+            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+              {[
+                { key: 'all', label: 'All Sectors' },
+                { key: 'healthcare', label: '🏥 Healthcare' },
+                { key: 'it_technology', label: '🌐 IT Tech Titans' },
+                { key: 'automotive_ev', label: '🚗 Automotive' },
+                { key: 'food_manufacturing', label: '🍞 Food Mfg' },
+                { key: 'fintech_banking', label: '💳 FinTech' },
+                { key: 'mobility_fleet', label: '🚖 Mobility' },
+                { key: 'cinema_creative', label: '🎬 Cinema' },
+                { key: 'public_education', label: '🏫 Education' },
+              ].map((filterTab) => (
+                <button
+                  key={filterTab.key}
+                  type="button"
+                  onClick={() => setPresetSectorFilter(filterTab.key)}
+                  className="btn-subtle"
+                  style={{
+                    padding: '2px 8px',
+                    borderRadius: '6px',
+                    fontSize: '10px',
+                    fontWeight: presetSectorFilter === filterTab.key ? 700 : 500,
+                    background: presetSectorFilter === filterTab.key ? 'rgba(6, 182, 212, 0.2)' : 'transparent',
+                    borderColor: presetSectorFilter === filterTab.key ? 'var(--accent-cyan)' : 'rgba(255, 255, 255, 0.1)',
+                    color: presetSectorFilter === filterTab.key ? '#fff' : 'var(--text-muted)',
+                  }}
+                >
+                  {filterTab.label}
+                </button>
+              ))}
+            </div>
+          </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-            {PRESET_ENTITIES.map((preset) => (
+            {PRESET_ENTITIES.filter((preset) => {
+              if (presetSectorFilter === 'all') return true;
+              if (presetSectorFilter === 'it_technology') return preset.sectorKey === 'it_technology' || preset.type === 'tech_titan';
+              if (presetSectorFilter === 'healthcare') return preset.sectorKey === 'healthcare' || preset.type === 'public_health';
+              if (presetSectorFilter === 'fintech_banking' || presetSectorFilter === 'banking') return preset.sectorKey === 'fintech_banking';
+              if (presetSectorFilter === 'mobility_fleet' || presetSectorFilter === 'mobility_autonomous') return preset.sectorKey === 'mobility_fleet';
+              return preset.sectorKey === presetSectorFilter;
+            }).map((preset) => (
               <button
                 key={preset.id}
                 type="button"
@@ -684,7 +939,7 @@ export const TransformationRoadmapStudio: React.FC<TransformationRoadmapStudioPr
             }}
           >
             <span>{isGenerating ? '⏳' : '✨'}</span>
-            <span>{isGenerating ? 'Synthesizing Multi-Agent Evidence & 100x Model...' : 'Generate 1Y, 3Y, 5Y & 10Y Roadmap'}</span>
+            <span>{isGenerating ? i18n.simGeneratingBtn : i18n.simGenerateBtn}</span>
           </button>
         </div>
       </div>
@@ -739,7 +994,7 @@ export const TransformationRoadmapStudio: React.FC<TransformationRoadmapStudioPr
                 }}
               >
                 <span>{isPlayingAudio ? '⏹️' : '🔊'}</span>
-                <span>{isPlayingAudio ? 'Stop Voice' : 'Listen to Narrative'}</span>
+                <span>{isPlayingAudio ? i18n.simStopVoice : i18n.simListenVoice}</span>
               </button>
 
               <button
@@ -758,7 +1013,7 @@ export const TransformationRoadmapStudio: React.FC<TransformationRoadmapStudioPr
                 }}
               >
                 <span>{isCopied ? '✓' : '📋'}</span>
-                <span>{isCopied ? 'Copied Brief' : 'Copy Brief'}</span>
+                <span>{isCopied ? i18n.simCopiedBrief : i18n.simCopyBrief}</span>
               </button>
             </div>
           </div>
@@ -795,7 +1050,7 @@ export const TransformationRoadmapStudio: React.FC<TransformationRoadmapStudioPr
                 color: activeTab === 'roadmap' ? '#fff' : 'var(--text-secondary)',
               }}
             >
-              📊 Strategic 1Y - 10Y Timeline
+              {i18n.simTabRoadmap}
             </button>
             <button
               type="button"
@@ -811,7 +1066,7 @@ export const TransformationRoadmapStudio: React.FC<TransformationRoadmapStudioPr
                 color: activeTab === 'infographic' ? '#fff' : 'var(--text-secondary)',
               }}
             >
-              🎨 Imagen Visual Infographic Twin
+              {i18n.simTabInfographic}
             </button>
             <button
               type="button"
@@ -827,7 +1082,7 @@ export const TransformationRoadmapStudio: React.FC<TransformationRoadmapStudioPr
                 color: activeTab === 'podcast' ? '#fff' : 'var(--text-secondary)',
               }}
             >
-              🎙️ Lyria Future Podcast (2036)
+              {i18n.simTabPodcast}
             </button>
             <button
               type="button"
@@ -843,7 +1098,7 @@ export const TransformationRoadmapStudio: React.FC<TransformationRoadmapStudioPr
                 color: activeTab === 'video' ? '#fff' : 'var(--text-secondary)',
               }}
             >
-              🎥 Veo Short Video Walkthrough
+              {i18n.simTabVideo}
             </button>
             <button
               type="button"
@@ -859,7 +1114,7 @@ export const TransformationRoadmapStudio: React.FC<TransformationRoadmapStudioPr
                 color: activeTab === 'evidence' ? '#fff' : 'var(--text-secondary)',
               }}
             >
-              📁 Multi-Agentic RAG Evidence
+              {i18n.simTabEvidence}
             </button>
             <button
               type="button"
@@ -875,7 +1130,7 @@ export const TransformationRoadmapStudio: React.FC<TransformationRoadmapStudioPr
                 color: activeTab === 'society' ? '#fff' : 'var(--text-secondary)',
               }}
             >
-              🌍 Societal & Civilizational Lift
+              {i18n.simTabSociety}
             </button>
           </div>
 

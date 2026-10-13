@@ -1,9 +1,9 @@
-import { TranslationKeys } from './en';
+import { LocaleTranslations } from './en';
 
 /**
  * Hindi (हिन्दी) Translations for FuturaSculptAI
  */
-export const hi: TranslationKeys = {
+export const hi: LocaleTranslations = {
   brandName: 'FuturaSculptAI (फ्यूचरस्कल्पट एआई)',
   brandTagline: 'स्वायत्त कार्य परिवर्तन ऑपरेटिंग सिस्टम',
   trustScore: 'विश्वास स्कोर',

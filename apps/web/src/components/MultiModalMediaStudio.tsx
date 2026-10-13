@@ -15,6 +15,7 @@ export interface MultimodalSample {
 }
 
 const SAMPLE_DATA: MultimodalSample[] = [
+  // Images
   {
     id: 'SMP-IMG-01',
     category: 'image',
@@ -40,6 +41,32 @@ const SAMPLE_DATA: MultimodalSample[] = [
     sha256: '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8',
   },
   {
+    id: 'SMP-IMG-03',
+    category: 'image',
+    title: 'Clinical Chest Radiography (Mayo / Apollo)',
+    source: 'Digital DICOM Radiology Telemetry (High-Res CXR)',
+    snippet: 'Automated nodule localization telemetry with bilateral pleural effusion scoring. Zero human PII; tokenized by Cloud DLP.',
+    detectedTasks: ['Pleural Boundary Detection', 'Nodule Scoring', 'PACS Metadata Tokenization'],
+    ergonomicRisk: 'LOW (12/100) — Cognitive radiology review; ergonomic display calibrated',
+    automationPotential: 90,
+    recommendedPathway: 'Diagnostic Radiologist -> AI-Assisted Clinical Triage Director',
+    sha256: 'e8b7c4a198fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b899',
+  },
+  {
+    id: 'SMP-IMG-04',
+    category: 'image',
+    title: 'Google TPU v5e Cluster Architecture Diagram',
+    source: 'Vertex AI Supercomputing Pod Layout Telemetry',
+    snippet: '4096 TPU node ring interconnect topology. Visual telemetry detects 2 unassigned optical transceivers and balanced thermal bus.',
+    detectedTasks: ['TPU Pod Interconnect Audit', 'Optical Link Verification', 'Thermal Heatmap Analysis'],
+    ergonomicRisk: 'LOW (5/100) — Pure software infrastructure telemetry',
+    automationPotential: 95,
+    recommendedPathway: 'Datacenter Tech -> ML Supercomputing Fabric Architect',
+    sha256: '7c8996fb92427ae41e4649b934ca495991b7852b855e3b0c44298fc1c149afbf',
+  },
+
+  // Audio Memos
+  {
     id: 'SMP-AUD-01',
     category: 'audio',
     title: 'Shift Operator Voice Memo (Fatigue Log)',
@@ -64,6 +91,32 @@ const SAMPLE_DATA: MultimodalSample[] = [
     sha256: 'ef2d127de37b942baad06145e54b0c619a1f22327b2ebbcfbec78f5564afe39d',
   },
   {
+    id: 'SMP-AUD-03',
+    category: 'audio',
+    title: 'ICU Charge Nurse Clinical Shift Handoff',
+    source: 'Bedside Encrypted Dictation (Dr. Ananya R., Apollo ICU)',
+    snippet: '"Patient in Bed 14 recovering post-CABG. Arterial line MAP steady at 78 mmHg. Titrating norepinephrine downward. All routine labs verified."',
+    detectedTasks: ['Post-Op Handoff Extraction', 'Vitals Entity Parsing', 'EHR Medication Reconciliation'],
+    ergonomicRisk: 'MEDIUM (48/100) — High cognitive fatigue during 12-hour nursing rotation',
+    automationPotential: 70,
+    recommendedPathway: 'Staff Nurse -> Clinical AI Care-Coordination Lead',
+    sha256: '3a11ef721d1542d85e884898da28047151d0e56f8dc6292773603d0d6aabbdd6',
+  },
+  {
+    id: 'SMP-AUD-04',
+    category: 'audio',
+    title: 'Google SRE War Room Incident Audio Memo',
+    source: 'SRE Production Incident Channel (APAC Cluster)',
+    snippet: '"Spike in 503 error rates on authentication gateway following canary push. Initiating automated rollback to build 849. Traffic healthy."',
+    detectedTasks: ['Canary Blast Radius Triage', 'Incident Root-Cause Logging', 'Rollback Verification'],
+    ergonomicRisk: 'LOW (15/100) — High mental focus, zero physical strain',
+    automationPotential: 88,
+    recommendedPathway: 'Site Reliability Engineer -> Autonomous AI Resilience Architect',
+    sha256: '99b22cd15d6c15b0f00a089f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b',
+  },
+
+  // Videos
+  {
     id: 'SMP-VID-01',
     category: 'video',
     title: 'High-Speed Diverter Video Telemetry',
@@ -76,6 +129,32 @@ const SAMPLE_DATA: MultimodalSample[] = [
     sha256: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
   },
   {
+    id: 'SMP-VID-02',
+    category: 'video',
+    title: 'Robotic Laparoscopic Surgical Video Stream',
+    source: 'DaVinci Surgical Robotic Optical Feed (60fps HD)',
+    snippet: 'Instrument tracking telemetry overlay verifying anatomical clearance margins and arterial proximity alerts in real time.',
+    detectedTasks: ['Micro-Vascular Proximity Alert', 'Surgical Tool Pose Estimation', 'Procedure Duration Tracking'],
+    ergonomicRisk: 'MEDIUM (38/100) — High ergonomic console positioning for chief surgeon',
+    automationPotential: 80,
+    recommendedPathway: 'Surgical Assistant -> Robotic Tele-Surgical Coordinator',
+    sha256: '22cd15d6c15b0f00a089f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b99b',
+  },
+  {
+    id: 'SMP-VID-03',
+    category: 'video',
+    title: 'Kubernetes Multi-Region Canary Telemetry',
+    source: 'Cloud Build & GKE Canary Rollout HUD (Live 60fps)',
+    snippet: 'Synchronized canary rollout across Southeast Asia and US-Central clusters. Automated synthetic traffic load test at 120,000 req/sec.',
+    detectedTasks: ['Canary Traffic Shaping', 'SLO Error Budget Verification', 'Automated Promotion Gate'],
+    ergonomicRisk: 'LOW (8/100) — Pure telemetry visualization feed',
+    automationPotential: 95,
+    recommendedPathway: 'Release Manager -> Autonomous Deployment Mesh Director',
+    sha256: 'b92427ae41e4649b934ca495991b7852b855e3b0c44298fc1c149afbf7c8996f',
+  },
+
+  // Documents
+  {
     id: 'SMP-DOC-01',
     category: 'doc',
     title: 'HACCP Food Safety SOP Revision 4.2',
@@ -86,6 +165,30 @@ const SAMPLE_DATA: MultimodalSample[] = [
     automationPotential: 40,
     recommendedPathway: 'Quality Inspector -> Regulatory HACCP Compliance Specialist',
     sha256: 'ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb',
+  },
+  {
+    id: 'SMP-DOC-02',
+    category: 'doc',
+    title: 'HIPAA & NABH Clinical Care Documentation Protocol',
+    source: 'Hospital Clinical Quality & Regulatory Compliance Manual',
+    snippet: 'Mandatory standard operating procedure: Dual-physician signoff for narcotic titrations, zero unprotected patient health identifiers in clinical notes.',
+    detectedTasks: ['Protected Health Information (PHI) Audit', 'Controlled Substance Dual-Signoff', 'EHR Chart Completeness Check'],
+    ergonomicRisk: 'LOW (8/100) — Hospital compliance documentation protocol',
+    automationPotential: 85,
+    recommendedPathway: 'Health Records Clerk -> Healthcare Privacy & AI Governance Specialist',
+    sha256: '55ad015a3bf4f1b2b0b822cd15d6c15b0f00a089f86d081884c7d659a2feaa0c',
+  },
+  {
+    id: 'SMP-DOC-03',
+    category: 'doc',
+    title: 'Google Secure AI Framework (SAIF) Engineering Standard',
+    source: 'Enterprise AI Governance & Model Armor Policy',
+    snippet: 'Mandatory software engineering guidelines: Prompt injection red-teaming verification, least-privilege service account scoping, and cryptographic evidence logging.',
+    detectedTasks: ['SAIF Six-Pillar Verification', 'Model Armor Policy Audit', 'Secret Token Zero-Exposure Scan'],
+    ergonomicRisk: 'LOW (5/100) — Enterprise architectural cybersecurity contract',
+    automationPotential: 90,
+    recommendedPathway: 'Security Analyst -> Enterprise AI Safety & Red-Team Commander',
+    sha256: '44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855e3b0c',
   },
 ];
 
@@ -282,32 +385,70 @@ export const MultiModalMediaStudio: React.FC<MultiModalMediaStudioProps> = ({ i1
             {activeCategory === 'image' && (
               <div
                 style={{
-                  height: '160px',
-                  borderRadius: '6px',
-                  background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
+                  height: '180px',
+                  borderRadius: '12px',
+                  background: 'linear-gradient(135deg, #090e1a 0%, #172033 100%)',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  border: '1px solid rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(6, 182, 212, 0.2)',
                   position: 'relative',
                   overflow: 'hidden',
                 }}
               >
-                <div style={{ fontSize: '36px' }}>📷</div>
-                <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '8px' }}>
-                  {selectedSample.source}
+                <div style={{ position: 'absolute', top: 10, left: 12, display: 'flex', gap: 6, alignItems: 'center' }}>
+                  <span className="badge badge-cyan" style={{ fontSize: '10px' }}>
+                    {selectedSample.id}
+                  </span>
+                  <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                    {selectedSample.source}
+                  </span>
                 </div>
+
+                {selectedSample.id === 'SMP-IMG-03' ? (
+                  <svg width="220" height="110" viewBox="0 0 220 110" style={{ marginTop: '16px' }}>
+                    <rect x="0" y="0" width="220" height="110" rx="8" fill="#030712" />
+                    <path d="M 70 30 Q 50 60 70 95 Q 90 90 95 65 Q 90 35 70 30 Z" fill="rgba(6, 182, 212, 0.15)" stroke="#06b6d4" strokeWidth="1.5" />
+                    <path d="M 150 30 Q 170 60 150 95 Q 130 90 125 65 Q 130 35 150 30 Z" fill="rgba(6, 182, 212, 0.15)" stroke="#06b6d4" strokeWidth="1.5" />
+                    <line x1="110" y1="20" x2="110" y2="95" stroke="rgba(255,255,255,0.3)" strokeDasharray="3 3" />
+                    <rect x="62" y="48" width="22" height="22" fill="none" stroke="#f43f5e" strokeWidth="2" rx="3" />
+                    <text x="63" y="44" fill="#f43f5e" fontSize="9" fontWeight="bold">94% NODULE</text>
+                  </svg>
+                ) : selectedSample.id === 'SMP-IMG-04' ? (
+                  <svg width="240" height="110" viewBox="0 0 240 110" style={{ marginTop: '16px' }}>
+                    <rect x="0" y="0" width="240" height="110" rx="8" fill="#030712" />
+                    {[0, 1, 2, 3].map((col) =>
+                      [0, 1].map((row) => (
+                        <g key={`${col}-${row}`} transform={`translate(${16 + col * 56}, ${20 + row * 40})`}>
+                          <rect width="44" height="26" rx="4" fill="rgba(99, 102, 241, 0.2)" stroke="#6366f1" strokeWidth="1.2" />
+                          <text x="22" y="16" textAnchor="middle" fill="#a5b4fc" fontSize="8" fontWeight="bold">TPU {col * 2 + row}</text>
+                        </g>
+                      ))
+                    )}
+                    <line x1="38" y1="33" x2="200" y2="33" stroke="#06b6d4" strokeWidth="1.5" strokeDasharray="4 2" />
+                    <text x="120" y="98" textAnchor="middle" fill="#10b981" fontSize="9">RING BUS: 4.8 TB/s INTERCONNECT</text>
+                  </svg>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <div style={{ fontSize: '36px' }}>📷</div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                      {selectedSample.source}
+                    </div>
+                  </div>
+                )}
+
                 <div
                   style={{
                     position: 'absolute',
-                    top: '12px',
+                    top: '10px',
                     right: '12px',
                     border: '1px solid #ef4444',
-                    padding: '2px 6px',
+                    padding: '2px 8px',
                     borderRadius: '4px',
                     color: '#ef4444',
                     fontSize: '10px',
+                    fontWeight: 700,
                   }}
                 >
                   DEFECT ROI 84%
@@ -318,22 +459,38 @@ export const MultiModalMediaStudio: React.FC<MultiModalMediaStudioProps> = ({ i1
             {activeCategory === 'audio' && (
               <div
                 style={{
-                  height: '160px',
-                  borderRadius: '6px',
+                  height: '180px',
+                  borderRadius: '12px',
                   background: '#090d16',
                   padding: '16px',
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'center',
-                  border: '1px solid rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
                   <button
                     type="button"
-                    onClick={() => setIsPlayingAudio(!isPlayingAudio)}
+                    onClick={() => {
+                      if (typeof window !== 'undefined' && 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window) {
+                        if (isPlayingAudio) {
+                          window.speechSynthesis.cancel();
+                          setIsPlayingAudio(false);
+                        } else {
+                          window.speechSynthesis.cancel();
+                          const u = new (window as any).SpeechSynthesisUtterance(selectedSample.snippet);
+                          u.onend = () => setIsPlayingAudio(false);
+                          u.onerror = () => setIsPlayingAudio(false);
+                          window.speechSynthesis.speak(u);
+                          setIsPlayingAudio(true);
+                        }
+                      } else {
+                        setIsPlayingAudio(!isPlayingAudio);
+                      }
+                    }}
                     className="btn-primary"
-                    style={{ padding: '6px 12px', fontSize: '12px' }}
+                    style={{ padding: '6px 14px', fontSize: '12px' }}
                   >
                     {isPlayingAudio ? '⏸ Pause' : '▶ Play Memo'}
                   </button>
@@ -358,26 +515,52 @@ export const MultiModalMediaStudio: React.FC<MultiModalMediaStudioProps> = ({ i1
                     );
                   })}
                 </svg>
+                <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '8px', fontStyle: 'italic', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {selectedSample.snippet}
+                </div>
               </div>
             )}
 
             {activeCategory === 'video' && (
               <div
                 style={{
-                  height: '160px',
-                  borderRadius: '6px',
+                  height: '180px',
+                  borderRadius: '12px',
                   background: '#050811',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  border: '1px solid rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(6, 182, 212, 0.25)',
                   position: 'relative',
+                  overflow: 'hidden',
                 }}
               >
-                <div style={{ fontSize: '32px' }}>🎥</div>
-                <div style={{ fontSize: '12px', color: 'var(--accent-cyan)', marginTop: '6px' }}>
-                  Edge-TPU 120 FPS Stream Active
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '28px' }}>🎥</span>
+                  <div>
+                    <div style={{ fontSize: '13px', fontWeight: 700, color: '#fff' }}>
+                      Edge-TPU 120 FPS Stream Active
+                    </div>
+                    <div style={{ fontSize: '11px', color: 'var(--accent-cyan)' }}>
+                      Inference Latency: 4.2ms | Neural Acceleration ON
+                    </div>
+                  </div>
+                </div>
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '10px',
+                    right: '12px',
+                    fontSize: '11px',
+                    background: 'rgba(16, 185, 129, 0.2)',
+                    color: 'var(--accent-emerald)',
+                    padding: '2px 8px',
+                    borderRadius: '4px',
+                    fontWeight: 600,
+                  }}
+                >
+                  LIVE TELEMETRY
                 </div>
                 <div
                   style={{

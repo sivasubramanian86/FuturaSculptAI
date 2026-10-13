@@ -9,6 +9,7 @@ interface CitizenOverviewProps {
   taskCount?: number;
   resilienceScore?: number;
   onOpenTour?: () => void;
+  sector?: string;
 }
 
 export const CitizenOverview: React.FC<CitizenOverviewProps> = ({
@@ -18,6 +19,7 @@ export const CitizenOverview: React.FC<CitizenOverviewProps> = ({
   taskCount = 18,
   resilienceScore = 78.4,
   onOpenTour,
+  sector = 'food_manufacturing',
 }) => {
   const [isSimpleMode, setIsSimpleMode] = useState<boolean>(false);
   const [spokenAudioText, setSpokenAudioText] = useState<string | null>(null);
@@ -255,7 +257,7 @@ export const CitizenOverview: React.FC<CitizenOverviewProps> = ({
       )}
 
       {/* Future Work Transformation Simulator (1Y, 3Y, 5Y, 10Y Roadmap) */}
-      <TransformationRoadmapStudio i18n={i18n} />
+      <TransformationRoadmapStudio i18n={i18n} sector={sector} />
 
       {/* 4 Citizen Metric Highlights */}
       <div
@@ -315,7 +317,7 @@ export const CitizenOverview: React.FC<CitizenOverviewProps> = ({
         </div>
       </div>
 
-      {/* Future Industry Safety Guidance Hub (UPI, Ride-Hailing, Cinema) */}
+      {/* Future Industry Safety Guidance Hub (UPI, Ride-Hailing, Cinema, Healthcare, IT) */}
       <div
         className="glass-panel"
         style={{
@@ -328,44 +330,96 @@ export const CitizenOverview: React.FC<CitizenOverviewProps> = ({
         <div style={{ marginBottom: '16px' }}>
           <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span>🌐</span>
-            <span>Future Industry Safety Guidance Hub</span>
+            <span>{i18n.safetyHubTitle}</span>
           </h2>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>
-            How FuturaSculptAI guides transactional apps, autonomous transport, and creative entertainment
+            {i18n.safetyHubSubtitle}
           </p>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
+          {/* Clinical Healthcare & Patient Protection */}
+          <div
+            className="glass-panel"
+            style={{
+              padding: '20px',
+              borderRadius: '18px',
+              background: sector === 'healthcare' ? 'rgba(6, 182, 212, 0.15)' : 'rgba(255, 255, 255, 0.04)',
+              border: sector === 'healthcare' ? '1px solid var(--accent-cyan)' : '1px solid var(--border-subtle)',
+            }}
+          >
+            <div style={{ fontSize: '26px', marginBottom: '8px' }}>🏥</div>
+            <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--accent-cyan)' }}>
+              {i18n.safetyHealthTitle}
+            </h3>
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '6px', lineHeight: 1.5 }}>
+              {i18n.safetyHealthDesc}
+            </p>
+            <div style={{ marginTop: '10px', fontSize: '11px', color: 'var(--accent-emerald)', fontWeight: 600 }}>
+              🛡️ HIPAA / EHR Differential Privacy & Diagnostic Grounding
+            </div>
+          </div>
+
+          {/* IT & Software Engineering Titans */}
+          <div
+            className="glass-panel"
+            style={{
+              padding: '20px',
+              borderRadius: '18px',
+              background: sector === 'it_technology' ? 'rgba(99, 102, 241, 0.15)' : 'rgba(255, 255, 255, 0.04)',
+              border: sector === 'it_technology' ? '1px solid var(--accent-indigo)' : '1px solid var(--border-subtle)',
+            }}
+          >
+            <div style={{ fontSize: '26px', marginBottom: '8px' }}>💻</div>
+            <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--accent-indigo)' }}>
+              {i18n.safetyTechTitle}
+            </h3>
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '6px', lineHeight: 1.5 }}>
+              {i18n.safetyTechDesc}
+            </p>
+            <div style={{ marginTop: '10px', fontSize: '11px', color: 'var(--accent-cyan)', fontWeight: 600 }}>
+              ⚡ Monorepo Agent Mesh & License Provenance Shield
+            </div>
+          </div>
+
           {/* UPI & QR Code Transactional Apps */}
           <div
             className="glass-panel"
-            style={{ padding: '20px', borderRadius: '18px', background: 'rgba(255, 255, 255, 0.04)' }}
+            style={{
+              padding: '20px',
+              borderRadius: '18px',
+              background: sector === 'banking' || sector === 'fintech_banking' ? 'rgba(6, 182, 212, 0.15)' : 'rgba(255, 255, 255, 0.04)',
+              border: sector === 'banking' || sector === 'fintech_banking' ? '1px solid var(--accent-cyan)' : '1px solid var(--border-subtle)',
+            }}
           >
             <div style={{ fontSize: '26px', marginBottom: '8px' }}>💳</div>
             <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--accent-cyan)' }}>
-              UPI & QR Code Transactional Safety
+              {i18n.safetyUpiTitle}
             </h3>
             <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '6px', lineHeight: 1.5 }}>
-              Protects retail merchants against fake QR overlays and zero-click exploits. Sculpts cashiers into
-              <strong> Digital Trust Sentinels</strong> while applying Google Cloud DLP to crypto-hash UPI IDs and bank tokens.
+              {i18n.safetyUpiDesc}
             </p>
             <div style={{ marginTop: '10px', fontSize: '11px', color: 'var(--accent-emerald)', fontWeight: 600 }}>
               🛡️ Cloud DLP Tokenization & Reverse QR Verification
             </div>
           </div>
 
-          {/* Autonomous Mobility & Uber/Ola Drivers */}
+          {/* Autonomous Mobility & Drivers */}
           <div
             className="glass-panel"
-            style={{ padding: '20px', borderRadius: '18px', background: 'rgba(255, 255, 255, 0.04)' }}
+            style={{
+              padding: '20px',
+              borderRadius: '18px',
+              background: sector === 'mobility_autonomous' || sector === 'mobility_fleet' ? 'rgba(99, 102, 241, 0.15)' : 'rgba(255, 255, 255, 0.04)',
+              border: sector === 'mobility_autonomous' || sector === 'mobility_fleet' ? '1px solid var(--accent-indigo)' : '1px solid var(--border-subtle)',
+            }}
           >
             <div style={{ fontSize: '26px', marginBottom: '8px' }}>🚖</div>
             <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--accent-indigo)' }}>
-              Autonomous Mobility & Ride-Hailing (Uber / Ola)
+              {i18n.safetyTransitTitle}
             </h3>
             <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '6px', lineHeight: 1.5 }}>
-              As Level 4/5 autonomous robotaxis roll out, drivers are not discarded. Drivers are sculpted into
-              <strong> Fleet Tele-Operations Supervisors</strong>, handling remote takeovers, weather exceptions, and safety arbitration with a 90-day wage protection escrow.
+              {i18n.safetyTransitDesc}
             </p>
             <div style={{ marginTop: '10px', fontSize: '11px', color: 'var(--accent-cyan)', fontWeight: 600 }}>
               🎮 Tele-Driving Simulator Certifications & 90-Day Bond
@@ -375,22 +429,71 @@ export const CitizenOverview: React.FC<CitizenOverviewProps> = ({
           {/* Cinema & Creative Entertainment */}
           <div
             className="glass-panel"
-            style={{ padding: '20px', borderRadius: '18px', background: 'rgba(255, 255, 255, 0.04)' }}
+            style={{
+              padding: '20px',
+              borderRadius: '18px',
+              background: sector === 'cinema_creative' ? 'rgba(244, 114, 182, 0.15)' : 'rgba(255, 255, 255, 0.04)',
+              border: sector === 'cinema_creative' ? '1px solid #f472b6' : '1px solid var(--border-subtle)',
+            }}
           >
             <div style={{ fontSize: '26px', marginBottom: '8px' }}>🎬</div>
             <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#f472b6' }}>
-              Cinema, Film & Creative Arts
+              {i18n.safetyMediaTitle}
             </h3>
             <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '6px', lineHeight: 1.5 }}>
-              Protects actors, dubbing voices, and camera crew against uncompensated AI replication. Sculpts crew into
-              <strong> Generative Prompt Directors</strong> and <strong>Synthetic IP Curators</strong>, enforcing SAG-AFTRA digital likeness contracts and automated royalty splits.
+              {i18n.safetyMediaDesc}
             </p>
             <div style={{ marginTop: '10px', fontSize: '11px', color: '#f472b6', fontWeight: 600 }}>
               📜 Actor Digital Likeness Contracts & Royalty Smart Escrow
             </div>
           </div>
+
+          {/* Automotive EV & Precision Engineering */}
+          <div
+            className="glass-panel"
+            style={{
+              padding: '20px',
+              borderRadius: '18px',
+              background: sector === 'automotive_ev' ? 'rgba(249, 115, 22, 0.15)' : 'rgba(255, 255, 255, 0.04)',
+              border: sector === 'automotive_ev' ? '1px solid #f97316' : '1px solid var(--border-subtle)',
+            }}
+          >
+            <div style={{ fontSize: '26px', marginBottom: '8px' }}>🚗</div>
+            <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#f97316' }}>
+              {i18n.safetyAutomotiveTitle}
+            </h3>
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '6px', lineHeight: 1.5 }}>
+              {i18n.safetyAutomotiveDesc}
+            </p>
+            <div style={{ marginTop: '10px', fontSize: '11px', color: '#f97316', fontWeight: 600 }}>
+              ⚡ Edge-TPU Vision Sensors & Cobotic Ergonomics Protection
+            </div>
+          </div>
+
+          {/* Food Manufacturing & Cold-Chain */}
+          <div
+            className="glass-panel"
+            style={{
+              padding: '20px',
+              borderRadius: '18px',
+              background: sector === 'food_manufacturing' ? 'rgba(34, 197, 94, 0.15)' : 'rgba(255, 255, 255, 0.04)',
+              border: sector === 'food_manufacturing' ? '1px solid #22c55e' : '1px solid var(--border-subtle)',
+            }}
+          >
+            <div style={{ fontSize: '26px', marginBottom: '8px' }}>🍞</div>
+            <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#22c55e' }}>
+              {i18n.safetyFoodTitle}
+            </h3>
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '6px', lineHeight: 1.5 }}>
+              {i18n.safetyFoodDesc}
+            </p>
+            <div style={{ marginTop: '10px', fontSize: '11px', color: '#22c55e', fontWeight: 600 }}>
+              🥖 Continuous Optical QA & Cryptographic HACCP Proof
+            </div>
+          </div>
         </div>
       </div>
+
 
       {/* 3 Core Worker Protection Pillars */}
       <div>

@@ -27,6 +27,9 @@ interface AppShellProps {
   onSelectRole?: (role: UserRole) => void;
   onOpenTour?: () => void;
   onSelectSector?: (sector: string) => void;
+  googleUser?: { email: string; displayName: string; avatar?: string } | null;
+  onGoogleSignIn?: () => void;
+  onGoogleSignOut?: () => void;
   children: React.ReactNode;
 }
 
@@ -46,6 +49,9 @@ export const AppShell: React.FC<AppShellProps> = ({
   onSelectRole,
   onOpenTour,
   onSelectSector,
+  googleUser,
+  onGoogleSignIn,
+  onGoogleSignOut,
   children,
 }) => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
@@ -192,15 +198,75 @@ export const AppShell: React.FC<AppShellProps> = ({
                 boxShadow: 'inset 0 1px 1px rgba(255, 255, 255, 0.1)',
               }}
             >
-              <option value="food_manufacturing">🍞 Food Manufacturing</option>
-              <option value="automotive_manufacturing">🚗 Automotive EV</option>
-              <option value="healthcare">🏥 Healthcare Clinical</option>
-              <option value="advanced_manufacturing">⚙️ Precision Robotics</option>
-              <option value="banking">💳 FinTech & UPI Payments</option>
+              <option value="food_manufacturing">🍞 Food Manufacturing (Nestlé, Tyson)</option>
+              <option value="healthcare">🏥 Healthcare Clinical (Mayo Clinic, Apollo, NHS)</option>
+              <option value="it_technology">💻 IT & Tech Titans (Google, Microsoft, Anthropic)</option>
+              <option value="automotive_manufacturing">🚗 Automotive EV (Tesla, Toyota)</option>
+              <option value="advanced_manufacturing">⚙️ Precision Robotics & Industrial</option>
+              <option value="banking">💳 FinTech & UPI Payments (JPMorgan, Stripe)</option>
               <option value="mobility_autonomous">🚖 Uber / Ola Autonomous Fleet</option>
-              <option value="cinema_creative">🎬 Cinema & Creative Arts</option>
+              <option value="cinema_creative">🎬 Cinema & Creative Arts (Pixar, ILM)</option>
             </select>
           </div>
+
+          {/* Google Account Login Connector */}
+          {googleUser ? (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '4px 12px',
+                borderRadius: '9999px',
+                background: 'rgba(66, 133, 244, 0.15)',
+                border: '1px solid rgba(66, 133, 244, 0.45)',
+                boxShadow: '0 0 12px rgba(66, 133, 244, 0.25)',
+              }}
+            >
+              <span style={{ fontSize: '13px' }}>🇬</span>
+              <span style={{ fontSize: '12px', color: '#fff', fontWeight: 600 }}>{googleUser.displayName}</span>
+              <button
+                type="button"
+                onClick={onGoogleSignOut}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--accent-cyan)',
+                  cursor: 'pointer',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  marginLeft: '4px',
+                }}
+                title="Sign out of Google"
+              >
+                Sign Out
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={onGoogleSignIn}
+              className="btn-google-login"
+              style={{
+                padding: '8px 14px',
+                fontSize: '12px',
+                fontWeight: 600,
+                borderRadius: '9999px',
+                background: 'rgba(255, 255, 255, 0.08)',
+                border: '1px solid rgba(66, 133, 244, 0.5)',
+                color: '#fff',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+              title="Sign in with your Google account"
+            >
+              <span style={{ fontSize: '13px' }}>🇬</span>
+              <span>Google Login</span>
+            </button>
+          )}
 
           {/* One-Click Interactive Guided Tour Button */}
           <button

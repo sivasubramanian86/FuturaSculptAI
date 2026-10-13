@@ -211,7 +211,7 @@ FuturaSculptAI/
 │   └── evals/                          # Google ADK agent trajectory evaluations (1 golden suite)
 │       └── test_adk_agent_eval.py      # Groundedness (>=95%), tool calling recall & jailbreak defense
 │
-└── apps/web/src/tests/                 # Frontend Test Suite (26 Files, 186 Tests, 100.0% Cov)
+└── apps/web/src/tests/                 # Frontend Test Suite (26 Files, 192 Tests, 100.0% Cov)
     ├── unit/                           # Presentation components & utilities (10 files, 44 tests)
     │   ├── AboutFuturaSculpt.test.tsx, ErrorBoundary.test.tsx, FAQHelp.test.tsx
     │   ├── GuidedTourModal.test.tsx, Header.test.tsx, SettingsStudio.test.tsx
@@ -257,7 +257,7 @@ npm run build                              # Production TypeScript & Vite bundle
 | Quality Metric | Required Gate | Verified Result | Verification Command |
 |---|:---:|:---:|---|
 | **Backend Test Coverage** | **100.0%** Stmts & Branch | :white_check_mark: **100.0%** (2,220/2,220 stmts, 109/109 tests) | `pytest --cov=app --cov-fail-under=100` |
-| **Frontend Test Coverage** | **100.0%** Stmts, Branch, Func | :white_check_mark: **100.0%** (186/186 tests across 26 files) | `npm run test:coverage` |
+| **Frontend Test Coverage** | **100.0%** Stmts, Branch, Func | :white_check_mark: **100.0%** (192/192 tests across 26 files) | `npm run test:coverage` |
 | **Python Code Quality** | **0 Warnings** | :white_check_mark: **Clean (0 Warnings)** | `ruff check app tests` |
 | **AST Security Scan** | **0 Issues** | :white_check_mark: **Clean (0 High/Med/Low)** | `bandit -r app` |
 | **Secret Scan** | **0 Committed Secrets** | :white_check_mark: **Clean** | `./scripts/security_scan.ps1` |

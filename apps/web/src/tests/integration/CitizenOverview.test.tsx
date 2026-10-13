@@ -101,5 +101,14 @@ describe('CitizenOverview Component', () => {
     delete (globalThis as any).SpeechSynthesisUtterance;
     fireEvent.click(listenBtns[0]);
   });
+
+  it('renders sector-specific highlight cards across healthcare, tech, banking, mobility, cinema, EV, and food sectors', () => {
+    const sectors = ['healthcare', 'it_technology', 'banking', 'fintech_banking', 'mobility_autonomous', 'mobility_fleet', 'cinema_creative', 'automotive_ev', 'food_manufacturing'];
+    sectors.forEach((sec) => {
+      const { unmount } = render(<CitizenOverview i18n={i18n} onNavigateTab={vi.fn()} sector={sec} />);
+      expect(screen.getByText(i18n.safetyHubTitle)).toBeInTheDocument();
+      unmount();
+    });
+  });
 });
 

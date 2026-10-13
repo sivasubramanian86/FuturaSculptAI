@@ -1,9 +1,9 @@
-import { TranslationKeys } from './en';
+import { LocaleTranslations } from './en';
 
 /**
  * Telugu (తెలుగు) Translations for FuturaSculptAI
  */
-export const te: TranslationKeys = {
+export const te: LocaleTranslations = {
   brandName: 'FuturaSculptAI',
   brandTagline: 'స్వయంప్రతిపత్తితో పనిచేసే పని పరివర్తన ఆపరేటింగ్ సిస్టమ్',
   trustScore: 'విశ్వసనీయత సూచిక',

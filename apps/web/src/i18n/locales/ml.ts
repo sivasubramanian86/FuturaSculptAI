@@ -1,9 +1,9 @@
-import { TranslationKeys } from './en';
+import { LocaleTranslations } from './en';
 
 /**
  * Malayalam (മലയാളം) Translations for FuturaSculptAI
  */
-export const ml: TranslationKeys = {
+export const ml: LocaleTranslations = {
   brandName: 'FuturaSculptAI',
   brandTagline: 'തൊഴിൽ പരിവർത്തനത്തിനായുള്ള സ്വയംഭരണ ഓപ്പറേറ്റിംഗ് സിസ്റ്റം',
   trustScore: 'വിശ്വാസ്യത സൂചിക',

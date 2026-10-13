@@ -3,7 +3,7 @@
  * Supports 22 global and Indian enterprise languages with safe English fallbacks.
  */
 
-import { en, TranslationKeys } from './locales/en';
+import { en, TranslationKeys, LocaleTranslations } from './locales/en';
 import { ta } from './locales/ta';
 import { hi } from './locales/hi';
 import { es } from './locales/es';
@@ -54,7 +54,7 @@ export const SUPPORTED_LANGUAGES: SupportedLanguage[] = [
   { code: 'ko', name: '한국어 (Korean)', flag: '🇰🇷' },
 ];
 
-const LOCALES_REGISTRY: Record<string, TranslationKeys> = {
+const LOCALES_REGISTRY: Record<string, LocaleTranslations> = {
   en,
   ta,
   hi,
