@@ -163,17 +163,21 @@ export const AppShell: React.FC<AppShellProps> = ({
             onClick={() => onToggleCitizenMode(!isCitizenMode)}
             className="btn-subtle"
             style={{
-              padding: '8px 16px',
+              height: '36px',
+              padding: '0 14px',
               fontSize: '12px',
               fontWeight: 600,
               borderRadius: '9999px',
-              display: 'flex',
+              display: 'inline-flex',
               alignItems: 'center',
               gap: '6px',
               background: isCitizenMode ? 'rgba(6, 182, 212, 0.18)' : 'rgba(99, 102, 241, 0.18)',
               borderColor: isCitizenMode ? 'var(--accent-cyan)' : 'var(--accent-indigo)',
               color: isCitizenMode ? 'var(--accent-cyan)' : 'var(--text-primary)',
               boxShadow: 'inset 0 1px 1px rgba(255, 255, 255, 0.15), 0 2px 8px rgba(0, 0, 0, 0.2)',
+              boxSizing: 'border-box',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
             }}
           >
             <span>{isCitizenMode ? '👤' : '🏢'}</span>
@@ -181,14 +185,15 @@ export const AppShell: React.FC<AppShellProps> = ({
           </button>
 
           {/* Industry Simulation Sector Switcher */}
-          <div style={{ position: 'relative' }}>
+          <div style={{ position: 'relative', display: 'inline-flex' }}>
             <select
               aria-label="Select Industry Simulation Sector"
               value={sector}
               onChange={(e) => onSelectSector?.(e.target.value)}
               className="select-custom"
               style={{
-                padding: '8px 14px',
+                height: '36px',
+                padding: '0 14px',
                 fontSize: '12px',
                 borderRadius: '9999px',
                 background: 'rgba(15, 23, 42, 0.85)',
@@ -196,6 +201,7 @@ export const AppShell: React.FC<AppShellProps> = ({
                 border: '1px solid rgba(255, 255, 255, 0.18)',
                 cursor: 'pointer',
                 boxShadow: 'inset 0 1px 1px rgba(255, 255, 255, 0.1)',
+                boxSizing: 'border-box',
               }}
             >
               <option value="food_manufacturing">🍞 Food Manufacturing (Nestlé, Tyson)</option>
@@ -209,18 +215,169 @@ export const AppShell: React.FC<AppShellProps> = ({
             </select>
           </div>
 
-          {/* Google Account Login Connector */}
+          {/* IAM Persona Selector */}
+          <div style={{ position: 'relative', display: 'inline-flex' }}>
+            <select
+              aria-label="Select IAM Persona"
+              value={currentRole}
+              onChange={(e) => onSelectRole?.(e.target.value as UserRole)}
+              className="select-custom"
+              style={{
+                height: '36px',
+                padding: '0 14px',
+                fontSize: '12px',
+                borderRadius: '9999px',
+                background: 'rgba(15, 23, 42, 0.85)',
+                color: 'var(--text-primary)',
+                border: '1px solid rgba(255, 255, 255, 0.18)',
+                cursor: 'pointer',
+                boxShadow: 'inset 0 1px 1px rgba(255, 255, 255, 0.1)',
+                boxSizing: 'border-box',
+              }}
+            >
+              {Object.values(PERSONA_PROFILES).map((persona) => (
+                <option key={persona.role} value={persona.role}>
+                  {persona.avatar} {persona.displayName} ({persona.title.split(' ')[0]})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Language Selector Dropdown */}
+          <div style={{ position: 'relative', display: 'inline-flex' }}>
+            <select
+              aria-label="Select Interface Language"
+              value={currentLanguage}
+              onChange={(e) => onChangeLanguage(e.target.value as LanguageCode)}
+              className="select-custom"
+              style={{
+                height: '36px',
+                padding: '0 14px',
+                fontSize: '12px',
+                borderRadius: '9999px',
+                background: 'rgba(15, 23, 42, 0.85)',
+                color: 'var(--text-primary)',
+                border: '1px solid rgba(255, 255, 255, 0.18)',
+                cursor: 'pointer',
+                boxShadow: 'inset 0 1px 1px rgba(255, 255, 255, 0.1)',
+                boxSizing: 'border-box',
+              }}
+            >
+              {SUPPORTED_LANGUAGES.map((lang) => (
+                <option key={lang.code} value={lang.code}>
+                  {lang.flag} {lang.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Live Trust Score Pill */}
+          <div
+            className="badge badge-emerald"
+            style={{
+              height: '36px',
+              padding: '0 14px',
+              fontSize: '12px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              borderRadius: '9999px',
+              background: 'rgba(16, 185, 129, 0.16)',
+              border: '1px solid rgba(16, 185, 129, 0.35)',
+              boxSizing: 'border-box',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981' }} />
+            <span>{i18n.trustScore}: {trustScore}</span>
+          </div>
+
+          {/* Org Bootstrap Button */}
+          <button
+            type="button"
+            onClick={onOpenOnboard}
+            className="btn-subtle"
+            style={{
+              height: '36px',
+              padding: '0 14px',
+              fontSize: '12px',
+              borderRadius: '9999px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              boxSizing: 'border-box',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            ⚡ {i18n.onboardOrg}
+          </button>
+
+          {/* One-Click Interactive Guided Tour Button */}
+          <button
+            type="button"
+            onClick={onOpenTour}
+            className="btn-tour-pill"
+            style={{
+              height: '36px',
+              padding: '0 16px',
+              fontSize: '12px',
+              fontWeight: 700,
+              borderRadius: '9999px',
+              background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.3) 0%, rgba(99, 102, 241, 0.4) 100%)',
+              border: '1px solid var(--accent-cyan)',
+              color: '#fff',
+              boxShadow: '0 0 16px rgba(6, 182, 212, 0.35)',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              boxSizing: 'border-box',
+              whiteSpace: 'nowrap',
+            }}
+            title="Launch Guided Tour"
+          >
+            <span>🚀</span>
+            <span>Guided Tour</span>
+          </button>
+
+          {/* Refresh Button */}
+          <button
+            type="button"
+            onClick={onRefresh}
+            className="btn-subtle"
+            style={{
+              height: '36px',
+              width: '36px',
+              padding: 0,
+              fontSize: '13px',
+              borderRadius: '9999px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxSizing: 'border-box',
+              cursor: 'pointer',
+            }}
+            title="Refresh Data"
+            aria-label="Refresh Data"
+          >
+            🔄
+          </button>
+
+          {/* Google Account Login Connector at FAR RIGHT Corner */}
           {googleUser ? (
             <div
               style={{
-                display: 'flex',
+                height: '36px',
+                display: 'inline-flex',
                 alignItems: 'center',
                 gap: '8px',
-                padding: '4px 12px',
+                padding: '0 14px',
                 borderRadius: '9999px',
                 background: 'rgba(66, 133, 244, 0.15)',
                 border: '1px solid rgba(66, 133, 244, 0.45)',
                 boxShadow: '0 0 12px rgba(66, 133, 244, 0.25)',
+                boxSizing: 'border-box',
+                whiteSpace: 'nowrap',
               }}
             >
               <span style={{ fontSize: '13px' }}>🇬</span>
@@ -248,18 +405,21 @@ export const AppShell: React.FC<AppShellProps> = ({
               onClick={onGoogleSignIn}
               className="btn-google-login"
               style={{
-                padding: '8px 14px',
+                height: '36px',
+                padding: '0 14px',
                 fontSize: '12px',
                 fontWeight: 600,
                 borderRadius: '9999px',
                 background: 'rgba(255, 255, 255, 0.08)',
                 border: '1px solid rgba(66, 133, 244, 0.5)',
                 color: '#fff',
-                display: 'flex',
+                display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
+                boxSizing: 'border-box',
+                whiteSpace: 'nowrap',
               }}
               title="Sign in with your Google account"
             >
@@ -267,121 +427,6 @@ export const AppShell: React.FC<AppShellProps> = ({
               <span>Google Login</span>
             </button>
           )}
-
-          {/* One-Click Interactive Guided Tour Button */}
-          <button
-            type="button"
-            onClick={onOpenTour}
-            className="btn-tour-pill"
-            style={{
-              padding: '8px 16px',
-              fontSize: '12px',
-              fontWeight: 700,
-              borderRadius: '9999px',
-              background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.3) 0%, rgba(99, 102, 241, 0.4) 100%)',
-              border: '1px solid var(--accent-cyan)',
-              color: '#fff',
-              boxShadow: '0 0 16px rgba(6, 182, 212, 0.35)',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-            }}
-            title="Launch Guided Tour"
-          >
-            <span>🚀</span>
-            <span>Guided Tour</span>
-          </button>
-          <div style={{ position: 'relative' }}>
-            <select
-              aria-label="Select IAM Persona"
-              value={currentRole}
-              onChange={(e) => onSelectRole?.(e.target.value as UserRole)}
-              className="select-custom"
-              style={{
-                padding: '8px 14px',
-                fontSize: '12px',
-                borderRadius: '9999px',
-                background: 'rgba(15, 23, 42, 0.85)',
-                color: 'var(--text-primary)',
-                border: '1px solid rgba(255, 255, 255, 0.18)',
-                cursor: 'pointer',
-                boxShadow: 'inset 0 1px 1px rgba(255, 255, 255, 0.1)',
-              }}
-            >
-              {Object.values(PERSONA_PROFILES).map((persona) => (
-                <option key={persona.role} value={persona.role}>
-                  {persona.avatar} {persona.displayName} ({persona.title.split(' ')[0]})
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Language Selector Dropdown */}
-          <div style={{ position: 'relative' }}>
-            <select
-              aria-label="Select Interface Language"
-              value={currentLanguage}
-              onChange={(e) => onChangeLanguage(e.target.value as LanguageCode)}
-              className="select-custom"
-              style={{
-                padding: '8px 14px',
-                fontSize: '12px',
-                borderRadius: '9999px',
-                background: 'rgba(15, 23, 42, 0.85)',
-                color: 'var(--text-primary)',
-                border: '1px solid rgba(255, 255, 255, 0.18)',
-                cursor: 'pointer',
-                boxShadow: 'inset 0 1px 1px rgba(255, 255, 255, 0.1)',
-              }}
-            >
-              {SUPPORTED_LANGUAGES.map((lang) => (
-                <option key={lang.code} value={lang.code}>
-                  {lang.flag} {lang.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Live Trust Score Pill */}
-          <div
-            className="badge badge-emerald"
-            style={{
-              padding: '8px 14px',
-              fontSize: '12px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              borderRadius: '9999px',
-              background: 'rgba(16, 185, 129, 0.16)',
-              border: '1px solid rgba(16, 185, 129, 0.35)',
-            }}
-          >
-            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981' }} />
-            <span>{i18n.trustScore}: {trustScore}</span>
-          </div>
-
-          {/* Org Bootstrap Button */}
-          <button
-            type="button"
-            onClick={onOpenOnboard}
-            className="btn-subtle"
-            style={{ padding: '8px 16px', fontSize: '12px', borderRadius: '9999px' }}
-          >
-            ⚡ {i18n.onboardOrg}
-          </button>
-
-          {/* Refresh Button */}
-          <button
-            type="button"
-            onClick={onRefresh}
-            className="btn-subtle"
-            style={{ padding: '8px 12px', fontSize: '13px', borderRadius: '9999px' }}
-            title="Refresh Data"
-            aria-label="Refresh Data"
-          >
-            🔄
-          </button>
         </div>
       </header>
 

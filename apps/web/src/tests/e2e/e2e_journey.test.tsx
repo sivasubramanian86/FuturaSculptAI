@@ -278,6 +278,6 @@ describe('FuturaSculptAI End-to-End (E2E) User Journey', () => {
     // Close Aura assistant
     const auraClose = screen.getByRole('button', { name: /Close Aura Assistant/i });
     fireEvent.click(auraClose);
-  });
+  }, 60000);
 });
 

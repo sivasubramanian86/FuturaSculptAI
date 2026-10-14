@@ -438,6 +438,23 @@ export class ApiClient {
     }
     return res.json();
   }
+
+  async generateTransformationRoadmap(payload: {
+    firm_name: string;
+    scenario_prompt: string;
+    sector?: string;
+    target_horizon_years?: number;
+  }): Promise<any> {
+    const res = await fetch(`${API_BASE}/scenarios/transformation-roadmap`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      throw new Error(`Failed to generate transformation roadmap: ${res.statusText}`);
+    }
+    return res.json();
+  }
 }
 
 export const api = new ApiClient();

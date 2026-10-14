@@ -8,8 +8,11 @@ from app.models.scenario import (
     ScenarioComparisonResponse,
     ScenarioSimulationRequest,
     ScenarioSimulationResponse,
+    TransformationRoadmapRequest,
+    TransformationRoadmapResponse,
 )
 from app.services.scenario_service import (
+    generate_transformation_roadmap,
     get_scenario_by_id,
     get_scenarios_for_tenant,
     simulate_counterfactual,
@@ -83,3 +86,21 @@ def simulate_scenario_counterfactual(
             detail=f"Target scenario {payload.scenario_id} not found for simulation.",
         )
     return result
+
+
+@router.post("/transformation-roadmap", response_model=TransformationRoadmapResponse)
+async def generate_future_transformation_roadmap(
+    payload: TransformationRoadmapRequest,
+    tenant_id: str = Depends(get_current_tenant_id),
+) -> TransformationRoadmapResponse:
+    """Generate Vertex AI Gemini-grounded transformation roadmap with multimodal assets.
+
+    Args:
+        payload: Firm name, scenario context, sector, and horizon.
+        tenant_id: Scoped tenant identifier.
+
+    Returns:
+        TransformationRoadmapResponse: Multi-horizon roadmap with Imagen 3, Lyria, and Veo 2 specs.
+    """
+    return await generate_transformation_roadmap(tenant_id=tenant_id, request=payload)
+

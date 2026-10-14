@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ScenarioClass(str, Enum):
@@ -83,4 +83,84 @@ class ScenarioSimulationResponse(BaseModel):
     simulation_parameters: dict
     impact: CounterfactualImpact
     simulated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+# -----------------------------------------------------------------------------
+# Future Work Transformation Simulator & Multimodal Studio Schemas
+# -----------------------------------------------------------------------------
+
+
+class HorizonModel(BaseModel):
+    """Temporal horizon milestone model (Baseline, 1Y, 2Y, 3Y, 5Y, 10Y)."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    year: str
+    badge: str
+    headline: str
+    work_style: str = Field(..., alias="workStyle")
+    worker_experience: str = Field(..., alias="workerExperience")
+    productivity_multiplier: str = Field(..., alias="productivityMultiplier")
+    productivity_index: int = Field(..., alias="productivityIndex")
+    firm_metrics: dict = Field(..., alias="firmMetrics")
+    key_milestones: List[str] = Field(..., alias="keyMilestones")
+
+
+class ImagenInfographic(BaseModel):
+    """Imagen 3 architecture twin visual blueprint specification."""
+
+    title: str
+    prompt: str
+    zones: List[dict]
+    svg_blueprint: str
+
+
+class LyriaPodcast(BaseModel):
+    """Lyria audio podcast studio specification with script and theme."""
+
+    title: str
+    speakers: List[str]
+    script: str
+    audio_theme: str
+    duration_seconds: int
+
+
+class VeoVideo(BaseModel):
+    """Veo 2 cinematic video simulation with camera HUD telemetry."""
+
+    title: str
+    camera_movement: str
+    scene_prompt: str
+    hud_telemetry: dict
+    resolution: str
+    fps: int
+
+
+class TransformationRoadmapRequest(BaseModel):
+    """Request payload for Future Transformation Simulator."""
+
+    firm_name: str
+    scenario_prompt: str
+    sector: Optional[str] = "healthcare"
+    target_horizon_years: Optional[int] = 10
+
+
+class TransformationRoadmapResponse(BaseModel):
+    """Vertex AI Gemini synthesized multi-horizon roadmap with multimodal assets."""
+
+    firm_title: str
+    category: str
+    executive_summary: str
+    societal_impact_narrative: str
+    productivity_verdict: dict
+    horizons: dict
+    evidence_citations: List[dict]
+    imagen_infographic: ImagenInfographic
+    lyria_podcast: LyriaPodcast
+    veo_video: VeoVideo
+    model_used: str
+    input_tokens: int
+    output_tokens: int
+    estimated_cost_usd: float
+
 

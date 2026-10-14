@@ -1,8 +1,9 @@
 import '@testing-library/jest-dom/vitest';
 import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { TransformationRoadmapStudio } from '../../components/TransformationRoadmapStudio';
+import { api } from '../../services/api';
 import { getTranslations } from '../../i18n';
 
 describe('TransformationRoadmapStudio Component', () => {
@@ -442,5 +443,118 @@ describe('TransformationRoadmapStudio Component', () => {
     fireEvent.click(screen.getByRole('button', { name: /Generate 1Y, 3Y, 5Y & 10Y Roadmap/i }));
     expect(screen.getAllByText(/Modernized Retail & Omni-Channel Commerce/i).length).toBeGreaterThanOrEqual(1);
   });
+
+  it('augments roadmap with live API response when generateTransformationRoadmap succeeds', async () => {
+    const mockRoadmap = {
+      firm_title: 'Mayo Clinic Live API',
+      category: 'public_health',
+      executive_summary: 'Live Vertex AI executive summary.',
+      societal_impact_narrative: 'Live planetary impact narrative.',
+      productivity_verdict: {
+        headline: '100x Live',
+        multiplierSummary: 'Live 100x',
+        civilizationalReach: 'Global reach',
+      },
+      horizons: {
+        baseline: {
+          year: '2026',
+          badge: 'BASELINE',
+          headline: 'Live Baseline',
+          workStyle: 'Human Only',
+          workerExperience: 'Paperwork',
+          productivityMultiplier: '1.0x',
+          productivityIndex: 1,
+          firmMetrics: {
+            revenueMultiple: '1.0x',
+            netMargin: '10%',
+            creativeTimePct: 20,
+            wageIncrease: '0%',
+            turnaround: '3 days',
+          },
+          keyMilestones: ['Live milestone 1'],
+        },
+        year1: {
+          year: 'Year 1',
+          badge: 'AGENT TRIAGE',
+          headline: 'Live Year 1',
+          workStyle: 'Augmented',
+          workerExperience: 'Copilot',
+          productivityMultiplier: '2.5x',
+          productivityIndex: 2.5,
+          firmMetrics: {
+            revenueMultiple: '1.3x',
+            netMargin: '18%',
+            creativeTimePct: 40,
+            wageIncrease: '+10%',
+            turnaround: '1 day',
+          },
+          keyMilestones: ['Live milestone Y1'],
+        },
+      },
+      evidence_citations: [
+        {
+          id: 'CIT-LIVE-001',
+          source: 'Live Vertex Source',
+          sha256Hash: 'abc',
+          groundedQuote: 'Live Quote',
+          agentAuthor: 'Scout Agent',
+        },
+      ],
+    };
+
+    vi.spyOn(api, 'generateTransformationRoadmap').mockResolvedValueOnce(mockRoadmap);
+
+    render(<TransformationRoadmapStudio i18n={i18n} simulationDelayMs={0} />);
+
+    const mayoPreset = screen.getByRole('button', { name: /Mayo Clinic/i });
+    fireEvent.click(mayoPreset);
+
+    const genBtn = screen.getByRole('button', { name: /Generate 1Y, 3Y, 5Y & 10Y Roadmap/i });
+    fireEvent.click(genBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Mayo Clinic Live API/i)).toBeInTheDocument();
+    });
+  });
+
+  it('handles live API response with empty evidence citations and handles API rejection gracefully', async () => {
+    const mockRoadmapNoCitations: any = {
+      firm_title: '',
+      category: '',
+      executive_summary: '',
+      societal_impact_narrative: '',
+      productivity_verdict: null,
+      horizons: {},
+      evidence_citations: [],
+    };
+
+    const spy = vi.spyOn(api, 'generateTransformationRoadmap')
+      .mockResolvedValueOnce(mockRoadmapNoCitations)
+      .mockRejectedValueOnce(new Error('Vertex AI quota exceeded'));
+
+    const { rerender } = render(<TransformationRoadmapStudio i18n={i18n} simulationDelayMs={0} />);
+
+    // First invocation with empty citations and empty firm_title
+    const apolloPreset = screen.getByRole('button', { name: /Apollo Hospitals/i });
+    fireEvent.click(apolloPreset);
+
+    const genBtn = screen.getByRole('button', { name: /Generate 1Y, 3Y, 5Y & 10Y Roadmap/i });
+    fireEvent.click(genBtn);
+
+    await waitFor(() => {
+      expect(screen.getAllByText(/Apollo Hospitals/i).length).toBeGreaterThanOrEqual(1);
+    });
+
+    // Second invocation with API failure
+    rerender(<TransformationRoadmapStudio i18n={i18n} simulationDelayMs={0} />);
+    const nhsPreset = screen.getByRole('button', { name: /NHS Foundation Trust/i });
+    fireEvent.click(nhsPreset);
+    fireEvent.click(genBtn);
+
+    await waitFor(() => {
+      expect(screen.getAllByText(/NHS Foundation Trust/i).length).toBeGreaterThanOrEqual(2);
+    });
+  });
 });
+
 

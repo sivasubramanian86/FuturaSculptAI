@@ -864,6 +864,37 @@ describe('ApiClient', () => {
       'Failed to inspect DLP content: Service Unavailable'
     );
   });
+
+  it('generates transformation roadmap and handles failure', async () => {
+    const mockRoadmap = {
+      firm_title: 'Mayo Clinic',
+      category: 'public_health',
+      horizons: { baseline: {} },
+    };
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockRoadmap,
+    } as Response);
+
+    const res = await client.generateTransformationRoadmap({
+      firm_name: 'Mayo Clinic',
+      scenario_prompt: 'Clinical triage',
+    });
+    expect(res).toEqual(mockRoadmap);
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: false,
+      statusText: 'Internal Error',
+    } as Response);
+
+    await expect(
+      client.generateTransformationRoadmap({
+        firm_name: 'Mayo Clinic',
+        scenario_prompt: 'Clinical triage',
+      })
+    ).rejects.toThrow('Failed to generate transformation roadmap: Internal Error');
+  });
 });
 
 

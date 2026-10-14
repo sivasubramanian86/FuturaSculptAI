@@ -14,6 +14,7 @@ import { TrustScoreCard } from './components/TrustScoreCard';
 import { EvidenceDrawer } from './components/EvidenceDrawer';
 import { OnboardingModal } from './components/OnboardingModal';
 import { GuidedTourModal } from './components/GuidedTourModal';
+import { GoogleLoginModal } from './components/GoogleLoginModal';
 import { AuraHologramAssistant } from './components/AuraHologramAssistant';
 import { AgentSwarmConsole } from './components/AgentSwarmConsole';
 import { TaskSculptor } from './components/TaskSculptor';
@@ -57,11 +58,16 @@ export const App: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [googleUser, setGoogleUser] = useState<{ email: string; displayName: string; avatar?: string } | null>(null);
+  const [isGoogleLoginOpen, setIsGoogleLoginOpen] = useState<boolean>(false);
 
   const i18n = getTranslations(currentLanguage);
 
-  const handleGoogleSignIn = async (): Promise<void> => {
-    const session = await firebaseAuth.signInWithGoogle();
+  const handleGoogleSignIn = (): void => {
+    setIsGoogleLoginOpen(true);
+  };
+
+  const handlePerformGoogleLogin = async (email: string, displayName: string): Promise<void> => {
+    const session = await firebaseAuth.signInWithGoogle(email, displayName);
     setGoogleUser({
       email: session.email,
       displayName: session.displayName,
@@ -294,6 +300,11 @@ export const App: React.FC = () => {
           isOpen={isOnboardingOpen}
           onClose={() => setIsOnboardingOpen(false)}
           onSubmit={handleOnboardSubmit}
+        />
+        <GoogleLoginModal
+          isOpen={isGoogleLoginOpen}
+          onClose={() => setIsGoogleLoginOpen(false)}
+          onLogin={handlePerformGoogleLogin}
         />
         <GuidedTourModal
           isOpen={isTourOpen}

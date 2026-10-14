@@ -188,18 +188,18 @@ FuturaSculptAI enforces non-negotiable **100.0% test coverage gates** on both ba
 
 ```
 FuturaSculptAI/
-├── apps/api/tests/                     # Backend Test Suite (109 Tests, 100.0% Cov)
+├── apps/api/tests/                     # Backend Test Suite (111 Tests, 100.0% Cov)
 │   ├── unit/                           # Isolated deterministic logic & security boundaries (23 tests)
 │   │   ├── test_scoring.py             # RRI, TRS, WAI, HOS deterministic algorithms
 │   │   ├── test_rbac_and_auth.py       # RBAC roles, tenant isolation & JWT claims
 │   │   ├── test_logging_and_exceptions.py # Custom error hierarchies & structured logs
 │   │   └── test_security_redlines.py   # k>=10 differential privacy & anti-layoff guards
-│   ├── integration/                    # Subsystem integration, routers & adapters (84 tests)
+│   ├── integration/                    # Subsystem integration, routers & adapters (86 tests)
 │   │   ├── test_vertex_and_orchestrator.py # Real Gemini model routing & prompt engine
 │   │   ├── test_agents.py              # ADK 9-specialist swarm parallel execution
 │   │   ├── test_temporal_workgraph.py  # Temporal GraphEngine & NetworkX blast radius
 │   │   ├── test_workgraph.py           # WorkGraph state persistence & serialization
-│   │   ├── test_scenarios.py           # 4 canonical scenario classes & sensitivity sweeps
+│   │   ├── test_scenarios.py           # 4 canonical scenario classes, roadmap & sweeps
 │   │   ├── test_tasks.py               # 6-part transformation taxonomy & A2 sign-off gate
 │   │   ├── test_opportunity.py         # Opportunity matrix & career mobility recommendations
 │   │   ├── test_governance.py          # TrustBoard SAIF matrix & Investor Lens valuation
@@ -211,19 +211,21 @@ FuturaSculptAI/
 │   └── evals/                          # Google ADK agent trajectory evaluations (1 golden suite)
 │       └── test_adk_agent_eval.py      # Groundedness (>=95%), tool calling recall & jailbreak defense
 │
-└── apps/web/src/tests/                 # Frontend Test Suite (26 Files, 192 Tests, 100.0% Cov)
-    ├── unit/                           # Presentation components & utilities (10 files, 44 tests)
+└── apps/web/src/tests/                 # Frontend Test Suite (27 Files, 205 Tests, 100.0% Cov)
+    ├── unit/                           # Presentation components & utilities (11 files, 54 tests)
+    │   ├── GoogleLoginModal.test.tsx   # Real Gmail authentication modal & OAuth triggers
     │   ├── AboutFuturaSculpt.test.tsx, ErrorBoundary.test.tsx, FAQHelp.test.tsx
     │   ├── GuidedTourModal.test.tsx, Header.test.tsx, SettingsStudio.test.tsx
     │   ├── TrustScoreCard.test.tsx, ScenarioCard.test.tsx, logger.test.ts, i18n.test.ts
-    ├── integration/                    # Interactive studios, workbenches & adapters (12 files, 123 tests)
+    │   ├── MultiModalMediaStudio.test.tsx, OnboardingModal.test.tsx, CitizenOverview.test.tsx
+    ├── integration/                    # Interactive studios, workbenches & adapters (12 files, 132 tests)
+    │   ├── TransformationRoadmapStudio.test.tsx # Live Vertex AI Gemini roadmap & Multimodal mesh
     │   ├── api.test.ts, firebase.test.ts, EvidenceDrawer.test.tsx, WorkGraphView.test.tsx
     │   ├── TaskSculptor.test.tsx, OpportunityEngine.test.tsx, AgentSwarmConsole.test.tsx
-    │   ├── TransformationRoadmapStudio.test.tsx, TrustBoardWorkbench.test.tsx
-    │   ├── MultiModalMediaStudio.test.tsx, OnboardingModal.test.tsx, CitizenOverview.test.tsx
+    │   └── TrustBoardWorkbench.test.tsx
     └── e2e/                            # End-to-end user journeys & interactive workflows (4 files, 19 tests)
         ├── App.test.tsx                # Full app mount, tab routing & IAM persona switch
-        ├── AppShell.test.tsx           # Executive shell & responsive collapsible layout
+        ├── AppShell.test.tsx           # Executive shell, uniform 36px topbar & Gmail auth trigger
         ├── AuraHologramAssistant.test.tsx # Voice recognition, holographic beacon & persona AI
         └── e2e_journey.test.tsx        # Complete 8-step Citizen Sanctuary to Enterprise Cockpit journey
 ```
@@ -245,8 +247,8 @@ poetry run bandit -r app                   # AST security vulnerability audit (0
 
 # Frontend Test Suites
 cd ../web
-npm run test:unit                          # Run unit suite (10 files, 44 tests)
-npm run test:integration                   # Run integration suite (12 files, 123 tests)
+npm run test:unit                          # Run unit suite (11 files, 54 tests)
+npm run test:integration                   # Run integration suite (12 files, 132 tests)
 npm run test:e2e                           # Run E2E journey suite (4 files, 19 tests)
 npm run test:coverage                      # Run full suite with 100% v8 coverage gate
 npm run build                              # Production TypeScript & Vite bundle build
@@ -256,8 +258,8 @@ npm run build                              # Production TypeScript & Vite bundle
 
 | Quality Metric | Required Gate | Verified Result | Verification Command |
 |---|:---:|:---:|---|
-| **Backend Test Coverage** | **100.0%** Stmts & Branch | :white_check_mark: **100.0%** (2,220/2,220 stmts, 109/109 tests) | `pytest --cov=app --cov-fail-under=100` |
-| **Frontend Test Coverage** | **100.0%** Stmts, Branch, Func | :white_check_mark: **100.0%** (192/192 tests across 26 files) | `npm run test:coverage` |
+| **Backend Test Coverage** | **100.0%** Stmts & Branch | :white_check_mark: **100.0%** (2,297/2,297 stmts, 111/111 tests) | `pytest --cov=app --cov-fail-under=100` |
+| **Frontend Test Coverage** | **100.0%** Stmts, Branch, Func | :white_check_mark: **100.0%** (205/205 tests across 27 files) | `npm run test:coverage` |
 | **Python Code Quality** | **0 Warnings** | :white_check_mark: **Clean (0 Warnings)** | `ruff check app tests` |
 | **AST Security Scan** | **0 Issues** | :white_check_mark: **Clean (0 High/Med/Low)** | `bandit -r app` |
 | **Secret Scan** | **0 Committed Secrets** | :white_check_mark: **Clean** | `./scripts/security_scan.ps1` |
@@ -303,6 +305,7 @@ terraform apply tfplan
 
 ## 🏆 Hackathon Submission Deliverables
 
+- 📑 **Official 60-Slide Presentation Deck:** [docs/submission/FuturaSculptAI_Google_Cloud_APAC_AI_Builder_Cup_2026_Submission_Deck.pptx](docs/submission/FuturaSculptAI_Google_Cloud_APAC_AI_Builder_Cup_2026_Submission_Deck.pptx) *(Comprehensive 60-slide architecture, live demo, FinOps, SAIF, and workforce transformation pitch deck prepared for the Google Cloud APAC AI Builder Cup)*
 - 📹 **Demo Video Script (3 Minutes):** [docs/hackathon/demo-script.md](docs/hackathon/demo-script.md)
 - 📊 **Rubric Alignment Matrix (100/100):** [docs/hackathon/judging-criteria-mapping.md](docs/hackathon/judging-criteria-mapping.md)
 - 💰 **FinOps Architecture & Cost Model:** [docs/hackathon/cost-model.md](docs/hackathon/cost-model.md)

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { TranslationKeys } from '../i18n';
+import { api } from '../services/api';
 
 export interface TransformationRoadmapStudioProps {
   i18n: TranslationKeys;
@@ -621,6 +622,37 @@ export const TransformationRoadmapStudio: React.FC<TransformationRoadmapStudioPr
 
       setRoadmap(generated);
       setIsGenerating(false);
+
+      void api
+        .generateTransformationRoadmap({
+          firm_name: detectedDomain,
+          scenario_prompt: source,
+          sector: sector || 'healthcare',
+          target_horizon_years: 10,
+        })
+        .then((apiRes) => {
+          if (apiRes && apiRes.horizons) {
+            setRoadmap({
+              ...generated,
+              firmTitle: apiRes.firm_title || detectedDomain,
+              category: apiRes.category || category,
+              executiveSummary: apiRes.executive_summary || generated.executiveSummary,
+              societalImpactNarrative: apiRes.societal_impact_narrative || generated.societalImpactNarrative,
+              evidenceCitations:
+                apiRes.evidence_citations && apiRes.evidence_citations.length > 0
+                  ? apiRes.evidence_citations
+                  : citations,
+              productivityVerdict: apiRes.productivity_verdict || generated.productivityVerdict,
+              horizons: {
+                ...generated.horizons,
+                ...apiRes.horizons,
+              },
+            });
+          }
+        })
+        .catch(() => {
+          // Resilient fallback to local generated model
+        });
     };
 
     if (simulationDelayMs === 0) {
