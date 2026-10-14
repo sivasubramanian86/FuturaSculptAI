@@ -305,7 +305,7 @@ terraform apply tfplan
 
 ## 🏆 Hackathon Submission Deliverables
 
-- 📑 **Official 60-Slide Presentation Deck:** [docs/submission/FuturaSculptAI_Google_Cloud_APAC_AI_Builder_Cup_2026_Submission_Deck.pptx](docs/submission/FuturaSculptAI_Google_Cloud_APAC_AI_Builder_Cup_2026_Submission_Deck.pptx) *(Comprehensive 60-slide architecture, live demo, FinOps, SAIF, and workforce transformation pitch deck prepared for the Google Cloud APAC AI Builder Cup)*
+- 📑 **Official 60-Slide Presentation Deck:** Prepared for submission review adhering strictly to the official *Google Cloud APAC AI Builder Cup* 16:9 template *(60-slide architecture, live demo, FinOps, SAIF, and workforce transformation pitch deck)*
 - 📹 **Demo Video Script (3 Minutes):** [docs/hackathon/demo-script.md](docs/hackathon/demo-script.md)
 - 📊 **Rubric Alignment Matrix (100/100):** [docs/hackathon/judging-criteria-mapping.md](docs/hackathon/judging-criteria-mapping.md)
 - 💰 **FinOps Architecture & Cost Model:** [docs/hackathon/cost-model.md](docs/hackathon/cost-model.md)

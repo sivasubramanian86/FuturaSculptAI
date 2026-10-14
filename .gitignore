@@ -79,3 +79,12 @@ phase-*.md
 *devpost*
 .firebase/
 futurasculptai.md
+
+# Submission Decks, Deck Assets & Generator Scripts
+docs/submission/
+docs/assets/screenshots/
+scripts/*deck*
+scripts/*template*
+scripts/*cybernauts*
+scripts/*screenshot*
+*.pptx
