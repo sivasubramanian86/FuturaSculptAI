@@ -4,7 +4,7 @@
 [![Python: 3.12+](https://img.shields.io/badge/Python-3.12+-3776AB?logo=python&logoColor=white)](apps/api)
 [![TypeScript: 5.6](https://img.shields.io/badge/TypeScript-5.6-3178C6?logo=typescript&logoColor=white)](apps/web)
 [![React: 18](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)](apps/web)
-[![Google Cloud: Vertex AI](https://img.shields.io/badge/Google%20Cloud-Vertex%20AI%20Gemini%202.5-4285F4?logo=googlecloud&logoColor=white)](https://cloud.google.com/vertex-ai)
+[![Google Cloud: Vertex AI](https://img.shields.io/badge/Google%20Cloud-Vertex%20AI%20Gemini%203.8%20%26%20Argon-4285F4?logo=googlecloud&logoColor=white)](https://cloud.google.com/vertex-ai)
 [![Google Cloud: Cloud Run](https://img.shields.io/badge/Google%20Cloud-Cloud%20Run%20v2-4285F4?logo=googlecloud&logoColor=white)](https://cloud.google.com/run)
 [![Terraform: IaC](https://img.shields.io/badge/IaC-Terraform%201.5+-844FBA?logo=terraform&logoColor=white)](deploy/terraform)
 [![Docker: Multi--Stage](https://img.shields.io/badge/Docker-Multi--Stage%20Compose-2496ED?logo=docker&logoColor=white)](docker-compose.yml)
@@ -68,10 +68,10 @@ docker compose up --build
 - Interactive What-If sensitivity sliders stress-test adoption velocity, wage inflation, automation aggression, and capital variances against automated invalidation triggers.
 
 ### 4. Google ADK Multi-Agent Specialist Swarm (Module 4)
-- Supervisory orchestrator (`EngagementOrchestrator`) coordinating 9 parallel specialist sub-agents:
+- Supervisory orchestrator (`EngagementOrchestrator`) coordinating 9 parallel specialist sub-agents powered by **Gemini 3.8 Flash**, **Gemini 3.8 Pro**, and **Gemini 4 Argon preview** (with automated fallback for Gemini 2.5 Jan 2027 sunset):
   * Task Decomposer, Task Redesign, WorkGraph Architect, Skills Mobility, Skill Gap Analyst, Business Solution, FinOps Evaluator, Future Signals, and Governance Critic.
-- Strict **Autonomy Tiers (A0-A4)**: A0 (autonomous read-only), A1 (recommendation), A2 (preparation with approval gate), A3 (reversible action), and A4 (consequential adverse employment actions strictly disallowed).
-- Golden trajectory evaluation suite validating tool calling sequences, groundedness adherence, and prompt injection defense.
+- Strict **Autonomy Tiers (A0-A4)** & **Multi-Turn Actuator Safety Protocol**: Idempotency keys, rollback snapshot ledger, and A2 Human-in-the-Loop Sign-Off Gates for T3/T4 risk tiers.
+- **Enterprise 4-Tier Memory Bank**: L1 Working, L2 Episodic, L3 Semantic, and L4 Procedural memory partitions with cryptographic integrity verification.
 
 ### 5. Task Sculptor & Workforce Opportunity Forge (Module 5)
 - Classifies operations via a 6-part transformation taxonomy: *Automated*, *Accelerated*, *Augmented*, *Orchestrated*, *Shielded*, and *Incubated*.
@@ -81,6 +81,7 @@ docker compose up --build
 ### 6. Governance TrustBoard, SAIF Matrix & Investor Lens (Module 6)
 - **Google Well-Architected 8-Pillar Scorecard:** Security & SAIF, Ops, Reliability, Performance, FinOps, Sustainability, Responsible AI, and Evidence Quality (`94.3 / 100`).
 - **Google SAIF 6-Domain Matrix:** Continuous verification across Expand Ecosystem, Safeguard Architecture, Adapt Defenses, Automate Security, Coordinate Incident Response, and Sanitize Context.
+- **Four-Tier Drift Governance:** Real-time prevention of Model Drift (Pydantic v2), Prompt Drift (Golden 20 CI), Agent Drift (bounded loop breaker), and Context Drift (EvidenceEnvelope pinning).
 - **Investor Lens Self-Service Workbench:** Dynamic valuation model demonstrating **$1,250,000.00 annualized EBITDA unlock**, 6.25x Net ROI multiple, 1.9-month payback period, and SHA-256 cryptographically sealed **Diligence Evidence Packs (`DIL-...`)**.
 
 ---
@@ -98,7 +99,9 @@ graph TB
 
     subgraph API["Application & Domain Layer (FastAPI 0.115+)"]
         Gate["API Gateway & Tenant Boundary (X-Tenant-ID)"]
-        Guard["Responsible AI Red-Line Interceptor & Privacy Masker"]
+        Guard["Model Armor Ingress Sanitizer & Red-Line Interceptor"]
+        Actuator["Multi-Turn Actuator Guard (5 Gates, Rollback)"]
+        MemBank["Enterprise 4-Tier Memory Bank (L1-L4, SHA-256)"]
         WG["Temporal WorkGraph Engine (NetworkX)"]
         Score["Deterministic Scoring Engine (RRI, TRS, WAI, HOS)"]
         Evid["Multimodal Evidence Verifier (SHA-256)"]
@@ -106,9 +109,10 @@ graph TB
     end
 
     subgraph AI["Intelligence & Agent Mesh (Google Cloud)"]
-        Vertex["Vertex AI Dynamic Model Gateway<br/>(Gemini 2.5 Flash / Pro / Thinking)"]
+        Vertex["Vertex AI Dynamic Model Gateway<br/>(Gemini 3.8 Flash / Pro & Gemini 4 Argon)"]
         ADK["Google Agent Development Kit (ADK)<br/>9 Specialist Sub-Agents (A0-A4 Autonomy)"]
-        Cache["Vertex Context Caching (L0-L4, 75% Discount)"]
+        Cache["Vertex Context Caching (L0-L4, 75%-88% Discount)"]
+        Drift["Four-Tier Drift Governance<br/>(Model, Prompt, Agent, Context)"]
     end
 
     subgraph Data["Persistence & Security (Google Cloud)"]
@@ -125,8 +129,11 @@ graph TB
     Guard --> Evid
     Guard --> Gov
     WG <--> ADK
+    ADK <--> Actuator
+    ADK <--> MemBank
     ADK <--> Vertex
     Vertex <--> Cache
+    Vertex <--> Drift
     Evid --> DLP
     Evid --> GCS
     Score --> BQ

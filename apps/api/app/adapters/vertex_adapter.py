@@ -18,35 +18,48 @@ T = TypeVar("T", bound=BaseModel)
 class ModelTier(str, Enum):
     """Google Gemini Model Tiers for Work Transformation Mesh."""
 
-    WORKHORSE = "workhorse"  # gemini-2.5-flash / gemini-3-flash: Real-time Q&A, triage, voice
-    DEEP_REASONING = "deep_reasoning"  # gemini-2.5-pro / gemini-3.1-pro: Multi-horizon synthesis, counterfactuals
-    HIGH_VOLUME_UTILITY = "high_volume_utility"  # gemini-2.5-flash-lite / gemini-3.1-flash-lite: Routing, summarization
+    WORKHORSE = "workhorse"  # gemini-3.8-flash-001 / gemini-3.5-flash: Real-time Q&A, triage, voice
+    DEEP_REASONING = "deep_reasoning"  # gemini-3.8-pro-001 / gemini-3.5-pro: Multi-horizon synthesis, counterfactuals
+    HIGH_VOLUME_UTILITY = "high_volume_utility"  # gemini-3.8-flash-lite: Routing, summarization
+    FRONTIER_WORKSPACE = "frontier_workspace"  # gemini-4-argon-preview: Next-gen autonomous workspace synthesis
 
 
 MODEL_REGISTRY: Dict[ModelTier, Dict[str, Any]] = {
     ModelTier.WORKHORSE: {
-        "primary": "gemini-2.5-flash",
-        "alias": "gemini-3-flash",
+        "primary": "gemini-3.8-flash-001",
+        "alias": "gemini-3.5-flash",
+        "legacy_fallback": "gemini-2.5-flash",
         "latency_tier": "ultra_low",
         "cost_per_1k_input": 0.000075,
         "cost_per_1k_output": 0.0003,
         "use_case": "Real-time Q&A, voice synthesis scripts, low-latency triage",
     },
     ModelTier.DEEP_REASONING: {
-        "primary": "gemini-2.5-pro",
-        "alias": "gemini-3.1-pro",
+        "primary": "gemini-3.8-pro-001",
+        "alias": "gemini-3.5-pro",
+        "legacy_fallback": "gemini-2.5-pro",
         "latency_tier": "standard",
         "cost_per_1k_input": 0.00125,
         "cost_per_1k_output": 0.005,
         "use_case": "Complex multi-hop synthesis, cross-document comparison, legal/financial analysis",
     },
     ModelTier.HIGH_VOLUME_UTILITY: {
-        "primary": "gemini-2.5-flash-lite",
+        "primary": "gemini-3.8-flash-lite",
         "alias": "gemini-3.1-flash-lite",
+        "legacy_fallback": "gemini-2.5-flash-lite",
         "latency_tier": "fastest",
         "cost_per_1k_input": 0.0000375,
         "cost_per_1k_output": 0.00015,
         "use_case": "Pre-retrieval routing, query reformulation, hyDE, and chunk summaries",
+    },
+    ModelTier.FRONTIER_WORKSPACE: {
+        "primary": "gemini-4-argon-preview",
+        "alias": "gemini-4-workspace",
+        "legacy_fallback": "gemini-3.8-pro-001",
+        "latency_tier": "frontier",
+        "cost_per_1k_input": 0.00200,
+        "cost_per_1k_output": 0.008,
+        "use_case": "Frontier enterprise agent mesh, multi-turn workspace actuation, zero-shot tool mastery",
     },
 }
 
@@ -116,7 +129,7 @@ class VertexAIAdapter:
             tier_or_name: ModelTier enum, string identifier, or None.
 
         Returns:
-            str: Resolved model name (e.g. gemini-2.5-flash or gemini-2.5-pro).
+            str: Resolved model name (e.g. gemini-3.8-flash-001 or gemini-3.8-pro-001).
         """
         if not tier_or_name:
             return settings.model_workhorse
@@ -125,13 +138,22 @@ class VertexAIAdapter:
         for tier, meta in MODEL_REGISTRY.items():
             if tier_str == tier.value or tier_or_name in (meta["primary"], meta["alias"]):
                 return meta["primary"]
+            if tier_or_name == meta.get("legacy_fallback"):
+                logger.info(
+                    "Deprecation Notice: %s scheduled for EOL by Jan 2027. Auto-migrating to %s",
+                    tier_or_name,
+                    meta["primary"],
+                )
+                return meta["primary"]
 
         return tier_or_name
 
     def calculate_cost(self, model_name: str, input_tokens: int, output_tokens: int, cached: bool = False) -> float:
         """Calculate estimated USD inference cost given model tier and cache status."""
         tier = ModelTier.WORKHORSE
-        if "pro" in model_name:
+        if "argon" in model_name or "workspace" in model_name:
+            tier = ModelTier.FRONTIER_WORKSPACE
+        elif "pro" in model_name:
             tier = ModelTier.DEEP_REASONING
         elif "lite" in model_name:
             tier = ModelTier.HIGH_VOLUME_UTILITY

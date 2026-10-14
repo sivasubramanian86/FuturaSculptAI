@@ -27,12 +27,13 @@ class Settings(BaseSettings):
         "https://genai-apac-2026-491004.web.app",
     ]
 
-    # Vertex AI / Model Gateway
-    default_model_fast: str = "gemini-2.5-flash"
-    default_model_pro: str = "gemini-2.5-pro"
-    model_workhorse: str = "gemini-2.5-flash"
-    model_deep_reasoning: str = "gemini-2.5-pro"
-    model_high_volume_utility: str = "gemini-2.5-flash-lite"
+    # Vertex AI / Model Gateway (Targeting 3.8 Generation with 4-Argon preview and Jan 2027 EOL auto-migration)
+    default_model_fast: str = "gemini-3.8-flash-001"
+    default_model_pro: str = "gemini-3.8-pro-001"
+    model_workhorse: str = "gemini-3.8-flash-001"
+    model_deep_reasoning: str = "gemini-3.8-pro-001"
+    model_high_volume_utility: str = "gemini-3.8-flash-lite"
+    model_frontier_workspace: str = "gemini-4-argon-preview"
     vertex_context_cache_enabled: bool = True
     mock_llm_mode: bool = True  # Allows offline testing with local adapters
 

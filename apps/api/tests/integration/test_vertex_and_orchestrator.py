@@ -27,7 +27,7 @@ class DummySchema(BaseModel):
 
 def test_model_registry_and_tiers():
     """Verify all model tiers are registered with expected attributes."""
-    for tier in [ModelTier.WORKHORSE, ModelTier.DEEP_REASONING, ModelTier.HIGH_VOLUME_UTILITY]:
+    for tier in [ModelTier.WORKHORSE, ModelTier.DEEP_REASONING, ModelTier.HIGH_VOLUME_UTILITY, ModelTier.FRONTIER_WORKSPACE]:
         assert tier in MODEL_REGISTRY
         meta = MODEL_REGISTRY[tier]
         assert "primary" in meta
@@ -57,11 +57,13 @@ def test_resolve_model_name():
     """Verify model resolution for aliases, tiers, and raw identifiers."""
     adapter = VertexAIAdapter()
 
-    assert adapter.resolve_model_name(None) == "gemini-2.5-flash"
-    assert adapter.resolve_model_name("workhorse") == "gemini-2.5-flash"
-    assert adapter.resolve_model_name("deep_reasoning") == "gemini-2.5-pro"
-    assert adapter.resolve_model_name("high_volume_utility") == "gemini-2.5-flash-lite"
-    assert adapter.resolve_model_name("gemini-3-flash") == "gemini-2.5-flash"
+    assert adapter.resolve_model_name(None) == "gemini-3.8-flash-001"
+    assert adapter.resolve_model_name("workhorse") == "gemini-3.8-flash-001"
+    assert adapter.resolve_model_name("deep_reasoning") == "gemini-3.8-pro-001"
+    assert adapter.resolve_model_name("high_volume_utility") == "gemini-3.8-flash-lite"
+    assert adapter.resolve_model_name("frontier_workspace") == "gemini-4-argon-preview"
+    assert adapter.resolve_model_name("gemini-3.5-flash") == "gemini-3.8-flash-001"
+    assert adapter.resolve_model_name("gemini-2.5-flash") == "gemini-3.8-flash-001"  # auto-migrates from Jan 2027 EOL model
     assert adapter.resolve_model_name("custom-model-id") == "custom-model-id"
 
 
@@ -70,19 +72,23 @@ def test_calculate_cost():
     adapter = VertexAIAdapter()
 
     # Flash / workhorse
-    cost1 = adapter.calculate_cost("gemini-2.5-flash", 1000, 100, cached=False)
+    cost1 = adapter.calculate_cost("gemini-3.8-flash-001", 1000, 100, cached=False)
     assert cost1 > 0
 
     # Pro / deep reasoning
-    cost_pro = adapter.calculate_cost("gemini-2.5-pro", 1000, 100, cached=False)
+    cost_pro = adapter.calculate_cost("gemini-3.8-pro-001", 1000, 100, cached=False)
     assert cost_pro > cost1
 
+    # Frontier / Argon workspace
+    cost_argon = adapter.calculate_cost("gemini-4-argon-preview", 1000, 100, cached=False)
+    assert cost_argon > cost_pro
+
     # Lite / high volume utility
-    cost_lite = adapter.calculate_cost("gemini-2.5-flash-lite", 1000, 100, cached=False)
+    cost_lite = adapter.calculate_cost("gemini-3.8-flash-lite", 1000, 100, cached=False)
     assert cost_lite < cost1
 
     # Cached discount
-    cost_cached = adapter.calculate_cost("gemini-2.5-flash", 1000, 100, cached=True)
+    cost_cached = adapter.calculate_cost("gemini-3.8-flash-001", 1000, 100, cached=True)
     assert cost_cached < cost1
 
 
@@ -93,8 +99,8 @@ async def test_generate_text_mock_mode():
     adapter.mock_mode = True
 
     # Without corpus
-    res1 = await adapter.generate_text("Test prompt", model_name="gemini-2.5-flash")
-    assert res1["model_used"] == "gemini-2.5-flash"
+    res1 = await adapter.generate_text("Test prompt", model_name="gemini-3.8-flash-001")
+    assert res1["model_used"] == "gemini-3.8-flash-001"
     assert not res1["cached_hit"]
 
     # With corpus
@@ -103,7 +109,7 @@ async def test_generate_text_mock_mode():
         model_tier=ModelTier.DEEP_REASONING,
         context_corpus="Company HR Policy 2026",
     )
-    assert res2["model_used"] == "gemini-2.5-pro"
+    assert res2["model_used"] == "gemini-3.8-pro-001"
     assert "cache_id" in res2
 
 

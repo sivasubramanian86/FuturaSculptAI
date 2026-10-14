@@ -83,6 +83,7 @@ futurasculptai.md
 # Submission Decks, Deck Assets & Generator Scripts
 docs/submission/
 docs/assets/screenshots/
+docs/assets/optimized_images/
 scripts/*deck*
 scripts/*template*
 scripts/*cybernauts*
