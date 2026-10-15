@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { LanguageCode } from '../i18n';
+import { api } from '../services/api';
 
 interface AuraHologramAssistantProps {
   currentLanguage: LanguageCode;
@@ -13,6 +14,10 @@ interface ChatMessage {
   text: string;
   category?: string;
   audioPrompt?: string;
+  modelUsed?: string;
+  reasoningTrace?: string;
+  latencyMs?: number;
+  voicePersona?: string;
 }
 
 interface Particle3D {
@@ -49,6 +54,11 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
   const [inputText, setInputText] = useState<string>('');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [selectedModel, setSelectedModel] = useState<
+    'models/gemini-3.8-live' | 'models/gemini-3.8-live-extended-thinking'
+  >('models/gemini-3.8-live');
+  const [reasoningBudget, setReasoningBudget] = useState<number>(2048);
+  const [isLoadingLive, setIsLoadingLive] = useState<boolean>(false);
   const [selectedVoicePersona, setSelectedVoicePersona] = useState<'kore' | 'aoede'>('kore');
   const [availableVoices, setAvailableVoices] = useState<any[]>([]);
 
@@ -367,7 +377,7 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
     return '🛡️ FuturaSculptAI Workforce Sanctuary: We transform work ethically through task augmentation rather than replacement. Every worker gets zero layoff guarantees, transparent human-in-the-loop sign-offs, and 100% auditable evidence.';
   };
 
-  const handleSendMessage = (textToSend?: string) => {
+  const handleSendMessage = async (textToSend?: string) => {
     const text = (textToSend || inputText).trim();
     if (!text) return;
 
@@ -377,16 +387,49 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
       text,
     };
 
-    const replyText = generateAuraResponse(text);
-    const auraMsg: ChatMessage = {
-      id: `aura-${Date.now() + 1}`,
-      sender: 'aura',
-      text: replyText,
-    };
-
-    setMessages((prev) => [...prev, userMsg, auraMsg]);
+    setMessages((prev) => [...prev, userMsg]);
     setInputText('');
-    speakText(replyText);
+    setIsLoadingLive(true);
+
+    try {
+      const liveRes = await api.geminiLiveDialogue({
+        message: text,
+        model: selectedModel,
+        voice_persona: selectedVoicePersona,
+        reasoning_budget:
+          selectedModel === 'models/gemini-3.8-live-extended-thinking'
+            ? reasoningBudget
+            : undefined,
+        language: currentLanguage,
+      });
+
+      const auraMsg: ChatMessage = {
+        id: `aura-${Date.now() + 1}`,
+        sender: 'aura',
+        text: liveRes.response_text,
+        modelUsed: liveRes.model_used,
+        reasoningTrace: liveRes.reasoning_trace,
+        latencyMs: liveRes.latency_ms,
+        voicePersona: liveRes.voice_persona,
+      };
+
+      setMessages((prev) => [...prev, auraMsg]);
+      speakText(liveRes.response_text);
+    } catch {
+      // Offline / fallback response
+      const replyText = generateAuraResponse(text);
+      const auraMsg: ChatMessage = {
+        id: `aura-${Date.now() + 1}`,
+        sender: 'aura',
+        text: replyText,
+        modelUsed: selectedModel,
+        voicePersona: selectedVoicePersona,
+      };
+      setMessages((prev) => [...prev, auraMsg]);
+      speakText(replyText);
+    } finally {
+      setIsLoadingLive(false);
+    }
   };
 
   const QUICK_PROMPTS = [
@@ -544,6 +587,107 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
                   ✕
                 </button>
               </div>
+            </div>
+
+            {/* Gemini Live Model Switcher & Reasoning Budget Control Bar */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '8px 24px',
+                background: 'rgba(15, 23, 42, 0.7)',
+                borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                flexWrap: 'wrap',
+                gap: '8px',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 600 }}>Gemini Live Model:</span>
+                <button
+                  type="button"
+                  onClick={() => setSelectedModel('models/gemini-3.8-live')}
+                  style={{
+                    padding: '4px 10px',
+                    borderRadius: '8px',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    border: '1px solid',
+                    borderColor:
+                      selectedModel === 'models/gemini-3.8-live'
+                        ? '#38bdf8'
+                        : 'rgba(255, 255, 255, 0.15)',
+                    background:
+                      selectedModel === 'models/gemini-3.8-live'
+                        ? 'rgba(56, 189, 248, 0.2)'
+                        : 'rgba(255, 255, 255, 0.04)',
+                    color: selectedModel === 'models/gemini-3.8-live' ? '#38bdf8' : '#cbd5e1',
+                    transition: 'all 0.2s ease',
+                  }}
+                  title="General-purpose Gemini Live model"
+                >
+                  ⚡ models/gemini-3.8-live
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedModel('models/gemini-3.8-live-extended-thinking')}
+                  style={{
+                    padding: '4px 10px',
+                    borderRadius: '8px',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    border: '1px solid',
+                    borderColor:
+                      selectedModel === 'models/gemini-3.8-live-extended-thinking'
+                        ? '#c084fc'
+                        : 'rgba(255, 255, 255, 0.15)',
+                    background:
+                      selectedModel === 'models/gemini-3.8-live-extended-thinking'
+                        ? 'rgba(192, 132, 252, 0.2)'
+                        : 'rgba(255, 255, 255, 0.04)',
+                    color:
+                      selectedModel === 'models/gemini-3.8-live-extended-thinking'
+                        ? '#c084fc'
+                        : '#cbd5e1',
+                    transition: 'all 0.2s ease',
+                  }}
+                  title="Gemini Live model with adjustable reasoning budget"
+                >
+                  🧠 models/gemini-3.8-live-extended-thinking
+                </button>
+              </div>
+
+              {selectedModel === 'models/gemini-3.8-live-extended-thinking' && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ fontSize: '11px', color: '#c084fc', fontWeight: 600 }}>Reasoning Budget:</span>
+                  {[1024, 2048, 4096].map((budget) => (
+                    <button
+                      key={budget}
+                      type="button"
+                      onClick={() => setReasoningBudget(budget)}
+                      style={{
+                        padding: '2px 8px',
+                        borderRadius: '6px',
+                        fontSize: '10px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        border: '1px solid',
+                        borderColor:
+                          reasoningBudget === budget ? '#c084fc' : 'rgba(255, 255, 255, 0.15)',
+                        background:
+                          reasoningBudget === budget
+                            ? 'rgba(192, 132, 252, 0.25)'
+                            : 'rgba(255, 255, 255, 0.04)',
+                        color: reasoningBudget === budget ? '#f3e8ff' : '#94a3b8',
+                      }}
+                    >
+                      {budget} tokens
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Main Stage: Left 3D Hologram + Right Chat & Prompts */}
@@ -774,7 +918,66 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
                       boxShadow: '0 4px 16px rgba(0, 0, 0, 0.3)',
                     }}
                   >
+                    {m.sender === 'aura' && (
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          marginBottom: '6px',
+                          fontSize: '10px',
+                          color: '#38bdf8',
+                          flexWrap: 'wrap',
+                        }}
+                      >
+                        <span style={{ fontWeight: 700 }}>
+                          {m.modelUsed || selectedModel}
+                        </span>
+                        {m.latencyMs && (
+                          <span style={{ color: '#94a3b8' }}>• {m.latencyMs}ms</span>
+                        )}
+                        {m.voicePersona && (
+                          <span style={{ color: '#f472b6' }}>• {m.voicePersona} female voice</span>
+                        )}
+                      </div>
+                    )}
                     <div>{m.text}</div>
+                    {m.reasoningTrace && (
+                      <details
+                        style={{
+                          marginTop: '8px',
+                          padding: '6px 10px',
+                          background: 'rgba(99, 102, 241, 0.12)',
+                          borderRadius: '8px',
+                          border: '1px solid rgba(99, 102, 241, 0.25)',
+                        }}
+                      >
+                        <summary
+                          style={{
+                            cursor: 'pointer',
+                            fontSize: '11px',
+                            fontWeight: 600,
+                            color: '#a5b4fc',
+                            outline: 'none',
+                          }}
+                        >
+                          🧠 Cognitive Reasoning Trace (Extended Thinking)
+                        </summary>
+                        <pre
+                          style={{
+                            marginTop: '6px',
+                            fontSize: '11px',
+                            whiteSpace: 'pre-wrap',
+                            color: '#cbd5e1',
+                            fontFamily: 'monospace',
+                            maxHeight: '140px',
+                            overflowY: 'auto',
+                          }}
+                        >
+                          {m.reasoningTrace}
+                        </pre>
+                      </details>
+                    )}
                     {m.sender === 'aura' && (
                       <div style={{ display: 'flex', gap: '8px', marginTop: '8px', flexWrap: 'wrap' }}>
                         <button
@@ -805,6 +1008,25 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
                     )}
                   </div>
                 ))}
+                {isLoadingLive && (
+                  <div
+                    style={{
+                      alignSelf: 'flex-start',
+                      padding: '10px 14px',
+                      borderRadius: '20px 20px 20px 4px',
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      border: '1px solid rgba(56, 189, 248, 0.3)',
+                      color: '#38bdf8',
+                      fontSize: '12px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                    }}
+                  >
+                    <span style={{ animation: 'hologram-spin 2s linear infinite', display: 'inline-block' }}>🔮</span>
+                    <span>Gemini Live ({selectedModel.replace('models/', '')}) is thinking...</span>
+                  </div>
+                )}
                 <div ref={messagesEndRef} />
               </div>
             </div>

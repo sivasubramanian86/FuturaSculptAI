@@ -151,3 +151,30 @@ class SwarmRunResponse(BaseModel):
     synthesis: SwarmSynthesis
     started_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     completed_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class GeminiLiveDialogueRequest(BaseModel):
+    """Request payload for Gemini Live Audio LLM interactive dialogue."""
+
+    message: str = Field(min_length=1, max_length=4000)
+    model: str = Field(default="models/gemini-3.8-live")
+    voice_persona: str = Field(default="kore")  # "kore" | "aoede"
+    reasoning_budget: Optional[int] = Field(default=None, ge=0, le=8192)
+    language: str = Field(default="en")
+    context_topic: Optional[str] = None
+
+
+class GeminiLiveDialogueResponse(BaseModel):
+    """Response schema returned by Gemini Live Audio LLM."""
+
+    response_text: str
+    model_used: str
+    voice_persona: str
+    reasoning_trace: Optional[str] = None
+    audio_base64: Optional[str] = None
+    latency_ms: float
+    input_tokens: int
+    output_tokens: int
+    estimated_cost_usd: float
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+

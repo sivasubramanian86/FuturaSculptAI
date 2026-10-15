@@ -473,6 +473,35 @@ export class ApiClient {
     }
     return res.json();
   }
+
+  async geminiLiveDialogue(payload: {
+    message: string;
+    model?: string;
+    voice_persona?: string;
+    reasoning_budget?: number;
+    language?: string;
+    context_topic?: string;
+  }): Promise<{
+    response_text: string;
+    model_used: string;
+    voice_persona: string;
+    reasoning_trace?: string;
+    audio_base64?: string;
+    latency_ms: number;
+    input_tokens: number;
+    output_tokens: number;
+    estimated_cost_usd: number;
+  }> {
+    const res = await fetch(`${API_BASE}/agents/live-dialogue`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      throw new Error(`Failed to generate Gemini Live dialogue: ${res.statusText}`);
+    }
+    return res.json();
+  }
 }
 
 export const api = new ApiClient();

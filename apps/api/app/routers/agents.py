@@ -1,10 +1,16 @@
-"""Google ADK Multi-Agent Swarm API router."""
-
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException
 
+from app.adapters.pubsub_adapter import pubsub_adapter
+from app.adapters.vertex_adapter import vertex_adapter
 from app.agents import swarm_orchestrator
 from app.core.tenant import get_current_tenant_id
-from app.models.agent_swarm import SwarmRunRequest, SwarmRunResponse
+from app.models.agent_swarm import (
+    GeminiLiveDialogueRequest,
+    GeminiLiveDialogueResponse,
+    SwarmRunRequest,
+    SwarmRunResponse,
+)
 
 router = APIRouter(prefix="/api/v1/agents", tags=["Agents"])
 
@@ -44,3 +50,53 @@ def get_swarm_run(
     if not run or run.tenant_id != tenant_id:
         raise HTTPException(status_code=404, detail=f"Swarm run '{run_id}' not found for tenant.")
     return run
+
+
+@router.post("/live-dialogue", response_model=GeminiLiveDialogueResponse)
+async def live_audio_dialogue(
+    request: GeminiLiveDialogueRequest,
+    tenant_id: str = Depends(get_current_tenant_id),
+) -> GeminiLiveDialogueResponse:
+    """Generate conversational response using Gemini Live models.
+
+    Args:
+        request: Target message, Gemini Live model, and voice persona.
+        tenant_id: Scoped tenant identifier.
+
+    Returns:
+        GeminiLiveDialogueResponse: Live response text, model used, reasoning trace, tokens, cost.
+    """
+    res = await vertex_adapter.generate_live_dialogue(
+        prompt=request.message,
+        model=request.model,
+        voice_persona=request.voice_persona,
+        reasoning_budget=request.reasoning_budget,
+        language=request.language,
+        context_topic=request.context_topic,
+    )
+
+    pubsub_adapter.publish(
+        topic_name="futurasculpt-workforce-telemetry",
+        message={
+            "event_type": "GEMINI_LIVE_DIALOGUE",
+            "model_used": res["model_used"],
+            "voice_persona": res["voice_persona"],
+            "prompt_length": len(request.message),
+            "response_length": len(res["response_text"]),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        },
+        attributes={"tenant_id": tenant_id, "action": "live_dialogue"},
+        tenant_id=tenant_id,
+    )
+
+    return GeminiLiveDialogueResponse(
+        response_text=res["response_text"],
+        model_used=res["model_used"],
+        voice_persona=res["voice_persona"],
+        reasoning_trace=res.get("reasoning_trace"),
+        audio_base64=res.get("audio_base64"),
+        latency_ms=res["latency_ms"],
+        input_tokens=res["input_tokens"],
+        output_tokens=res["output_tokens"],
+        estimated_cost_usd=res["estimated_cost_usd"],
+    )

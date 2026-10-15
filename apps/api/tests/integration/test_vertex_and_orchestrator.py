@@ -4,6 +4,7 @@ import json
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from fastapi.testclient import TestClient
 from pydantic import BaseModel
 
 from app.adapters.vertex_adapter import (
@@ -16,7 +17,10 @@ from app.agents.base import AgentContext
 from app.agents.prompt_orchestrator import (
     DynamicPromptOrchestrator,
 )
+from app.main import app
 from app.models.agent_swarm import AgentRole, SwarmRunRequest
+
+client = TestClient(app)
 
 
 class DummySchema(BaseModel):
@@ -265,3 +269,148 @@ async def test_prompt_orchestrator_agent_executions():
     critic_redline = await orchestrator.execute_critic_reasoning(context, has_redline=True)
     assert not critic_redline.is_grounded
     assert critic_redline.adverse_action_detected
+
+
+def test_calculate_cost_gemini_live():
+    """Verify inference cost calculation for Gemini Live models."""
+    adapter = VertexAIAdapter()
+
+    cost_live = adapter.calculate_cost("models/gemini-3.8-live", 1000, 100)
+    assert cost_live > 0
+
+    cost_thinking = adapter.calculate_cost("models/gemini-3.8-live-extended-thinking", 1000, 100)
+    assert cost_thinking > 0
+    assert cost_thinking >= cost_live
+
+
+@pytest.mark.asyncio
+async def test_vertex_generate_live_dialogue_all_branches():
+    """Verify live dialogue synthesis across personas, extended thinking, and domain queries."""
+    adapter = VertexAIAdapter()
+
+    # 1. Extended thinking with custom reasoning budget & Aoede voice
+    res_thinking = await adapter.generate_live_dialogue(
+        prompt="Explain the future work style and firm growth roadmap for the next 1y, 3y, 5y, and 10y!",
+        model="models/gemini-3.8-live-extended-thinking",
+        voice_persona="aoede",
+        reasoning_budget=4096,
+        language="en",
+    )
+    assert res_thinking["model_used"] == "models/gemini-3.8-live-extended-thinking"
+    assert res_thinking["voice_persona"] == "aoede"
+    assert "4096 token budget" in res_thinking["reasoning_trace"]
+    assert "1Y, 3Y, 5Y & 10Y Transformation Roadmap" in res_thinking["response_text"]
+    assert res_thinking["latency_ms"] >= 18.5
+
+    # 2. Extended thinking with default reasoning budget (None)
+    res_thinking_default = await adapter.generate_live_dialogue(
+        prompt="Hello generic greeting",
+        model="models/gemini-3.8-live-extended-thinking",
+        voice_persona="kore",
+        reasoning_budget=None,
+    )
+    assert "2048 token budget" in res_thinking_default["reasoning_trace"]
+    assert "Hello, I am Aura" in res_thinking_default["response_text"]
+
+    # 3. 5-year-old kid explanation
+    res_kid = await adapter.generate_live_dialogue(
+        prompt="Explain this to a 5 year old kid",
+        model="models/gemini-3.8-live",
+    )
+    assert "WALL-E or Baymax" in res_kid["response_text"]
+    assert res_kid["reasoning_trace"] is None
+
+    # 4. Senior 60+ worker
+    res_senior = await adapter.generate_live_dialogue(
+        prompt="Will a 60+ elderly or senior worker lose their job?",
+        model="models/gemini-3.8-live",
+    )
+    assert "seniors & non-tech workers" in res_senior["response_text"]
+
+    # 5. UPI / QR payment safety
+    res_upi = await adapter.generate_live_dialogue(
+        prompt="How do you protect UPI and QR payment cashiers?",
+        model="models/gemini-3.8-live",
+    )
+    assert "UPI & QR Payments" in res_upi["response_text"]
+
+    # 6. Uber / Ola drivers
+    res_uber = await adapter.generate_live_dialogue(
+        prompt="What happens to an Uber driver or taxi operator?",
+        model="models/gemini-3.8-live",
+    )
+    assert "Uber & Ola Drivers" in res_uber["response_text"]
+
+    # 7. Cinema / movie industry
+    res_cinema = await adapter.generate_live_dialogue(
+        prompt="What about the cinema movie industry?",
+        model="models/gemini-3.8-live",
+    )
+    assert "Cinema & Movie Industry" in res_cinema["response_text"]
+
+    # 8. Agentic RAG company intelligence
+    res_rag = await adapter.generate_live_dialogue(
+        prompt="Use Agentic RAG to look up company headcount and moat",
+        model="models/gemini-3.8-live",
+    )
+    assert "Agentic RAG & MCP Company Intelligence Grounding" in res_rag["response_text"]
+
+    # 9. Freelance / gig worker
+    res_freelance = await adapter.generate_live_dialogue(
+        prompt="Protection for a freelance gig worker",
+        model="models/gemini-3.8-live",
+    )
+    assert "Freelancers" in res_freelance["response_text"]
+
+    # 10. Business owner / industrialist ROI
+    res_biz = await adapter.generate_live_dialogue(
+        prompt="What is the business ROI for an industrialist owner?",
+        model="models/gemini-3.8-live",
+    )
+    assert "Business Owners & Industrialists" in res_biz["response_text"]
+
+
+def test_api_live_dialogue_endpoint():
+    """Verify POST /api/v1/agents/live-dialogue executes live dialogue with Pub/Sub telemetry."""
+    # Standard model
+    payload_live = {
+        "message": "Explain UPI QR code payment safety for retail cashiers.",
+        "model": "models/gemini-3.8-live",
+        "voice_persona": "kore",
+        "language": "en",
+    }
+    resp1 = client.post(
+        "/api/v1/agents/live-dialogue",
+        json=payload_live,
+        headers={"X-Tenant-ID": "tenant-test-01"},
+    )
+    assert resp1.status_code == 200
+    data1 = resp1.json()
+    assert "UPI & QR Payments" in data1["response_text"]
+    assert data1["model_used"] == "models/gemini-3.8-live"
+    assert data1["voice_persona"] == "kore"
+    assert data1["latency_ms"] > 0
+    assert data1["input_tokens"] > 0
+    assert data1["output_tokens"] > 0
+    assert data1["estimated_cost_usd"] > 0
+
+    # Extended thinking model with custom reasoning budget
+    payload_thinking = {
+        "message": "Explain 1y, 3y, 5y, 10y transformation roadmap.",
+        "model": "models/gemini-3.8-live-extended-thinking",
+        "voice_persona": "aoede",
+        "reasoning_budget": 2048,
+        "language": "en",
+    }
+    resp2 = client.post(
+        "/api/v1/agents/live-dialogue",
+        json=payload_thinking,
+        headers={"X-Tenant-ID": "tenant-test-01"},
+    )
+    assert resp2.status_code == 200
+    data2 = resp2.json()
+    assert data2["model_used"] == "models/gemini-3.8-live-extended-thinking"
+    assert data2["voice_persona"] == "aoede"
+    assert "2048 token budget" in data2["reasoning_trace"]
+    assert "Transformation Roadmap" in data2["response_text"]
+

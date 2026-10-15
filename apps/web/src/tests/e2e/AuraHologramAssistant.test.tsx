@@ -3,6 +3,7 @@ import React from 'react';
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { AuraHologramAssistant } from '../../components/AuraHologramAssistant';
+import { api } from '../../services/api';
 
 describe('AuraHologramAssistant Component', () => {
   let mockUtteranceInstance: any = null;
@@ -386,6 +387,82 @@ describe('AuraHologramAssistant Component', () => {
     fireEvent.click(screen.getByRole('button', { name: /Send/i }));
 
     expect(screen.getByText(/Test without speech synthesis/i)).toBeInTheDocument();
+  });
+
+  it('switches between gemini-3.8-live and gemini-3.8-live-extended-thinking and configures reasoning budget', () => {
+    render(
+      <AuraHologramAssistant
+        currentLanguage="en"
+        onNavigateTab={vi.fn()}
+      />
+    );
+
+    fireEvent.click(screen.getByLabelText(/Launch Aura 3D Virtual Live Assistant/i));
+
+    // Initially general-purpose live model is selected
+    expect(screen.getByRole('button', { name: /⚡ models\/gemini-3.8-live/i })).toBeInTheDocument();
+    const extendedThinkingBtn = screen.getByRole('button', { name: /🧠 models\/gemini-3.8-live-extended-thinking/i });
+    expect(extendedThinkingBtn).toBeInTheDocument();
+
+    // Reasoning budget selector not visible until extended thinking selected
+    expect(screen.queryByText(/Reasoning Budget:/i)).not.toBeInTheDocument();
+
+    // Select extended thinking
+    fireEvent.click(extendedThinkingBtn);
+    expect(screen.getByText(/Reasoning Budget:/i)).toBeInTheDocument();
+
+    // Click 4096 tokens budget
+    const budget4096 = screen.getByRole('button', { name: /4096 tokens/i });
+    expect(budget4096).toBeInTheDocument();
+    fireEvent.click(budget4096);
+  });
+
+  it('invokes api.geminiLiveDialogue and renders reasoning trace and model badge', async () => {
+    const liveDialogueSpy = vi.spyOn(api, 'geminiLiveDialogue').mockResolvedValueOnce({
+      response_text: 'Live dialogue synthesis from Gemini 3.8 Live Extended Thinking.',
+      model_used: 'models/gemini-3.8-live-extended-thinking',
+      voice_persona: 'kore',
+      reasoning_trace: 'Step 1: Analyzed workforce safety criteria.\nStep 2: Formulated wage protection response.',
+      latency_ms: 124.5,
+      input_tokens: 35,
+      output_tokens: 42,
+      estimated_cost_usd: 0.00018,
+    });
+
+    render(
+      <AuraHologramAssistant
+        currentLanguage="en"
+        onNavigateTab={vi.fn()}
+      />
+    );
+
+    fireEvent.click(screen.getByLabelText(/Launch Aura 3D Virtual Live Assistant/i));
+
+    // Switch to extended thinking model
+    fireEvent.click(screen.getByRole('button', { name: /🧠 models\/gemini-3.8-live-extended-thinking/i }));
+
+    const input = screen.getByPlaceholderText(/Ask Aura anything/i);
+    fireEvent.change(input, { target: { value: 'How does Gemini Live safeguard workers?' } });
+    fireEvent.click(screen.getByRole('button', { name: /Send/i }));
+
+    await waitFor(() => {
+      expect(liveDialogueSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'How does Gemini Live safeguard workers?',
+          model: 'models/gemini-3.8-live-extended-thinking',
+          voice_persona: 'kore',
+          reasoning_budget: 2048,
+        })
+      );
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText(/Live dialogue synthesis from Gemini 3.8 Live Extended Thinking./i)).toBeInTheDocument();
+      expect(screen.getByText(/Cognitive Reasoning Trace \(Extended Thinking\)/i)).toBeInTheDocument();
+      expect(screen.getByText(/Step 1: Analyzed workforce safety criteria/i)).toBeInTheDocument();
+    });
+
+    liveDialogueSpy.mockRestore();
   });
 });
 
