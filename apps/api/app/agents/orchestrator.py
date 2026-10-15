@@ -15,6 +15,7 @@ from app.agents.subagents.skills_mobility import SkillGapAnalystAgent, SkillsMob
 from app.agents.subagents.task_redesign import TaskDecomposerAgent, TaskRedesignAgent
 from app.agents.subagents.trust_governance import GovernanceCriticAgent, TrustGovernanceAgent
 from app.agents.subagents.workgraph_architect import WorkGraphArchitectAgent
+from app.agents.tools.gatekeeper import MAX_ALLOWED_TURNS, ToolGatekeeper, gatekeeper
 from app.models.agent_swarm import (
     AgentRole,
     AgentStep,
@@ -49,6 +50,10 @@ class SwarmOrchestrator:
         self.finops_evaluator: FinOpsEvaluatorAgent = self.finops
         self.governance_critic: GovernanceCriticAgent = self.trust_governance
 
+        # Enterprise Invariant Gatekeeper & Circuit Breaker
+        self.gatekeeper: ToolGatekeeper = gatekeeper
+        self.max_turns: int = MAX_ALLOWED_TURNS
+
     async def run_swarm_async(self, tenant_id: str, request: SwarmRunRequest) -> SwarmRunResponse:
         """Execute the multi-agent deliberation loop over a strategic scenario asynchronously.
 
@@ -63,6 +68,7 @@ class SwarmOrchestrator:
             SwarmRunResponse: Execution outcome with complete deliberation trajectory.
         """
         run_id = f"RUN-{uuid.uuid4().hex[:10].upper()}"
+        self.gatekeeper.reset_session(run_id)
         trajectories: List[AgentStep] = []
         citations = request.evidence_ids if request.evidence_ids else ["EVD-STRAT-01", "EVD-SOP-01"]
 

@@ -1,10 +1,12 @@
-"""Subsystem health, liveness, and readiness probes."""
+"""Subsystem health, liveness, readiness, and telemetry probes."""
 
-from typing import Dict
+from typing import Any, Dict
 
 from fastapi import APIRouter
+from fastapi.responses import PlainTextResponse
 
 from app.core.config import settings
+from app.core.monitoring import telemetry_registry
 
 router = APIRouter(tags=["Health"])
 
@@ -64,3 +66,15 @@ def api_v1_health_probe() -> Dict[str, str]:
         "service": settings.app_name,
         "version": settings.app_version,
     }
+
+
+@router.get("/metrics", response_class=PlainTextResponse, summary="Prometheus metrics exposition endpoint")
+def metrics_endpoint() -> PlainTextResponse:
+    """Expose application metrics in standard Prometheus text format."""
+    return PlainTextResponse(content=telemetry_registry.export_prometheus_metrics())
+
+
+@router.get("/telemetry", summary="Structured telemetry snapshot")
+def telemetry_endpoint() -> Dict[str, Any]:
+    """Return JSON snapshot of runtime telemetry and system load."""
+    return telemetry_registry.get_telemetry_summary()

@@ -61,7 +61,11 @@ flowchart TD
     GoogleCloud -.-> CorePlatform
 ```
 
-![FuturaSculptAI System Architecture](docs/assets/diagrams/system-architecture.jpg)
+![FuturaSculptAI High-Performance Enterprise Architecture Blueprint](docs/assets/images/futurasculpt_architecture_blueprint.jpg)
+*Figure 1: FuturaSculptAI High-Performance Enterprise Architecture Blueprint featuring Google Cloud Pub/Sub Event Mesh, Vertex AI Gemini 3.8/Argon Dynamic Model Gateway, OpenTelemetry Monitoring, and Temporal WorkGraph Engine.*
+
+![FuturaSculptAI Executive Decision Cockpit](docs/assets/images/futurasculpt_cockpit_dashboard.jpg)
+*Figure 2: Executive Decision Cockpit — Glassmorphism UI showing live TrustBoard metrics, temporal blast radius graphs, and workforce opportunity simulations.*
 
 ### End-to-End User Journey & Transformation Workflow
 
@@ -70,6 +74,11 @@ flowchart TD
 ### Google Cloud Infrastructure & Service Topology
 
 ![Google Cloud Platform Infrastructure](docs/assets/diagrams/gcp-infrastructure.jpg)
+
+### Google ADK Multi-Agent Specialist Swarm Mesh
+
+![FuturaSculptAI Multi-Agent Swarm Mesh](docs/assets/images/futurasculpt_agent_swarm_mesh.jpg)
+*Figure 3: Google ADK Autonomous Specialist Agent Mesh Topology with Cryptographic Provenance Ledgers, Least-Privilege Tools, and Gatekeeper Invariant Enforcement.*
 
 ### Domain Entities & Class Architecture
 
@@ -92,6 +101,8 @@ FuturaSculptAI operates in enterprise environments with four core stakeholders:
 | **Executive Cockpit** | React 18, Vite, TypeScript, Vanilla CSS Glassmorphism | Cloud Run / Firebase App Hosting | Interactive visualization, WorkGraph canvas, scenario comparison, evidence audit trails. |
 | **API Gateway & Core Service** | FastAPI 0.115+, Python 3.12, Pydantic V2 | Google Cloud Run (`genai-apac-2026-491004`) | Multi-tenant REST endpoints, payload validation, RBAC, tenant isolation. |
 | **Agent Mesh & Orchestrator** | Google Agent Development Kit (ADK), Vertex AI SDK | Cloud Run Background Runtime | Coordinates multimodal ingestion, scenario simulation, and evidence synthesis. |
+| **Google Cloud Pub/Sub Event Mesh** | Pub/Sub Client, In-Memory Thread-Safe Queue | Google Cloud Pub/Sub | High-throughput streaming across `workforce-telemetry`, `governance-alerts`, and `actuation-events`. |
+| **Observation & Monitoring Layer** | OpenTelemetry SDK, Prometheus Exporter | Cloud Monitoring / Cloud Run | Real-time metrics `/metrics`, telemetry snapshot `/telemetry`, and SSE alert streaming `/alerts/stream`. |
 | **Data & Evidence Ledger** | BigQuery, Cloud Storage, pgvector / Cloud SQL | Google Cloud Managed Data Services | Cryptographic evidence storage, embeddings, temporal graph state persistence. |
 | **Secrets & Security** | Secret Manager, Cloud KMS, IAM | Google Cloud Security Perimeter | Zero-secret environment injection, least-privilege IAM credentials. |
 

@@ -1,12 +1,14 @@
 """Vertex AI Gemini adapter with dynamic model selection, context caching, and structured output."""
 
+from enum import Enum
 import hashlib
 import json
 import logging
-from enum import Enum
+import time
 from typing import Any, Dict, Optional, Type, TypeVar
 
 from pydantic import BaseModel
+from tenacity import retry, stop_after_attempt, wait_exponential
 
 from app.core.config import settings
 
@@ -18,10 +20,10 @@ T = TypeVar("T", bound=BaseModel)
 class ModelTier(str, Enum):
     """Google Gemini Model Tiers for Work Transformation Mesh."""
 
-    WORKHORSE = "workhorse"  # gemini-3.8-flash-001 / gemini-3.5-flash: Real-time Q&A, triage, voice
-    DEEP_REASONING = "deep_reasoning"  # gemini-3.8-pro-001 / gemini-3.5-pro: Multi-horizon synthesis, counterfactuals
-    HIGH_VOLUME_UTILITY = "high_volume_utility"  # gemini-3.8-flash-lite: Routing, summarization
-    FRONTIER_WORKSPACE = "frontier_workspace"  # gemini-4-argon-preview: Next-gen autonomous workspace synthesis
+    WORKHORSE = "workhorse"  # gemini-3.8-flash-001 / gemini-3.5-flash / gemini-2.5-flash
+    DEEP_REASONING = "deep_reasoning"  # gemini-3.8-pro-001 / gemini-3.5-pro / gemini-2.5-pro
+    HIGH_VOLUME_UTILITY = "high_volume_utility"  # gemini-3.8-flash-lite / gemini-2.5-flash-lite
+    FRONTIER_WORKSPACE = "frontier_workspace"  # gemini-4-argon-preview
 
 
 MODEL_REGISTRY: Dict[ModelTier, Dict[str, Any]] = {
@@ -92,7 +94,7 @@ class VertexContextCache:
             return {
                 "cache_id": cache_id,
                 "hit": True,
-                "token_savings_pct": 88.0,  # nosec B105
+                "cache_savings_pct": 88.0,
                 "cached_tokens": len(corpus_content.split()) * 2,
             }
 
@@ -100,7 +102,7 @@ class VertexContextCache:
         record = {
             "cache_id": cache_id,
             "hit": False,
-            "token_savings_pct": 0.0,  # nosec B105
+            "cache_savings_pct": 0.0,
             "cached_tokens": len(corpus_content.split()) * 2,
         }
         self._cache_store[cache_id] = record
@@ -135,6 +137,25 @@ class VertexAIAdapter:
             return settings.model_workhorse
 
         tier_str = tier_or_name.lower().replace("-", "_")
+
+        # Shorthand tier aliases
+        tier_shorthands = {
+            "flash": ModelTier.WORKHORSE,
+            "lightweight": ModelTier.WORKHORSE,
+            "workhorse": ModelTier.WORKHORSE,
+            "pro": ModelTier.DEEP_REASONING,
+            "reasoning": ModelTier.DEEP_REASONING,
+            "deep_reasoning": ModelTier.DEEP_REASONING,
+            "lite": ModelTier.HIGH_VOLUME_UTILITY,
+            "utility": ModelTier.HIGH_VOLUME_UTILITY,
+            "high_volume_utility": ModelTier.HIGH_VOLUME_UTILITY,
+            "argon": ModelTier.FRONTIER_WORKSPACE,
+            "frontier": ModelTier.FRONTIER_WORKSPACE,
+            "frontier_workspace": ModelTier.FRONTIER_WORKSPACE,
+        }
+        if tier_str in tier_shorthands:
+            return MODEL_REGISTRY[tier_shorthands[tier_str]]["primary"]
+
         for tier, meta in MODEL_REGISTRY.items():
             if tier_str == tier.value or tier_or_name in (meta["primary"], meta["alias"]):
                 return meta["primary"]
@@ -183,6 +204,7 @@ class VertexAIAdapter:
         Returns:
             Dict[str, Any]: Response content, model used, and estimated tokens/cost.
         """
+        start_t = time.perf_counter()
         target_model = model_name or (
             self.resolve_model_name(model_tier.value) if model_tier else settings.model_workhorse
         )
@@ -196,17 +218,22 @@ class VertexAIAdapter:
 
         input_tokens = len(prompt.split()) * 2
         output_tokens = 48
+        total_tokens = input_tokens + output_tokens
         cost_usd = self.calculate_cost(target_model, input_tokens, output_tokens, cached=cached_hit)
 
         if self.mock_mode:
+            elapsed_ms = round((time.perf_counter() - start_t) * 1000.0, 2)
             return {
                 "content": f"[Simulated Output for {target_model}]: Work transformation synthesis verified.",
                 "model_used": target_model,
                 "input_tokens": input_tokens,
                 "output_tokens": output_tokens,
+                "total_tokens": total_tokens,
                 "estimated_cost_usd": cost_usd,
                 "cached_hit": cached_hit,
                 "cache_id": cache_id,
+                "latency_ms": elapsed_ms,
+                "fallback_applied": False,
             }
 
         # Live Vertex AI invocation path via HTTPX
@@ -225,6 +252,7 @@ class VertexAIAdapter:
 
             async with httpx.AsyncClient(timeout=10.0) as client:
                 resp = await client.post(url, json=payload, headers=headers)
+                elapsed_ms = round((time.perf_counter() - start_t) * 1000.0, 2)
                 if resp.status_code == 200:
                     data = resp.json()
                     candidates = data.get("candidates", [])
@@ -238,30 +266,41 @@ class VertexAIAdapter:
                         "model_used": target_model,
                         "input_tokens": input_tokens,
                         "output_tokens": output_tokens,
+                        "total_tokens": total_tokens,
                         "estimated_cost_usd": cost_usd,
                         "cached_hit": cached_hit,
                         "cache_id": cache_id,
+                        "latency_ms": elapsed_ms,
+                        "fallback_applied": False,
                     }
 
+            elapsed_ms = round((time.perf_counter() - start_t) * 1000.0, 2)
             return {
                 "content": f"[Live Gateway Fallback for {target_model}]: Transformation synthesis verified.",
                 "model_used": target_model,
                 "input_tokens": input_tokens,
                 "output_tokens": output_tokens,
+                "total_tokens": total_tokens,
                 "estimated_cost_usd": cost_usd,
                 "cached_hit": cached_hit,
                 "cache_id": cache_id,
+                "latency_ms": elapsed_ms,
+                "fallback_applied": True,
             }
         except Exception as exc:
             logger.warning("Vertex AI live invocation fallback triggered: %s", exc)
+            elapsed_ms = round((time.perf_counter() - start_t) * 1000.0, 2)
             return {
                 "content": f"[Fallback mode]: {str(exc)}",
                 "model_used": target_model,
                 "input_tokens": input_tokens,
                 "output_tokens": 10,
+                "total_tokens": input_tokens + 10,
                 "estimated_cost_usd": 0.0,
                 "cached_hit": False,
                 "cache_id": None,
+                "latency_ms": elapsed_ms,
+                "fallback_applied": True,
             }
 
     async def generate_structured(
@@ -296,6 +335,70 @@ class VertexAIAdapter:
         except Exception:
             # Fallback to mock dictionary if response cannot be parsed
             return schema.model_validate(mock_data or {})
+
+    async def generate_with_dynamic_fallback(
+        self,
+        prompt: str,
+        primary_model: str,
+        fallback_model: Optional[str] = None,
+        schema: Optional[Type[T]] = None,
+        temperature: float = 0.2,
+    ) -> Dict[str, Any]:
+        """Execute dynamic model routing with exponential backoff retry and automatic tier downgrade.
+
+        If the primary tier (e.g. Pro / Reasoning) fails due to rate limits or timeouts,
+        the router automatically downgrades to the fallback tier (e.g. Flash / Workhorse).
+
+        Args:
+            prompt: Prompt instruction.
+            primary_model: Target model name (e.g. 'gemini-3.8-pro-001' or 'gemini-2.5-pro').
+            fallback_model: Secondary fallback model (defaults to Flash / Workhorse).
+            schema: Optional Pydantic schema for structured output.
+            temperature: Sampling temperature.
+
+        Returns:
+            Dict[str, Any]: Telemetry and parsed output.
+        """
+        fallback_target = fallback_model or settings.model_workhorse
+
+        # Execute primary model attempt with exponential backoff retry for transient network errors
+        @retry(stop=stop_after_attempt(2), wait=wait_exponential(multiplier=0.1, min=0.1, max=0.5), reraise=True)
+        async def _call_primary():
+            return await self.generate_text(prompt, model_name=primary_model, temperature=temperature)
+
+        try:
+            primary_res = await _call_primary()
+        except Exception as exc:
+            logger.warning("Primary invocation attempt failed after retries: %s", exc)
+            primary_res = {"fallback_applied": True}
+
+        if not primary_res.get("fallback_applied"):
+            if schema and "content" in primary_res:
+                try:
+                    parsed = json.loads(primary_res["content"])
+                    primary_res["parsed"] = schema.model_validate(parsed)
+                except Exception as exc:
+                    logger.debug("Structured schema parse skipped for primary output: %s", exc)
+            return primary_res
+
+        # If primary hit fallback/rate limit, attempt graceful tier downgrade to Flash
+        logger.info(
+            "Primary model '%s' triggered fallback. Gracefully downgrading to fallback tier '%s'",
+            primary_model,
+            fallback_target,
+        )
+        fallback_res = await self.generate_text(prompt, model_name=fallback_target, temperature=temperature)
+        fallback_res["downgraded_from"] = primary_model
+        fallback_res["fallback_applied"] = True
+
+        if schema and "content" in fallback_res:
+            try:
+                parsed = json.loads(fallback_res["content"])
+                fallback_res["parsed"] = schema.model_validate(parsed)
+            except Exception as exc:
+                logger.debug("Structured schema parse skipped for fallback output: %s", exc)
+
+        return fallback_res
 
 
 vertex_adapter = VertexAIAdapter()

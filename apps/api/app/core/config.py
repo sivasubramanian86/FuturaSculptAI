@@ -41,6 +41,15 @@ class Settings(BaseSettings):
     session_cost_cap_usd: float = 2.00
     bigquery_max_bytes_billed: int = 1073741824  # 1 GB
 
+    # Google Cloud Pub/Sub Event Streaming
+    pubsub_enabled: bool = True
+    pubsub_topic_telemetry: str = "futurasculpt-workforce-telemetry"
+    pubsub_topic_alerts: str = "futurasculpt-governance-alerts"
+    pubsub_topic_actuation: str = "futurasculpt-actuation-events"
+
+    # Observation & Telemetry Monitoring
+    metrics_enabled: bool = True
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

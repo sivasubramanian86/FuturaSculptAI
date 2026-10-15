@@ -10,6 +10,7 @@ from fastapi.responses import JSONResponse
 from app.core.config import settings
 from app.core.exceptions import FuturaSculptException
 from app.core.logging import configure_logging, get_log_tenant, get_logger, set_log_tenant
+from app.core.monitoring import telemetry_registry
 from app.routers import (
     agents,
     auth,
@@ -52,6 +53,8 @@ async def tenant_logging_middleware(request: Request, call_next):
     tenant_id = request.headers.get("X-Tenant-ID", settings.default_tenant_id)
     set_log_tenant(tenant_id)
     response = await call_next(request)
+    if settings.metrics_enabled:
+        telemetry_registry.record_request(request.method, request.url.path, response.status_code)
     return response
 
 

@@ -1,8 +1,10 @@
-"""FastAPI router for Governance TrustBoard, SAIF Controls, and Investor Lens."""
+"""FastAPI router for Governance TrustBoard, SAIF Controls, Investor Lens, and Alerts."""
 
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from pydantic import BaseModel, Field
+from sse_starlette.sse import EventSourceResponse
 
 from app.core.tenant import get_current_tenant_id
 from app.models.governance import (
@@ -15,9 +17,20 @@ from app.models.governance import (
     SAIFControlItem,
     SAIFDomain,
 )
+from app.services.alert_service import AlertNotification, AlertSeverity, alert_service
 from app.services.governance_service import governance_service
 
 router = APIRouter(tags=["governance"])
+
+
+class CreateAlertPayload(BaseModel):
+    """Payload to trigger a governance alert."""
+
+    severity: AlertSeverity = Field(default=AlertSeverity.INFO)
+    title: str = Field(..., min_length=3)
+    message: str = Field(..., min_length=3)
+    source: str = Field(default="MANUAL_GOVERNANCE")
+    metadata: Optional[Dict[str, Any]] = None
 
 
 @router.get(
@@ -99,3 +112,74 @@ def export_diligence_pack(
 ) -> DiligencePackExport:
     """Export complete diligence summary sealed with deterministic SHA-256 hash."""
     return governance_service.generate_diligence_pack(tenant_id)
+
+
+@router.get(
+    "/alerts",
+    response_model=List[AlertNotification],
+    summary="List governance and telemetry alerts",
+)
+def list_alerts(
+    severity: Optional[AlertSeverity] = Query(None, description="Filter by severity level"),
+    unacknowledged_only: bool = Query(False, description="Filter unacknowledged alerts only"),
+    limit: int = Query(50, ge=1, le=500, description="Max alerts to retrieve"),
+    tenant_id: str = Depends(get_current_tenant_id),
+) -> List[AlertNotification]:
+    """Retrieve recent governance redlines, approval requests, and policy alerts."""
+    return alert_service.list_alerts(
+        tenant_id=tenant_id,
+        severity=severity,
+        unacknowledged_only=unacknowledged_only,
+        limit=limit,
+    )
+
+
+@router.post(
+    "/alerts",
+    response_model=AlertNotification,
+    status_code=status.HTTP_201_CREATED,
+    summary="Emit new governance or policy alert",
+)
+def emit_alert(
+    payload: CreateAlertPayload,
+    tenant_id: str = Depends(get_current_tenant_id),
+) -> AlertNotification:
+    """Manually dispatch a governance alert or policy breach notification."""
+    return alert_service.emit_alert(
+        tenant_id=tenant_id,
+        severity=payload.severity,
+        title=payload.title,
+        message=payload.message,
+        source=payload.source,
+        metadata=payload.metadata,
+    )
+
+
+@router.post(
+    "/alerts/{alert_id}/acknowledge",
+    response_model=AlertNotification,
+    summary="Acknowledge pending governance alert",
+)
+def acknowledge_alert(
+    alert_id: str,
+    tenant_id: str = Depends(get_current_tenant_id),
+) -> AlertNotification:
+    """Acknowledge a specific alert notification."""
+    alert = alert_service.acknowledge_alert(tenant_id=tenant_id, alert_id=alert_id)
+    if not alert:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Alert with ID {alert_id} not found for current tenant",
+        )
+    return alert
+
+
+@router.get(
+    "/alerts/stream",
+    summary="Real-time Server-Sent Events (SSE) notification stream",
+)
+async def stream_alerts(
+    tenant_id: str = Depends(get_current_tenant_id),
+) -> EventSourceResponse:
+    """Stream live governance redlines and approval triggers to cockpit UI."""
+    return EventSourceResponse(alert_service.stream_alerts(tenant_id))

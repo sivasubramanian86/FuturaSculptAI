@@ -121,7 +121,7 @@ def test_actuator_a2_human_approval_gate():
         idempotency_key="IDEM-GATE-02",
         mutation_payload={"speed_multiplier": 5.0},
         risk_tier="T3",
-        human_approval_token="TOKEN-A2-APPROVED-DR-CHEN-2026",
+        human_approval_token="TOKEN-A2-APPROVED-DR-CHEN-2026",  # noqa: S106
     )
     res_ok = guard.execute_actuation(req_approved)
     assert res_ok.status == "APPLIED"

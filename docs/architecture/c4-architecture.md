@@ -1,6 +1,9 @@
 # FuturaSculptAI: C4 Architecture Specification
 
-This document details the C4 Level 1 (System Context) and Level 2 (Container) architecture diagrams for FuturaSculptAI on Google Cloud.
+This document details the C4 Level 1 (System Context) and Level 2 (Container) architecture specifications for FuturaSculptAI on Google Cloud.
+
+![FuturaSculptAI Enterprise Architecture Blueprint](../assets/images/futurasculpt_architecture_blueprint.jpg)
+*Figure 1: FuturaSculptAI High-Performance Enterprise Architecture Blueprint featuring Google Cloud Pub/Sub Event Mesh, Vertex AI Gemini 3.8/Argon Dynamic Model Gateway, OpenTelemetry Monitoring, and Temporal WorkGraph Engine.*
 
 ## Level 1: System Context Diagram
 
@@ -32,6 +35,9 @@ C4Context
 ---
 
 ## Level 2: Container Diagram
+
+![FuturaSculptAI Multi-Agent Swarm Mesh](../assets/images/futurasculpt_agent_swarm_mesh.jpg)
+*Figure 2: Google ADK Autonomous Specialist Agent Mesh Topology with Cryptographic Provenance Ledgers, Least-Privilege Tools, and Gatekeeper Invariant Enforcement.*
 
 ```mermaid
 C4Container

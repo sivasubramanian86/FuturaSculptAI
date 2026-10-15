@@ -36,6 +36,9 @@ FuturaSculptAI is deployed live across native Google Cloud serverless infrastruc
 | **API Backend & OpenAPI Docs** | **Google Cloud Run v2 (asia-southeast1)** | [https://futurasculpt-api-967518492968.asia-southeast1.run.app/docs](https://futurasculpt-api-967518492968.asia-southeast1.run.app/docs) | Interactive Swagger UI & REST endpoints |
 | **Production Health Probe** | **Google Cloud Run v2** | [https://futurasculpt-api-967518492968.asia-southeast1.run.app/healthz](https://futurasculpt-api-967518492968.asia-southeast1.run.app/healthz) | Zero-downtime liveness and readiness probe |
 
+![FuturaSculptAI Executive Decision Cockpit](docs/assets/images/futurasculpt_cockpit_dashboard.jpg)
+*Figure: FuturaSculptAI Executive Decision Cockpit — Glassmorphism UI showing live TrustBoard metrics, temporal blast radius graphs, and workforce opportunity simulations.*
+
 ---
 
 ## 🚀 1-Command Instant Launch (Docker Compose)
@@ -52,7 +55,7 @@ docker compose up --build
 
 ---
 
-## 🏛️ Six Core Platform Capabilities
+## 🏛️ Seven Core Platform Capabilities
 
 ### 1. Multimodal Evidence Ingestion & Cryptographic Ledger (Module 1)
 - Parses Edge-TPU camera streams, industrial time-series logs, audio SOPs, and strategy memos.
@@ -73,6 +76,9 @@ docker compose up --build
 - Strict **Autonomy Tiers (A0-A4)** & **Multi-Turn Actuator Safety Protocol**: Idempotency keys, rollback snapshot ledger, and A2 Human-in-the-Loop Sign-Off Gates for T3/T4 risk tiers.
 - **Enterprise 4-Tier Memory Bank**: L1 Working, L2 Episodic, L3 Semantic, and L4 Procedural memory partitions with cryptographic integrity verification.
 
+![FuturaSculptAI Multi-Agent Swarm Mesh](docs/assets/images/futurasculpt_agent_swarm_mesh.jpg)
+*Figure: Google ADK Autonomous Specialist Agent Mesh Topology with Cryptographic Provenance Ledgers, Least-Privilege Tools, and Gatekeeper Invariant Enforcement.*
+
 ### 5. Task Sculptor & Workforce Opportunity Forge (Module 5)
 - Classifies operations via a 6-part transformation taxonomy: *Automated*, *Accelerated*, *Augmented*, *Orchestrated*, *Shielded*, and *Incubated*.
 - Four deterministic workforce indices: **Role Resilience Index (RRI)**, **Task Replaceability Score (TRS)**, **Workforce Adaptability Index (WAI)**, and **Human Opportunity Score (HOS)**.
@@ -84,11 +90,23 @@ docker compose up --build
 - **Four-Tier Drift Governance:** Real-time prevention of Model Drift (Pydantic v2), Prompt Drift (Golden 20 CI), Agent Drift (bounded loop breaker), and Context Drift (EvidenceEnvelope pinning).
 - **Investor Lens Self-Service Workbench:** Dynamic valuation model demonstrating **$1,250,000.00 annualized EBITDA unlock**, 6.25x Net ROI multiple, 1.9-month payback period, and SHA-256 cryptographically sealed **Diligence Evidence Packs (`DIL-...`)**.
 
+### 7. Google Cloud Observation, Monitoring & Event Streaming (Module 7)
+- **Google Cloud Pub/Sub Event Mesh:**
+  * `futurasculpt-workforce-telemetry`: Asynchronous ingestion of factory floor camera detections, timesheets, and WorkGraph state transitions.
+  * `futurasculpt-governance-alerts`: Low-latency broadcasting of SAIF policy violations, redlines, and human approval gates.
+  * `futurasculpt-actuation-events`: Orchestrated dispatch to enterprise HCM systems (Workday, SAP SuccessFactors) with two-phase commit and deterministic rollback ledgers.
+- **OpenTelemetry & Prometheus Observability Layer:**
+  * End-to-end request tracing, token attribution counters, operation latency histograms, and active workflow gauges.
+  * Native Prometheus `/metrics` exposition and `/telemetry` system health aggregation.
+- **Real-Time Cockpit Alert Streaming:**
+  * Persistent Server-Sent Events (SSE) connection stream at `/api/v1/governance/alerts/stream` providing immediate notification delivery to the executive dashboard.
+
 ---
 
 ## 🏗️ System Architecture & Data Flow
 
-![FuturaSculptAI System Architecture](docs/assets/diagrams/system-architecture.jpg)
+![FuturaSculptAI Enterprise Architecture Blueprint](docs/assets/images/futurasculpt_architecture_blueprint.jpg)
+*Figure: FuturaSculptAI High-Performance Enterprise Architecture Blueprint featuring Google Cloud Pub/Sub Event Mesh, Vertex AI Gemini 3.8/Argon Dynamic Model Gateway, OpenTelemetry Monitoring, and Temporal WorkGraph Engine.*
 
 ```mermaid
 graph TB

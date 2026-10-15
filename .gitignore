@@ -65,7 +65,7 @@ Thumbs.db
 .codegraph/
 
 # Private memories, local drafts, and scratch files
-.gemini/session_context.md
+.gemini/
 scratch/
 tmp/
 *.bak

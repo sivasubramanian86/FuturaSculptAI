@@ -1,6 +1,5 @@
 """Unit tests for Enterprise 4-Tier Memory Bank."""
 
-import pytest
 from app.services.memory_bank import MemoryBankService, MemoryTier
 
 

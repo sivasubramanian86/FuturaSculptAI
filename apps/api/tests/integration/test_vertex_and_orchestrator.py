@@ -43,13 +43,13 @@ def test_vertex_context_cache():
     # First call -> cache miss
     res1 = cache.get_or_create_cache("eu_ai_act", corpus)
     assert not res1["hit"]
-    assert res1["token_savings_pct"] == 0.0
+    assert res1["cache_savings_pct"] == 0.0
     assert cache.total_misses == 1
 
     # Second call -> cache hit
     res2 = cache.get_or_create_cache("eu_ai_act", corpus)
     assert res2["hit"]
-    assert res2["token_savings_pct"] == 88.0
+    assert res2["cache_savings_pct"] == 88.0
     assert cache.total_hits == 1
 
 
