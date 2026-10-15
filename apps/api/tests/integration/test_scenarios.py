@@ -227,4 +227,141 @@ def test_generate_transformation_roadmap_categories():
     assert resp_comm.status_code == 200
     assert resp_comm.json()["category"] == "commercial_enterprise"
     assert resp_comm.json()["firm_title"] == "Global Enterprise"
+    assert resp_comm.json()["company_profile"] is not None
+    assert resp_comm.json()["futuristic_readiness"] is not None
+
+
+def test_analyze_company_intelligence_verified_google():
+    """Verify company intelligence synthesis for verified firm Google/Alphabet."""
+    payload = {
+        "company_name": "Google LLC",
+        "sector": "it_technology",
+        "website_url": "https://abc.xyz",
+        "custom_context": "Accelerate cloud enterprise migrations.",
+    }
+    response = client.post(
+        "/api/v1/scenarios/company-intelligence",
+        json=payload,
+        headers={"X-Tenant-ID": "tenant-test-01"},
+    )
+    assert response.status_code == 200
+    data = response.json()
+
+    # Company Profile Verification
+    profile = data["company_profile"]
+    assert "Google (Alphabet Inc.)" in profile["name"]
+    assert "182,500" in profile["employee_count"]
+    assert "$307.4B" in profile["annual_revenue"]
+    assert "Search" in profile["core_business"]
+    assert "Planetary compute" in profile["competitive_moat"]
+    assert len(profile["primary_sources"]) >= 3
+
+    # Futuristic Readiness Score Verification
+    readiness = data["futuristic_readiness"]
+    assert readiness["total_score"] >= 90.0
+    assert readiness["grade"] == "A+ Frontier Pioneer"
+    assert readiness["ai_agentic_maturity"] > 18.0
+    assert readiness["digital_telemetry_iot"] > 18.0
+    assert len(readiness["key_strengths"]) >= 2
+    assert len(readiness["modernization_gaps"]) >= 1
+
+    # Roadmap Verification
+    roadmap = data["roadmap"]
+    assert roadmap["firm_title"] == "Google (Alphabet Inc.)"
+    assert "year1" in roadmap["horizons"]
+    assert "year10" in roadmap["horizons"]
+    assert roadmap["imagen_infographic"] is not None
+    assert roadmap["lyria_podcast"] is not None
+    assert roadmap["veo_video"] is not None
+
+
+def test_analyze_company_intelligence_verified_catalog_entries():
+    """Verify catalog coverage for Mayo Clinic, Apollo Hospitals, and Tesla."""
+    # Mayo Clinic
+    resp_mayo = client.post(
+        "/api/v1/scenarios/company-intelligence",
+        json={"company_name": "Mayo Clinic", "sector": "healthcare"},
+        headers={"X-Tenant-ID": "tenant-test-01"},
+    )
+    assert resp_mayo.status_code == 200
+    mayo_profile = resp_mayo.json()["company_profile"]
+    assert "73,000" in mayo_profile["employee_count"]
+    assert "$17.9B" in mayo_profile["annual_revenue"]
+
+    # Apollo Hospitals
+    resp_apollo = client.post(
+        "/api/v1/scenarios/company-intelligence",
+        json={"company_name": "Apollo Hospitals", "sector": "healthcare"},
+        headers={"X-Tenant-ID": "tenant-test-01"},
+    )
+    assert resp_apollo.status_code == 200
+    apollo_profile = resp_apollo.json()["company_profile"]
+    assert "45,000" in apollo_profile["employee_count"]
+
+    # Tesla
+    resp_tesla = client.post(
+        "/api/v1/scenarios/company-intelligence",
+        json={"company_name": "Tesla Motors", "sector": "automotive"},
+        headers={"X-Tenant-ID": "tenant-test-01"},
+    )
+    assert resp_tesla.status_code == 200
+    tesla_profile = resp_tesla.json()["company_profile"]
+    assert "140,473" in tesla_profile["employee_count"]
+    assert "$96.8B" in tesla_profile["annual_revenue"]
+
+    # NHS Trust (B+ tier)
+    resp_nhs = client.post(
+        "/api/v1/scenarios/company-intelligence",
+        json={"company_name": "NHS Foundation Trust", "sector": "healthcare"},
+        headers={"X-Tenant-ID": "tenant-test-01"},
+    )
+    assert resp_nhs.status_code == 200
+    nhs_data = resp_nhs.json()
+    assert nhs_data["futuristic_readiness"]["grade"] == "B+ Digital Modernizer"
+
+
+
+def test_analyze_company_intelligence_custom_firm_branches():
+    """Verify custom/unlisted firms across healthcare, technology, education, and general commercial sectors."""
+    # Custom Healthcare
+    resp_health = client.post(
+        "/api/v1/scenarios/company-intelligence",
+        json={"company_name": "Sunrise Regional Health", "sector": "hospital_network"},
+        headers={"X-Tenant-ID": "tenant-test-01"},
+    )
+    assert resp_health.status_code == 200
+    health_profile = resp_health.json()["company_profile"]
+    assert "18,400" in health_profile["employee_count"]
+
+    # Custom Tech
+    resp_tech = client.post(
+        "/api/v1/scenarios/company-intelligence",
+        json={"company_name": "QuantumCloud Labs", "sector": "software_it"},
+        headers={"X-Tenant-ID": "tenant-test-01"},
+    )
+    assert resp_tech.status_code == 200
+    tech_profile = resp_tech.json()["company_profile"]
+    assert "12,500" in tech_profile["employee_count"]
+
+    # Custom Education
+    resp_edu = client.post(
+        "/api/v1/scenarios/company-intelligence",
+        json={"company_name": "Valley Unified School", "sector": "education_k12"},
+        headers={"X-Tenant-ID": "tenant-test-01"},
+    )
+    assert resp_edu.status_code == 200
+    edu_profile = resp_edu.json()["company_profile"]
+    assert "4,200" in edu_profile["employee_count"]
+
+    # Custom Commercial & score grade fallback
+    resp_comm = client.post(
+        "/api/v1/scenarios/company-intelligence",
+        json={"company_name": "Apex Precision Metals", "sector": "heavy_machinery"},
+        headers={"X-Tenant-ID": "tenant-test-01"},
+    )
+    assert resp_comm.status_code == 200
+    comm_data = resp_comm.json()
+    assert "24,000" in comm_data["company_profile"]["employee_count"]
+    assert comm_data["futuristic_readiness"]["grade"] in ["B+ Digital Modernizer", "A Cognitive Leader", "A+ Frontier Pioneer", "B Agile Adopter", "C Emergent"]
+
 

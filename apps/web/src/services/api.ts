@@ -455,6 +455,23 @@ export class ApiClient {
     }
     return res.json();
   }
+
+  async fetchCompanyIntelligence(payload: {
+    company_name: string;
+    sector?: string;
+    website_url?: string;
+    custom_context?: string;
+  }): Promise<any> {
+    const res = await fetch(`${API_BASE}/scenarios/company-intelligence`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      throw new Error(`Failed to fetch company intelligence: ${res.statusText}`);
+    }
+    return res.json();
+  }
 }
 
 export const api = new ApiClient();

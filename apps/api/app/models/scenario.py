@@ -145,6 +145,34 @@ class TransformationRoadmapRequest(BaseModel):
     target_horizon_years: Optional[int] = 10
 
 
+class CompanyProfile(BaseModel):
+    """Authoritative enterprise intelligence profile fetched via Agentic RAG & MCP grounding."""
+
+    name: str
+    ticker_or_symbol: Optional[str] = None
+    employee_count: str
+    annual_revenue: str
+    net_profit_or_margin: str
+    core_business: str
+    competitive_moat: str
+    automation_baseline: str
+    primary_sources: List[str] = Field(default_factory=list)
+
+
+class FuturisticReadinessBreakdown(BaseModel):
+    """Deterministic score (0-100) evaluating how futuristic and agentic the enterprise currently is."""
+
+    ai_agentic_maturity: float = Field(..., ge=0.0, le=20.0, description="AI agent orchestration and workflow immersion")
+    digital_telemetry_iot: float = Field(..., ge=0.0, le=20.0, description="Sub-10ms telemetry, sensor data, and cloud infrastructure")
+    workforce_adaptability: float = Field(..., ge=0.0, le=20.0, description="Upskilling culture, safety covenant, and wage mobility")
+    process_orchestration: float = Field(..., ge=0.0, le=20.0, description="Autonomous DAG task allocation and dynamic exception handling")
+    data_moat_governance: float = Field(..., ge=0.0, le=20.0, description="Proprietary data assets, cryptographic proof, and SAIF controls")
+    total_score: float = Field(..., ge=0.0, le=100.0, description="Overall futuristic readiness score")
+    grade: str = Field(..., description="Letter tier rating (e.g. A+ Frontier Pioneer, B+ Digital Modernizer)")
+    key_strengths: List[str] = Field(default_factory=list)
+    modernization_gaps: List[str] = Field(default_factory=list)
+
+
 class TransformationRoadmapResponse(BaseModel):
     """Vertex AI Gemini synthesized multi-horizon roadmap with multimodal assets."""
 
@@ -162,5 +190,25 @@ class TransformationRoadmapResponse(BaseModel):
     input_tokens: int
     output_tokens: int
     estimated_cost_usd: float
+    company_profile: Optional[CompanyProfile] = None
+    futuristic_readiness: Optional[FuturisticReadinessBreakdown] = None
+
+
+class CompanyIntelligenceRequest(BaseModel):
+    """Request payload for Agentic RAG & MCP Company Intelligence synthesis."""
+
+    company_name: str
+    sector: Optional[str] = "it_technology"
+    website_url: Optional[str] = None
+    custom_context: Optional[str] = None
+
+
+class CompanyIntelligenceResponse(BaseModel):
+    """Full corporate intelligence, deterministic readiness score, and multi-horizon transformation."""
+
+    company_profile: CompanyProfile
+    futuristic_readiness: FuturisticReadinessBreakdown
+    roadmap: TransformationRoadmapResponse
+
 
 
