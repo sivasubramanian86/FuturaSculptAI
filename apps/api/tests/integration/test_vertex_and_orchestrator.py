@@ -369,6 +369,37 @@ async def test_vertex_generate_live_dialogue_all_branches():
     )
     assert "Business Owners & Industrialists" in res_biz["response_text"]
 
+    # 11. Live mode with google.genai client (success and exception fallback)
+    adapter_live = VertexAIAdapter(mock_mode=False)
+    with patch("google.genai.Client") as mock_client_cls:
+        mock_instance = MagicMock()
+        mock_part = MagicMock()
+        mock_part.inline_data.data = b"\x00\x00" * 200
+        mock_candidate = MagicMock()
+        mock_candidate.content.parts = [mock_part]
+        mock_gen_res = MagicMock(
+            text="Dynamic live Gemini speech response.",
+            candidates=[mock_candidate],
+        )
+        mock_instance.models.generate_content.return_value = mock_gen_res
+        mock_client_cls.return_value = mock_instance
+        res_live = await adapter_live.generate_live_dialogue(
+            prompt="Hello from live dialogue",
+            model="models/gemini-3.8-live",
+            voice_persona="kore",
+        )
+        assert res_live["response_text"] == "Dynamic live Gemini speech response."
+        assert len(res_live["audio_base64"]) > 0
+
+    # Exception fallback branch
+    with patch("google.genai.Client", side_effect=RuntimeError("Vertex API network timeout")):
+        res_err = await adapter_live.generate_live_dialogue(
+            prompt="Hello with network error",
+            model="models/gemini-3.8-live",
+            voice_persona="aoede",
+        )
+        assert "Responsible AI Workforce Sanctuary" in res_err["response_text"]
+
 
 def test_api_live_dialogue_endpoint():
     """Verify POST /api/v1/agents/live-dialogue executes live dialogue with Pub/Sub telemetry."""

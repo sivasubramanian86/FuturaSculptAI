@@ -61,6 +61,7 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
   const [isLoadingLive, setIsLoadingLive] = useState<boolean>(false);
   const [selectedVoicePersona, setSelectedVoicePersona] = useState<'kore' | 'aoede'>('kore');
   const [availableVoices, setAvailableVoices] = useState<any[]>([]);
+  const [activeVoiceEngine, setActiveVoiceEngine] = useState<string>('Detecting Voice...');
 
   const handleJumpToSection = (tabId: string, sectorId?: string) => {
     onNavigateTab(tabId);
@@ -131,13 +132,18 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
   // Initial Welcome Message
   useEffect(() => {
     if (isOpen && messages.length === 0) {
+      const welcomeText =
+        '✨ Hello! I am Aura, your 3D Holographic Sanctuary Assistant. I am here to guide workers, seniors, kids, freelancers, movie artists, and industrialists in any language. Tap a question or talk to me!';
       const welcome: ChatMessage = {
         id: 'msg-welcome',
         sender: 'aura',
-        text: '✨ Hello! I am Aura, your 3D Holographic Sanctuary Assistant. I am here to guide workers, seniors, kids, freelancers, movie artists, and industrialists in any language. Tap a question or talk to me!',
+        text: welcomeText,
+        modelUsed: selectedModel,
+        voicePersona: selectedVoicePersona,
       };
       setMessages([welcome]);
-      speakText(welcome.text);
+
+      speakText(welcomeText);
     }
   }, [isOpen]);
 
@@ -250,23 +256,118 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
 
   const pickFemaleVoice = (): any => {
     if (!synthRef.current) return null;
-    const all = (synthRef.current.getVoices && synthRef.current.getVoices()) || availableVoices;
+    const all = (synthRef.current.getVoices && synthRef.current.getVoices()) || availableVoices || [];
     if (!all || all.length === 0) return null;
 
     const langCode = BCP47_MAP[currentLanguage] || 'en-US';
     const langPrefix = langCode.split('-')[0];
-    const femaleRegex = /kore|aoede|google.*female|samantha|victoria|zira|jenny|aria|karen|moira|veena|catherine|natural.*female|female/i;
 
-    const langFemale = all.find((v: any) => (v.lang === langCode || (v.lang && v.lang.startsWith(langPrefix))) && femaleRegex.test(v.name));
-    if (langFemale) return langFemale;
+    // Helper: Is this the legacy robotic 2012 Google US English (gTTS) voice?
+    const isRoboticGtts = (v: any) => {
+      if (!v || !v.name) return false;
+      const n = v.name.toLowerCase();
+      return (
+        n === 'google us english' ||
+        n.includes('google us english') ||
+        n.includes('google uk english male') ||
+        (n.startsWith('google') && !n.includes('natural') && !n.includes('neural') && !n.includes('studio') && !n.includes('journey'))
+      );
+    };
 
-    const anyLang = all.find((v: any) => v.lang === langCode || (v.lang && v.lang.startsWith(langPrefix)));
-    if (anyLang) return anyLang;
+    // Priority 1: High-fidelity Natural / Neural female voices (Edge Natural, Chrome Studio/Journey, Wavenet)
+    const premiumNaturalRegex = /natural|neural|online.*natural|journey|studio|jenny|aria|kore|aoede|wavenet/i;
+    const premiumLang = all.find(
+      (v: any) =>
+        !isRoboticGtts(v) &&
+        (v.lang === langCode || (v.lang && v.lang.startsWith(langPrefix))) &&
+        premiumNaturalRegex.test(v.name)
+    );
+    if (premiumLang) {
+      setActiveVoiceEngine(premiumLang.name);
+      return premiumLang;
+    }
 
-    const anyFemale = all.find((v: any) => femaleRegex.test(v.name));
-    if (anyFemale) return anyFemale;
+    const anyPremium = all.find((v: any) => !isRoboticGtts(v) && premiumNaturalRegex.test(v.name));
+    if (anyPremium) {
+      setActiveVoiceEngine(anyPremium.name);
+      return anyPremium;
+    }
 
-    return all[0] || null;
+    // Priority 2: Standard modern operating system female voices (Windows Zira, macOS Samantha/Victoria, iOS Ava)
+    const modernFemaleRegex = /zira|jenny|aria|samantha|victoria|karen|moira|veena|catherine|sonia|neerja|swara|ava|allison|female/i;
+    const osFemale = all.find(
+      (v: any) =>
+        !isRoboticGtts(v) &&
+        (v.lang === langCode || (v.lang && v.lang.startsWith(langPrefix))) &&
+        modernFemaleRegex.test(v.name)
+    );
+    if (osFemale) {
+      setActiveVoiceEngine(osFemale.name);
+      return osFemale;
+    }
+
+    const anyModernFemale = all.find((v: any) => !isRoboticGtts(v) && modernFemaleRegex.test(v.name));
+    if (anyModernFemale) {
+      setActiveVoiceEngine(anyModernFemale.name);
+      return anyModernFemale;
+    }
+
+    // Priority 3: Any non-robotic voice for this language (excluding male voices David, Mark, George)
+    const nonGttsVoice = all.find(
+      (v: any) =>
+        !isRoboticGtts(v) &&
+        (v.lang === langCode || (v.lang && v.lang.startsWith(langPrefix))) &&
+        !v.name.toLowerCase().includes('david') &&
+        !v.name.toLowerCase().includes('mark') &&
+        !v.name.toLowerCase().includes('george')
+    );
+    if (nonGttsVoice) {
+      setActiveVoiceEngine(nonGttsVoice.name);
+      return nonGttsVoice;
+    }
+
+    // Priority 4: Any non-robotic voice at all
+    const anyNonGtts = all.find((v: any) => !isRoboticGtts(v));
+    if (anyNonGtts) {
+      setActiveVoiceEngine(anyNonGtts.name);
+      return anyNonGtts;
+    }
+
+    // Never pick legacy robotic gTTS voice as fallback
+    const nonRoboticFallback = all.find((v: any) => !isRoboticGtts(v)) || null;
+    if (nonRoboticFallback) {
+      setActiveVoiceEngine(nonRoboticFallback.name);
+      return nonRoboticFallback;
+    }
+
+    setActiveVoiceEngine(`Gemini Live Audio Native (${selectedVoicePersona.toUpperCase()})`);
+    return null;
+  };
+
+  const playAudioBase64 = (base64Data: string, fallbackText: string) => {
+    try {
+      if (typeof window === 'undefined' || typeof (window as any).Audio === 'undefined') {
+        speakText(fallbackText);
+        return;
+      }
+      const audio = new (window as any).Audio(`data:audio/wav;base64,${base64Data}`);
+      setIsSpeaking(true);
+      setActiveVoiceEngine(`Gemini Live Native Audio (${selectedVoicePersona.toUpperCase()})`);
+      audio.onended = () => setIsSpeaking(false);
+      audio.onerror = () => {
+        setIsSpeaking(false);
+        speakText(fallbackText);
+      };
+      const playPromise = audio.play?.();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          setIsSpeaking(false);
+          speakText(fallbackText);
+        });
+      }
+    } catch {
+      speakText(fallbackText);
+    }
   };
 
   const speakText = (text: string) => {
@@ -414,7 +515,11 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
       };
 
       setMessages((prev) => [...prev, auraMsg]);
-      speakText(liveRes.response_text);
+      if (liveRes.audio_base64) {
+        playAudioBase64(liveRes.audio_base64, liveRes.response_text);
+      } else {
+        speakText(liveRes.response_text);
+      }
     } catch {
       // Offline / fallback response
       const replyText = generateAuraResponse(text);
@@ -823,7 +928,19 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
                       type="button"
                       onClick={() => {
                         setSelectedVoicePersona('kore');
-                        speakText('Switched to Kore, Gemini Live female voice persona.');
+                        const msg = 'Switched to Kore, Gemini Live female voice persona.';
+                        api
+                          .geminiLiveDialogue({
+                            message: msg,
+                            model: selectedModel,
+                            voice_persona: 'kore',
+                            language: currentLanguage,
+                          })
+                          .then((res) => {
+                            if (res.audio_base64) playAudioBase64(res.audio_base64, msg);
+                            else speakText(msg);
+                          })
+                          .catch(() => speakText(msg));
                       }}
                       style={{
                         padding: '3px 8px',
@@ -844,7 +961,19 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
                       type="button"
                       onClick={() => {
                         setSelectedVoicePersona('aoede');
-                        speakText('Switched to Aoede, warm melodic female voice persona.');
+                        const msg = 'Switched to Aoede, warm melodic female voice persona.';
+                        api
+                          .geminiLiveDialogue({
+                            message: msg,
+                            model: selectedModel,
+                            voice_persona: 'aoede',
+                            language: currentLanguage,
+                          })
+                          .then((res) => {
+                            if (res.audio_base64) playAudioBase64(res.audio_base64, msg);
+                            else speakText(msg);
+                          })
+                          .catch(() => speakText(msg));
                       }}
                       style={{
                         padding: '3px 8px',
@@ -861,6 +990,25 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
                     >
                       Aoede (Warm)
                     </button>
+                  </div>
+
+                  <div
+                    style={{
+                      width: '100%',
+                      padding: '4px 8px',
+                      borderRadius: '6px',
+                      background: 'rgba(6, 182, 212, 0.08)',
+                      border: '1px solid rgba(6, 182, 212, 0.25)',
+                      fontSize: '9px',
+                      color: '#94a3b8',
+                      textAlign: 'center',
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    <span style={{ color: '#38bdf8', fontWeight: 700 }}>Voice Persona:</span> {selectedVoicePersona === 'aoede' ? 'Aoede (Warm Melodic)' : 'Kore (Crisp High-Fidelity)'}
+                    <div style={{ color: '#34d399', fontSize: '8.5px', marginTop: '1px' }}>
+                      Engine: {activeVoiceEngine} (Non-gTTS)
+                    </div>
                   </div>
 
                   <button

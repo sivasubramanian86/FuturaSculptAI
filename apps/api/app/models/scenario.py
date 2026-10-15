@@ -193,6 +193,21 @@ class TransformationRoadmapResponse(BaseModel):
     estimated_cost_usd: float
     company_profile: Optional[CompanyProfile] = None
     futuristic_readiness: Optional[FuturisticReadinessBreakdown] = None
+    agent_activity: Optional[List["AgentGroundingStep"]] = None
+
+
+class AgentGroundingStep(BaseModel):
+    """Execution trace of a Gemini LLM agent in the grounding and transformation swarm."""
+
+    agent_name: str
+    model: str
+    phase: str
+    target: str
+    status: str = "COMPLETED"
+    latency_ms: float
+    description: str
+    grounded_facts: List[str] = Field(default_factory=list)
+    tokens_used: int = 0
 
 
 class CompanyIntelligenceRequest(BaseModel):
@@ -210,6 +225,7 @@ class CompanyIntelligenceResponse(BaseModel):
     company_profile: CompanyProfile
     futuristic_readiness: FuturisticReadinessBreakdown
     roadmap: TransformationRoadmapResponse
+    agent_activity: List[AgentGroundingStep] = Field(default_factory=list)
 
 
 
