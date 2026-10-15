@@ -365,3 +365,51 @@ def test_analyze_company_intelligence_custom_firm_branches():
     assert comm_data["futuristic_readiness"]["grade"] in ["B+ Digital Modernizer", "A Cognitive Leader", "A+ Frontier Pioneer", "B Agile Adopter", "C Emergent"]
 
 
+def test_transformation_roadmap_url_grounding() -> None:
+    """Test URL parsing, category classification, and website_url passing."""
+    # Test SpaceX URL
+    resp_spacex = client.post(
+        "/api/v1/scenarios/transformation-roadmap",
+        json={
+            "firm_name": "https://spacex.com",
+            "scenario_prompt": "Rocket propulsion and orbital Starlink satellite mesh operations",
+            "sector": "aerospace_defense",
+        },
+        headers={"X-Tenant-ID": "tenant-test-01"},
+    )
+    assert resp_spacex.status_code == 200
+    data_spacex = resp_spacex.json()
+    assert data_spacex["firm_title"] in ["Spacex", "SpaceX"]
+    assert data_spacex["category"] == "commercial_enterprise"
+
+    # Test Stripe FinTech URL
+    resp_stripe = client.post(
+        "/api/v1/scenarios/transformation-roadmap",
+        json={
+            "firm_name": "https://stripe.com",
+            "scenario_prompt": "Global checkout and payment clearing automation",
+            "website_url": "https://stripe.com",
+            "sector": "financial_services",
+        },
+        headers={"X-Tenant-ID": "tenant-test-01"},
+    )
+    assert resp_stripe.status_code == 200
+    data_stripe = resp_stripe.json()
+    assert data_stripe["firm_title"] == "Stripe"
+    assert data_stripe["category"] == "commercial_enterprise"
+
+    # Test Khan Academy URL in company intelligence
+    resp_khan = client.post(
+        "/api/v1/scenarios/company-intelligence",
+        json={
+            "company_name": "www.khanacademy.org",
+            "sector": "education",
+        },
+        headers={"X-Tenant-ID": "tenant-test-01"},
+    )
+    assert resp_khan.status_code == 200
+    data_khan = resp_khan.json()
+    assert "Khan" in data_khan["company_profile"]["name"]
+
+
+

@@ -47,10 +47,12 @@ class FinOpsAuditOutput(BaseModel):
 1. **Model Gateway Route Verification:**
    - Verify that simple tasks (extraction, classification, validation) route to Gemini Flash rather than Pro or Thinking models.
 2. **Context Cache (L3) Utilization:**
-   - Verify that repetitive sector packs and large system policies (> 32,000 tokens) leverage explicit Vertex AI context caching.
-3. **BigQuery Query Dry-Run & Bytes Limit:**
+   - Verify that repetitive sector packs and large system policies exceeding token floors (**>= 1,024 tokens for Flash**, **>= 4,096 tokens for Pro**) leverage explicit Vertex AI context caching (up to 90% discount).
+3. **Batch Inference Offloading:**
+   - Verify that bulk offline analytics (bulk SOP ingestion, annual retrospectives) leverage Vertex AI Batch Prediction (50% discount) via BigQuery or Cloud Storage JSONL.
+4. **BigQuery Query Dry-Run & Bytes Limit:**
    - Verify all BigQuery SQL queries specify `maximum_bytes_billed` and execute dry-runs to prevent unexpected scan charges.
-4. **Scale-to-Zero Verification:**
+5. **Scale-to-Zero Verification:**
    - Verify Cloud Run service definitions have `minInstances: 0`.
 
 ## Verification Script (Python)

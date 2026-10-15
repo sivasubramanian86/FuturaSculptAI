@@ -444,6 +444,7 @@ export class ApiClient {
     scenario_prompt: string;
     sector?: string;
     target_horizon_years?: number;
+    website_url?: string;
   }): Promise<any> {
     const res = await fetch(`${API_BASE}/scenarios/transformation-roadmap`, {
       method: 'POST',

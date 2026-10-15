@@ -143,6 +143,7 @@ class TransformationRoadmapRequest(BaseModel):
     scenario_prompt: str
     sector: Optional[str] = "healthcare"
     target_horizon_years: Optional[int] = 10
+    website_url: Optional[str] = None
 
 
 class CompanyProfile(BaseModel):
