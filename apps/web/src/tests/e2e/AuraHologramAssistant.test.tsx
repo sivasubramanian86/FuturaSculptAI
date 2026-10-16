@@ -242,6 +242,50 @@ describe('AuraHologramAssistant Component', () => {
     await waitFor(() => {
       expect(screen.getByText(/For Cinema & Movie Industry: Camera crew, dubbing artists/i)).toBeInTheDocument();
     });
+
+    // Click 5yo pill
+    const kidPill = screen.getByRole('button', { name: /👶 5-Year-Old Explanation/i });
+    fireEvent.click(kidPill);
+    await waitFor(() => {
+      expect(screen.getByText(/friendly robot helper, like WALL-E or Baymax/i)).toBeInTheDocument();
+    });
+
+    // Click Senior pill
+    const seniorPill = screen.getByRole('button', { name: /🧓 60\+ Senior \/ Non-Tech/i });
+    fireEvent.click(seniorPill);
+    await waitFor(() => {
+      expect(screen.getByText(/For seniors & non-tech workers: You do NOT need any computer degree/i)).toBeInTheDocument();
+    });
+
+    // Click Industrialist pill
+    const indPill = screen.getByRole('button', { name: /🏭 Industrialist & ROI Value/i });
+    fireEvent.click(indPill);
+    await waitFor(() => {
+      expect(screen.getByText(/For Business Owners & Industrialists: FuturaSculptAI delivers a 6.25x net ROI multiple/i)).toBeInTheDocument();
+    });
+
+    // Click Agentic RAG pill
+    const ragPill = screen.getByRole('button', { name: /🏢 Agentic RAG Corporate Intel/i });
+    fireEvent.click(ragPill);
+    await waitFor(() => {
+      expect(screen.getByText(/Agentic RAG & MCP Company Intelligence Grounding/i)).toBeInTheDocument();
+    });
+
+    // Click Roadmap pill
+    const roadmapPill = screen.getByRole('button', { name: /🔮 1Y, 3Y, 5Y & 10Y Roadmap/i });
+    fireEvent.click(roadmapPill);
+    await waitFor(() => {
+      expect(screen.getByText(/1Y, 3Y, 5Y & 10Y Transformation Roadmap/i)).toBeInTheDocument();
+    });
+
+    // Click WorkTwin Fabric quick prompt pill
+    const twinPromptPill = screen.getByRole('button', { name: /👥 WorkTwin Fabric Tour/i });
+    fireEvent.click(twinPromptPill);
+
+    // Test Jump to WorkTwin Fabric button inside message
+    const jumpWorkTwinBtns = screen.getAllByRole('button', { name: /👥 WorkTwin Fabric/i });
+    expect(jumpWorkTwinBtns.length).toBeGreaterThan(0);
+    fireEvent.click(jumpWorkTwinBtns[0]);
   });
 
   it('handles speech recognition events, unsupported alerts, and backdrop clicks', async () => {

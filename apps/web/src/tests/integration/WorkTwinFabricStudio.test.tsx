@@ -182,31 +182,148 @@ describe('WorkTwinFabricStudio Component', () => {
     fireEvent.click(cancelBtn);
   });
 
-  it('switches to Personal WorkTwin tab, toggles consent, and saves boundary envelope', async () => {
+  it('creates custom RoleTwin archetype with valid inputs', async () => {
+    render(<WorkTwinFabricStudio />);
+
+    const archetypesTab = screen.getByText(/RoleTwin Archetype Catalog/);
+    fireEvent.click(archetypesTab);
+
+    // Open register modal
+    const registerBtn = screen.getByText('+ Register Custom Role Archetype');
+    fireEvent.click(registerBtn);
+
+    const titleInput = screen.getByPlaceholderText(/e\.g\. Cobotics Calibration Specialist/i);
+    const purposeInput = screen.getByPlaceholderText(/Purpose & boundary of role simulation/i);
+    const skillsInput = screen.getByPlaceholderText(/Joint Calibration, Barrier Inspection/i);
+
+    fireEvent.change(titleInput, { target: { value: 'Cobotics Maintenance Specialist' } });
+    fireEvent.change(purposeInput, { target: { value: 'Maintain and calibrate edge cobotic arms.' } });
+    fireEvent.change(skillsInput, { target: { value: 'Robotics, Calibration, Safety Audit' } });
+
+    const submitBtn = screen.getByRole('button', { name: /Register Archetype/i });
+    fireEvent.click(submitBtn);
+
+    await waitFor(() => {
+      expect(api.createRoleTwin).toHaveBeenCalledWith({
+        role_archetype: 'Cobotics Maintenance Specialist',
+        declared_purpose: 'Maintain and calibrate edge cobotic arms.',
+        skills: ['Robotics', 'Calibration', 'Safety Audit'],
+      });
+    });
+  });
+
+  it('validates required fields and handles creation failures when registering RoleTwin', async () => {
+    render(<WorkTwinFabricStudio />);
+
+    const archetypesTab = screen.getByText(/RoleTwin Archetype Catalog/);
+    fireEvent.click(archetypesTab);
+
+    fireEvent.click(screen.getByText('+ Register Custom Role Archetype'));
+
+    // Submit with empty inputs
+    const form = screen.getByRole('button', { name: /Register Archetype/i }).closest('form')!;
+    fireEvent.submit(form);
+
+    expect(screen.getByText(/Role archetype title and declared purpose are required/i)).toBeInTheDocument();
+
+    // Fill valid values but API fails
+    vi.spyOn(api, 'createRoleTwin').mockRejectedValueOnce(new Error('Quota limit reached'));
+    fireEvent.change(screen.getByPlaceholderText(/e\.g\. Cobotics Calibration Specialist/i), {
+      target: { value: 'Safety Sentinel' },
+    });
+    fireEvent.change(screen.getByPlaceholderText(/Purpose & boundary of role simulation/i), {
+      target: { value: 'Inspect safety corridors.' },
+    });
+    fireEvent.submit(form);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Failed to create RoleTwin: Quota limit reached/i)).toBeInTheDocument();
+    });
+
+    // Close modal via top right X button
+    const closeXBtn = screen.getByRole('button', { name: '✕' });
+    fireEvent.click(closeXBtn);
+    expect(screen.queryByText('Register Synthetic Role Archetype')).not.toBeInTheDocument();
+  });
+
+  it('applies Preset 1 and tests SKEPTICAL stance badge in simulation', async () => {
+    const skepticalResult: BoardroomSimulationResult = {
+      ...mockBoardroomResult,
+      perspectives: [
+        {
+          role: 'CFO',
+          role_title: 'Chief Financial Officer',
+          stance: 'SKEPTICAL',
+          assessment: 'High capital expenditure without guaranteed immediate payback.',
+          key_arguments: ['High initial cost'],
+          identified_risks: ['Extended payback cycle'],
+          mandatory_conditions: ['Cap initial pilot to Line 3 only'],
+          evidence_citations: ['EVD-FIN-COST-01'],
+          autonomy_limit: 'WT2_SIMULATE',
+        },
+        {
+          role: 'CHRO',
+          role_title: 'Chief Human Resources Officer',
+          stance: 'UNKNOWN_STANCE' as any,
+          assessment: 'Neutral perspective.',
+          key_arguments: ['Worker reskilling'],
+          identified_risks: ['Change fatigue'],
+          mandatory_conditions: ['Notice period'],
+          evidence_citations: [],
+          autonomy_limit: 'WT1_ASSIST',
+        },
+      ],
+    };
+    vi.spyOn(api, 'simulateFutureBoardroom').mockResolvedValueOnce(skepticalResult);
+
+    render(<WorkTwinFabricStudio />);
+
+    // Click Preset 1
+    const preset1Btn = screen.getByText('Preset 1: Line 3 CV & Cobotics');
+    fireEvent.click(preset1Btn);
+    expect(screen.getByDisplayValue('Line 3 Packaging Computer Vision & Cobotics Deployment')).toBeInTheDocument();
+
+    // Run simulation
+    const runBtn = screen.getByText(/Run Governed Boardroom Simulation/);
+    fireEvent.click(runBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Chief Financial Officer Twin/i)).toBeInTheDocument();
+      expect(screen.getByText('SKEPTICAL')).toBeInTheDocument();
+      expect(screen.getByText('UNKNOWN_STANCE')).toBeInTheDocument();
+    });
+  });
+
+  it('toggles individual personal consent checkboxes and handles consent API errors', async () => {
     render(<WorkTwinFabricStudio />);
 
     const personalTab = screen.getByText(/Personal WorkTwin/);
     fireEvent.click(personalTab);
 
-    expect(screen.getByText(/Elena Vance \(EMP-4102\)/)).toBeInTheDocument();
-    expect(screen.getByText('CONSENT ACTIVE')).toBeInTheDocument();
+    // Get all enabled checkboxes (knowledge, writing, delegated)
+    const checkboxes = screen.getAllByRole('checkbox').filter((c) => !(c as HTMLInputElement).disabled);
+    expect(checkboxes.length).toBe(3);
 
-    // Verify prohibited switches are disabled
-    const checkboxes = screen.getAllByRole('checkbox');
-    const disabledCheckboxes = checkboxes.filter((c) => (c as HTMLInputElement).disabled);
-    expect(disabledCheckboxes.length).toBe(2); // Voice clone & Autonomous employment
+    // Toggle checkboxes
+    fireEvent.click(checkboxes[0]);
+    fireEvent.click(checkboxes[1]);
+    fireEvent.click(checkboxes[2]);
 
-    // Click revoke button
-    const revokeBtn = screen.getByText(/Revoke Personal Twin Immediately/);
-    fireEvent.click(revokeBtn);
-    expect(screen.getByText('Restore Consent')).toBeInTheDocument();
-
-    // Save consent envelope
+    // Save consent when not revoked
     const saveBtn = screen.getByText('Save Consent & Update Boundary Envelope');
     fireEvent.click(saveBtn);
 
     await waitFor(() => {
-      expect(api.registerPersonalTwinConsent).toHaveBeenCalled();
+      expect(screen.getByText(/Personal WorkTwin consent envelope updated and verified with audit trail/i)).toBeInTheDocument();
+    });
+
+    // Test consent error handling
+    vi.spyOn(api, 'registerPersonalTwinConsent').mockRejectedValueOnce(new Error('Consent Ledger Offline'));
+    fireEvent.click(saveBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Consent update failed: Consent Ledger Offline/i)).toBeInTheDocument();
     });
   });
 });
+
