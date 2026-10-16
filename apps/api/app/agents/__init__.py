@@ -19,13 +19,17 @@ from app.agents.subagents import (
 )
 
 from app.agents.adk_boardroom import (
+    CFORoleTwinAgent,
     CHRORoleTwinAgent,
     CISORoleTwinAgent,
     ConflictResolverAgent,
     CTORoleTwinAgent,
+    EmployeeAdvocateRoleTwinAgent,
     EvidenceVerifierAgent,
+    FuturaBoardroomCoordinator,
     FutureBoardroomCoordinator,
     boardroom_coordinator,
+    get_adk_boardroom_agent,
 )
 
 __all__ = [
@@ -33,11 +37,15 @@ __all__ = [
     "BaseSwarmAgent",
     "SwarmOrchestrator",
     "swarm_orchestrator",
+    "FuturaBoardroomCoordinator",
     "FutureBoardroomCoordinator",
     "boardroom_coordinator",
+    "get_adk_boardroom_agent",
     "CTORoleTwinAgent",
     "CHRORoleTwinAgent",
     "CISORoleTwinAgent",
+    "CFORoleTwinAgent",
+    "EmployeeAdvocateRoleTwinAgent",
     "EvidenceVerifierAgent",
     "ConflictResolverAgent",
     "WorkGraphArchitectAgent",

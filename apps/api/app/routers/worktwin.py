@@ -11,6 +11,7 @@ from app.models.worktwin import (
     PersonalWorkTwinConsent,
     WorkTwinManifest,
 )
+from app.agents.adk_boardroom import get_adk_boardroom_agent
 from app.services.worktwin_service import worktwin_service
 
 router = APIRouter(prefix="/worktwins", tags=["WorkTwin Fabric"])
@@ -111,7 +112,8 @@ async def simulate_future_boardroom(
     """Run a multi-twin Future Boardroom simulation evaluating a proposed transformation."""
     # Never trust tenant_id from request body; enforce authenticated user's tenant scope
     request.tenant_id = current_user.tenant_id
-    return worktwin_service.simulate_future_boardroom(request)
+    adk_coordinator = get_adk_boardroom_agent()
+    return await adk_coordinator.simulate_boardroom(request)
 
 
 @router.post("/personal/consent", response_model=WorkTwinManifest)
