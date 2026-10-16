@@ -63,6 +63,27 @@ describe('TransformationRoadmapStudio Component', () => {
     expect(screen.getAllByText(/100x Civilizational & Enterprise Multiplier/i).length).toBeGreaterThanOrEqual(1);
   });
 
+  it('simulates company roadmap for Khan Academy and Zerodha', () => {
+    const { rerender } = render(<TransformationRoadmapStudio i18n={i18n} simulationDelayMs={0} />);
+
+    const compModeBtn = screen.getByRole('button', { name: /Company \/ Global Institution Name/i });
+    fireEvent.click(compModeBtn);
+
+    const input = screen.getByLabelText(/Target Enterprise or Institution Name/i);
+    fireEvent.change(input, { target: { value: 'Khan Academy' } });
+
+    const generateBtn = screen.getByRole('button', { name: /Generate 1Y, 3Y, 5Y & 10Y Roadmap/i });
+    fireEvent.click(generateBtn);
+
+    expect(screen.getAllByText(/Khan Academy/i).length).toBeGreaterThanOrEqual(1);
+
+    rerender(<TransformationRoadmapStudio i18n={i18n} simulationDelayMs={0} />);
+    fireEvent.change(input, { target: { value: 'Zerodha' } });
+    fireEvent.click(generateBtn);
+
+    expect(screen.getAllByText(/Zerodha/i).length).toBeGreaterThanOrEqual(1);
+  });
+
   it('simulates global public good roadmap for Government School in India or Africa', () => {
     render(<TransformationRoadmapStudio i18n={i18n} simulationDelayMs={0} />);
 
@@ -518,6 +539,38 @@ describe('TransformationRoadmapStudio Component', () => {
   });
 
   it('handles live API response with empty evidence citations and handles API rejection gracefully', async () => {
+    const mockRoadmapWithProfile: any = {
+      firm_title: 'Apollo Hospitals Healthcare',
+      category: 'public_health',
+      executive_summary: 'EHR and tele-triage transformation',
+      societal_impact_narrative: 'Expanded clinical access across Tier-2 cities',
+      productivity_verdict: '4.2x clinical turnaround multiple',
+      horizons: {},
+      evidence_citations: ['NABH Clinical Guidelines 2026'],
+      company_profile: {
+        name: 'Apollo Hospitals Enterprise',
+        ticker_or_symbol: 'APOLLOHOSP.NS',
+        employee_count: '70,000 clinicians and staff',
+        annual_revenue: '₹19,000 Cr',
+        net_profit_or_margin: '9.8% net margin',
+        core_business: 'Multi-specialty tertiary care and digital pharmacy',
+        competitive_moat: 'Apollo 24/7 digital clinical graph',
+        automation_baseline: 'Automated bed allocation and clinical lab telemetry',
+        primary_sources: ['Apollo FY25 Annual Report'],
+      },
+      futuristic_readiness: {
+        ai_agentic_maturity: 18.2,
+        digital_telemetry_iot: 18.0,
+        workforce_adaptability: 17.5,
+        process_orchestration: 18.4,
+        data_moat_governance: 17.9,
+        total_score: 90.0,
+        grade: 'A+ Frontier Pioneer',
+        key_strengths: ['Apollo 24/7 tele-triage engine'],
+        modernization_gaps: ['Legacy rural PACS integrations'],
+      },
+    };
+
     const mockRoadmapNoCitations: any = {
       firm_title: '',
       category: '',
@@ -529,6 +582,7 @@ describe('TransformationRoadmapStudio Component', () => {
     };
 
     const spy = vi.spyOn(api, 'generateTransformationRoadmap')
+      .mockResolvedValueOnce(mockRoadmapWithProfile)
       .mockResolvedValueOnce(mockRoadmapNoCitations)
       .mockRejectedValueOnce(new Error('Vertex AI quota exceeded'));
 
@@ -554,6 +608,29 @@ describe('TransformationRoadmapStudio Component', () => {
     await waitFor(() => {
       expect(screen.getAllByText(/NHS Foundation Trust/i).length).toBeGreaterThanOrEqual(2);
     });
+
+    spy.mockRestore();
+  });
+
+  it('exercises agent swarm stepper HUD with simulation delay and timer advancement', async () => {
+    vi.useFakeTimers();
+    render(<TransformationRoadmapStudio i18n={i18n} simulationDelayMs={200} />);
+    const genBtn = screen.getByRole('button', { name: /Generate 1Y, 3Y, 5Y & 10Y Roadmap/i });
+    fireEvent.click(genBtn);
+
+    expect(screen.getByTestId('gemini-agent-swarm-hud')).toBeInTheDocument();
+
+    act(() => {
+      vi.advanceTimersByTime(100);
+    });
+
+    expect(screen.getByText(/STEP [2-5] OF 5/i)).toBeInTheDocument();
+
+    act(() => {
+      vi.advanceTimersByTime(250);
+    });
+
+    vi.useRealTimers();
   });
 });
 

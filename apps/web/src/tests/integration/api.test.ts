@@ -895,6 +895,69 @@ describe('ApiClient', () => {
       })
     ).rejects.toThrow('Failed to generate transformation roadmap: Internal Error');
   });
+
+  it('fetches company intelligence and handles failure', async () => {
+    const mockIntelligence = {
+      company_name: 'Tesla',
+      sector: 'automotive_ev',
+      core_business: 'Electric vehicles and clean energy',
+      grounded_facts: ['Gigafactory manufacturing automation'],
+    };
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockIntelligence,
+    } as Response);
+
+    const res = await client.fetchCompanyIntelligence({
+      company_name: 'Tesla',
+      sector: 'automotive_ev',
+      website_url: 'https://tesla.com',
+    });
+    expect(res).toEqual(mockIntelligence);
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: false,
+      statusText: 'Gateway Timeout',
+    } as Response);
+
+    await expect(
+      client.fetchCompanyIntelligence({ company_name: 'Tesla' })
+    ).rejects.toThrow('Failed to fetch company intelligence: Gateway Timeout');
+  });
+
+  it('generates Gemini Live dialogue and handles failure', async () => {
+    const mockDialogue = {
+      response_text: 'Hello from Gemini Live voice engine',
+      model_used: 'models/gemini-3.8-live',
+      voice_persona: 'kore',
+      audio_base64: 'UklGRgAAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=',
+      latency_ms: 120.5,
+      input_tokens: 15,
+      output_tokens: 30,
+      estimated_cost_usd: 0.00001,
+    };
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockDialogue,
+    } as Response);
+
+    const res = await client.geminiLiveDialogue({
+      message: 'Hello Futura',
+      voice_persona: 'kore',
+    });
+    expect(res).toEqual(mockDialogue);
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: false,
+      statusText: 'Internal Server Error',
+    } as Response);
+
+    await expect(
+      client.geminiLiveDialogue({ message: 'Hello Futura' })
+    ).rejects.toThrow('Failed to generate Gemini Live dialogue: Internal Server Error');
+  });
 });
 
 

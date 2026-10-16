@@ -63,7 +63,7 @@ jobs:
       - name: Install Node Dependencies
         run: npm ci
 
-      - name: Run Vitest with 100% Coverage Gate (v8 Provider)
+      - name: Run Vitest with Quality Coverage Gate (v8 Provider)
         run: npm run test:coverage
 
       - name: TypeScript Compile & Vite Production Bundle Build

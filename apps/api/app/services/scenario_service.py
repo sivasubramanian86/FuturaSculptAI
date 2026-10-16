@@ -1307,7 +1307,7 @@ async def synthesize_company_intelligence(
             target="Strategic Moat & Automation Baseline Mesh",
             status="COMPLETED",
             latency_ms=165.0,
-            description=f"Decomposed core business units, defensive moats, and current automation baselines.",
+            description="Decomposed core business units, defensive moats, and current automation baselines.",
             grounded_facts=[
                 f"Core Business: {profile.core_business}",
                 f"Competitive Moat: {profile.competitive_moat}",
@@ -1337,7 +1337,7 @@ async def synthesize_company_intelligence(
             target="1Y, 3Y, 5Y & 10Y Work Transformation Engine",
             status="COMPLETED",
             latency_ms=340.0,
-            description=f"Synthesized multi-horizon work transformation milestones with wage protection covenants and productivity multipliers.",
+            description="Synthesized multi-horizon work transformation milestones with wage protection covenants and productivity multipliers.",
             grounded_facts=[
                 "1Y: Routine paper tasks reduced 45%, +15% wage bond guarantee",
                 "3Y: Frontline operators become Digital Supervisors (+38% wage lift)",

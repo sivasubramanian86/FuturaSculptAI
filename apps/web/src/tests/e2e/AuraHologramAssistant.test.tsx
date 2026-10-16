@@ -19,6 +19,9 @@ describe('AuraHologramAssistant Component', () => {
         if (utterance.onend) utterance.onend();
       }),
       cancel: vi.fn(),
+      getVoices: vi.fn().mockReturnValue([
+        { name: 'Google UK English Female', lang: 'en-GB' },
+      ]),
     };
     Object.defineProperty(window, 'speechSynthesis', {
       value: mockSpeechSynthesis,
@@ -161,6 +164,14 @@ describe('AuraHologramAssistant Component', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/1Y, 3Y, 5Y & 10Y Transformation Roadmap/i)).toBeInTheDocument();
+    });
+
+    // Ask Agentic RAG / Company Intelligence question
+    fireEvent.change(input, { target: { value: 'Explain agentic rag company headcount and profit' } });
+    fireEvent.click(sendBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Agentic RAG & MCP Company Intelligence Grounding/i)).toBeInTheDocument();
     });
 
     // Test jump to Task Sculptor button inside message
@@ -422,6 +433,7 @@ describe('AuraHologramAssistant Component', () => {
       response_text: 'Live dialogue synthesis from Gemini 3.8 Live Extended Thinking.',
       model_used: 'models/gemini-3.8-live-extended-thinking',
       voice_persona: 'kore',
+      audio_base64: 'UklGRgAAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=',
       reasoning_trace: 'Step 1: Analyzed workforce safety criteria.\nStep 2: Formulated wage protection response.',
       latency_ms: 124.5,
       input_tokens: 35,
@@ -461,6 +473,81 @@ describe('AuraHologramAssistant Component', () => {
       expect(screen.getByText(/Cognitive Reasoning Trace \(Extended Thinking\)/i)).toBeInTheDocument();
       expect(screen.getByText(/Step 1: Analyzed workforce safety criteria/i)).toBeInTheDocument();
     });
+
+    liveDialogueSpy.mockRestore();
+  });
+
+  it('handles voice persona switching between Kore and Aoede with audio playback and fallback', async () => {
+    const liveDialogueSpy = vi.spyOn(api, 'geminiLiveDialogue').mockResolvedValue({
+      response_text: 'Switched persona',
+      model_used: 'models/gemini-3.8-live',
+      voice_persona: 'aoede',
+      audio_base64: 'UklGRgAAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=',
+      latency_ms: 80,
+      input_tokens: 10,
+      output_tokens: 20,
+      estimated_cost_usd: 0.00001,
+    });
+
+    render(
+      <AuraHologramAssistant
+        currentLanguage="en"
+        onNavigateTab={vi.fn()}
+      />
+    );
+
+    fireEvent.click(screen.getByLabelText(/Launch (?:Aura|Futura) 3D Virtual Live Assistant/i));
+
+    // Click Aoede (warm melodic)
+    const aoedeBtn = screen.getByRole('button', { name: /Aoede \(Warm\)/i });
+    fireEvent.click(aoedeBtn);
+
+    await waitFor(() => {
+      expect(liveDialogueSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          voice_persona: 'aoede',
+        })
+      );
+    });
+
+    // Test rejection fallback for Kore
+    liveDialogueSpy.mockRejectedValueOnce(new Error('Network offline'));
+    const koreBtn = screen.getByRole('button', { name: /Kore \(Crisp\)/i });
+    fireEvent.click(koreBtn);
+
+    await waitFor(() => {
+      expect(liveDialogueSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          voice_persona: 'kore',
+        })
+      );
+    });
+
+    // Test resolution without audio_base64
+    liveDialogueSpy.mockResolvedValueOnce({
+      response_text: 'Voice changed',
+      model_used: 'models/gemini-3.8-live',
+      voice_persona: 'kore',
+      audio_base64: '',
+      latency_ms: 70,
+      input_tokens: 10,
+      output_tokens: 15,
+      estimated_cost_usd: 0.00001,
+    });
+    fireEvent.click(koreBtn);
+
+    // Test Aoede resolution without audio_base64
+    liveDialogueSpy.mockResolvedValueOnce({
+      response_text: 'Aoede voice changed',
+      model_used: 'models/gemini-3.8-live',
+      voice_persona: 'aoede',
+      audio_base64: '',
+      latency_ms: 70,
+      input_tokens: 10,
+      output_tokens: 15,
+      estimated_cost_usd: 0.00001,
+    });
+    fireEvent.click(aoedeBtn);
 
     liveDialogueSpy.mockRestore();
   });
