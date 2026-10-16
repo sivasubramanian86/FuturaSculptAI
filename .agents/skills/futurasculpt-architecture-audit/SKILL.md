@@ -50,17 +50,25 @@ class ArchitectureAuditOutput(BaseModel):
    - Verify that all WorkGraph node and edge mutations conform strictly to `docs/architecture/workgraph-schema.md`.
    - Verify temporal fields (`valid_from`, `valid_to`, `is_current`) are present on all state mutations.
 3. **Multi-Agent Coordination Protocol:**
-   - Verify that specialist agents do not bypass the `EngagementOrchestrator` coordinator.
-   - Verify that all agent tool calls specify typed JSON schemas and risk tiers (A0-A3).
+4. **Durable Persistence & Isolation Check:**
+   - Verify that all operational states (WorkTwin manifests, consents, boardroom runs) use repository interfaces externalized to Google Cloud Firestore in production, forbidding in-memory dictionaries.
+5. **System Design & NFR Verification:**
+   - Verify that all synchronous read APIs maintain P95 latency < 1000ms and TTFB < 2000ms.
+   - Verify that edge rate limits and WAF protections are active via Google Cloud Armor.
+   - Enforce Vertex AI Context Caching token hit-rate monitoring to maintain FinOps cost savings.
 
 ## Verification Script (PowerShell)
 ```powershell
-# Check for direct calculation logic inside routers
+# 1. Check for direct calculation logic inside routers
 Get-ChildItem -Path "apps/api/app/routers" -Filter "*.py" -Recurse | Select-String -Pattern "def calculate_|def compute_"
+
+# 2. Verify durable repository pattern implementation
+Get-ChildItem -Path "apps/api/app/repositories" -Filter "*.py" | Select-String -Pattern "class Firestore"
 ```
 
 ## Expected Output
 A structured audit report identifying:
 - Layer violations (if any) with line numbers.
-- Schema non-conformance.
+- Durable persistence conformance.
+- NFR and telemetry compliance score.
 - Pass/Fail determination for the architecture gate.
