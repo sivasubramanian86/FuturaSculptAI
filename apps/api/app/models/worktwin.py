@@ -79,6 +79,7 @@ class BoardroomPerspective(BaseModel):
     role_title: str
     stance: str = Field(..., description="FAVORABLE | CAUTIOUS | BLOCKING | CONDITIONAL")
     assessment: str
+    recommendation: Optional[str] = Field(default=None, description="Specific executive recommendation")
     key_arguments: List[str]
     blocking_risks: List[str]
     approval_conditions: List[str]
@@ -86,7 +87,10 @@ class BoardroomPerspective(BaseModel):
     cited_evidence_ids: List[str] = Field(default_factory=list)
     confidence_score: float = Field(default=0.92, ge=0.0, le=1.0)
     source_spans: List[Dict[str, Any]] = Field(default_factory=list)
-    support_status: str = Field(default="SUPPORTED", description="SUPPORTED | INSUFFICIENT_EVIDENCE")
+    support_status: str = Field(
+        default="SUPPORTED",
+        description="SUPPORTED | INSUFFICIENT_EVIDENCE | NON_FACTUAL_RECOMMENDATION",
+    )
 
 
 class ConflictResolution(BaseModel):
@@ -94,6 +98,7 @@ class ConflictResolution(BaseModel):
 
     consensus_points: List[str]
     unresolved_disagreements: List[str]
+    disagreements: List[str] = Field(default_factory=list)
     value_risk_tradeoffs: List[str]
     blocking_controls: List[str]
     alternative_transformation_paths: List[str]

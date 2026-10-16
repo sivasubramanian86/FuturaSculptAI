@@ -23,6 +23,7 @@ export const hi: LocaleTranslations = {
   navEvidence: 'प्रमाण वॉल्ट',
   navFaqHelp: 'अक्सर पूछे जाने वाले प्रश्न एवं सहायता',
   navAbout: 'के बारे में',
+  navObservability: 'अवलोकन एवं टेलीमेट्री (Observability)',
   navSettings: 'सेटिंग्स',
 
   navCatCore: 'कार्य परिवर्तन',

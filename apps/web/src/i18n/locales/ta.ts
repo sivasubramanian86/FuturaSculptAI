@@ -23,6 +23,7 @@ export const ta: TranslationKeys = {
   navEvidence: 'சான்றுகள் பெட்டகம்',
   navFaqHelp: 'அடிக்கடி கேட்கப்படும் கேள்விகள் & உதவி',
   navAbout: 'பற்றி (About)',
+  navObservability: 'கண்காணிப்பு மற்றும் டெலிமெட்ரி (Observability)',
   navSettings: 'அமைப்புகள்',
 
   navCatCore: 'பணி மாற்றம்',

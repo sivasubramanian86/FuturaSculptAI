@@ -23,6 +23,7 @@ import { TrustBoardWorkbench } from './components/TrustBoardWorkbench';
 import { MultiModalMediaStudio } from './components/MultiModalMediaStudio';
 import { FAQHelp } from './components/FAQHelp';
 import { AboutFuturaSculpt } from './components/AboutFuturaSculpt';
+import { ObservabilityTelemetryDashboard } from './components/ObservabilityTelemetryDashboard';
 import { SettingsStudio } from './components/SettingsStudio';
 import { WorkTwinFabricStudio } from './components/WorkTwinFabricStudio';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -278,6 +279,8 @@ export const App: React.FC = () => {
             {activeTab === 'evidence' && (
               <EvidenceDrawer evidenceLedger={evidenceLedger} onUploadFile={handleUploadFile} i18n={i18n} />
             )}
+
+            {activeTab === 'observability' && <ObservabilityTelemetryDashboard i18n={i18n} />}
 
             {activeTab === 'faq_help' && <FAQHelp i18n={i18n} />}
 

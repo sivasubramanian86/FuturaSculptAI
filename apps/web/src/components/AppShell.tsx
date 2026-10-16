@@ -73,6 +73,7 @@ export const AppShell: React.FC<AppShellProps> = ({
     { id: 'evidence', label: i18n.navEvidence, icon: '📁', category: 'trust' },
 
     // Platform & Help
+    { id: 'observability', label: i18n.navObservability || 'Observability & Telemetry', icon: '⚡', category: 'system' },
     { id: 'faq_help', label: i18n.navFaqHelp, icon: '❓', category: 'system' },
     { id: 'about', label: i18n.navAbout, icon: 'ℹ️', category: 'system' },
     { id: 'settings', label: i18n.navSettings, icon: '⚙️', category: 'system' },

@@ -2,6 +2,7 @@
 
 from typing import List
 
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -10,9 +11,9 @@ class Settings(BaseSettings):
 
     app_name: str = "FuturaSculptAI API"
     app_version: str = "0.2.0"
-    git_sha: str = "e619fd5"
-    build_timestamp: str = "2026-10-16T13:00:00Z"
-    environment: str = "development"
+    git_sha: str = Field(default="unknown", validation_alias="GIT_SHA")
+    build_timestamp: str = Field(default="unknown", validation_alias="BUILD_TIMESTAMP")
+    environment: str = Field(default="development", validation_alias="ENVIRONMENT")
     debug: bool = False
     log_level: str = "INFO"
 
@@ -20,8 +21,15 @@ class Settings(BaseSettings):
     default_tenant_id: str = "tenant-food-mfg-01"
     gcp_project_id: str = "genai-apac-2026-491004"
     gcp_region: str = "asia-southeast1"
-    auth_dev_mode: bool = True  # Development/test mode allows mock IAM; production enforces Firebase cryptographic verification
+    auth_dev_mode: bool = Field(default=True, validation_alias="AUTH_DEV_MODE")  # Dev/test mode allows mock IAM; production enforces Firebase verification
     firebase_project_id: str = "genai-apac-2026-491004"
+
+    @model_validator(mode="after")
+    def validate_production_invariants(self) -> "Settings":
+        """Enforce strict security invariants in production environments."""
+        if self.environment == "production" and self.auth_dev_mode:
+            raise RuntimeError("AUTH_DEV_MODE must be false in production")
+        return self
 
     # CORS configuration
     cors_origins: List[str] = [

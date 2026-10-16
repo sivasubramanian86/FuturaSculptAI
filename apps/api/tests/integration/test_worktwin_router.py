@@ -80,7 +80,7 @@ def test_register_personal_twin_consent_endpoint():
 
 
 def test_materially_different_proposals_produce_different_deliberations():
-    """Release Gate: verify materially different proposals produce dynamically distinct deliberations and conflict resolution."""
+    """Release Gate: verify materially different proposals produce distinct recommendations, disagreements, and evidentiary support."""
     first = client.post(
         "/api/v1/worktwins/boardroom/simulate",
         json={
@@ -98,5 +98,46 @@ def test_materially_different_proposals_produce_different_deliberations():
         },
     ).json()
     assert first["perspectives"] != second["perspectives"]
-    assert first["conflict_resolution"] != second["conflict_resolution"]
+    assert {p["recommendation"] for p in first["perspectives"]} != {p["recommendation"] for p in second["perspectives"]}
+    assert first["conflict_resolution"]["disagreements"] != second["conflict_resolution"]["disagreements"]
+    for result in (first, second):
+        for perspective in result["perspectives"]:
+            assert perspective["support_status"] in {
+                "SUPPORTED",
+                "INSUFFICIENT_EVIDENCE",
+                "NON_FACTUAL_RECOMMENDATION",
+            }
+            if perspective["support_status"] == "SUPPORTED":
+                assert perspective["source_spans"]
+                assert all(span.get("evidence_id") for span in perspective["source_spans"])
+
+
+def test_adversarial_proposals_with_similar_titles_produce_opposite_deliberations():
+    """Adversarial Release Gate: Two proposals with similar titles but opposite policy intentions produce opposite stances and recommendations."""
+    adv_automation = client.post(
+        "/api/v1/worktwins/boardroom/simulate",
+        json={
+            "proposal_title": "Workforce Optimization Protocol: Maximum Automation Surge",
+            "proposal_description": "Eliminate manual touchpoints across all facilities and replace human line workers.",
+            "sector": "food_manufacturing",
+        },
+    ).json()
+    adv_human = client.post(
+        "/api/v1/worktwins/boardroom/simulate",
+        json={
+            "proposal_title": "Workforce Optimization Protocol: Human Agency Sanctuary",
+            "proposal_description": "Prohibit automation and establish human-first four-day mentoring sanctuaries.",
+            "sector": "food_manufacturing",
+        },
+    ).json()
+
+    assert adv_automation["perspectives"] != adv_human["perspectives"]
+    assert {p["recommendation"] for p in adv_automation["perspectives"]} != {p["recommendation"] for p in adv_human["perspectives"]}
+
+    # Extreme automation triggers BLOCKING from worker-protection roles
+    auto_chro = next(p for p in adv_automation["perspectives"] if p["role"] == "CHRO")
+    human_chro = next(p for p in adv_human["perspectives"] if p["role"] == "CHRO")
+    assert auto_chro["stance"] == "BLOCKING"
+    assert human_chro["stance"] == "FAVORABLE"
+
 

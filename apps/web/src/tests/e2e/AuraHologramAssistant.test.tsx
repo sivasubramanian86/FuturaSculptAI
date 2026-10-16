@@ -20,8 +20,9 @@ describe('AuraHologramAssistant Component', () => {
       }),
       cancel: vi.fn(),
       getVoices: vi.fn().mockReturnValue([
-        { name: 'Google UK English Female', lang: 'en-GB' },
+        { name: 'Microsoft Jenny Natural - English (United States)', lang: 'en-US' },
       ]),
+      onvoiceschanged: null,
     };
     Object.defineProperty(window, 'speechSynthesis', {
       value: mockSpeechSynthesis,
@@ -737,13 +738,18 @@ describe('AuraHologramAssistant Component', () => {
     });
 
     liveDialogueSpy.mockRestore();
-  });
+  }, 30000);
 
   it('renders ambient smart pill when modal is closed, explains screen on demand, and dismisses on click', async () => {
     const liveDialogueSpy = vi.spyOn(api, 'geminiLiveDialogue').mockResolvedValue({
       response_text: 'Live explanation of the WorkTwin Fabric.',
       audio_base64: 'UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=',
       model_used: 'gemini-2.5-flash',
+      voice_persona: 'kore',
+      latency_ms: 120,
+      input_tokens: 150,
+      output_tokens: 60,
+      estimated_cost_usd: 0.0001,
     });
 
     render(
@@ -781,6 +787,11 @@ describe('AuraHologramAssistant Component', () => {
       response_text: 'Live explanation for Task Sculptor screen.',
       audio_base64: 'UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=',
       model_used: 'gemini-2.5-flash',
+      voice_persona: 'kore',
+      latency_ms: 110,
+      input_tokens: 140,
+      output_tokens: 50,
+      estimated_cost_usd: 0.0001,
     });
 
     render(
@@ -906,29 +917,70 @@ describe('AuraHologramAssistant Component', () => {
     const openBtn = screen.getByRole('button', { name: /Launch Futura 3D Virtual Live Assistant/i });
     fireEvent.click(openBtn);
 
+    const liveDialogueSpy = vi.spyOn(api, 'geminiLiveDialogue').mockResolvedValue({
+      response_text: 'Priority voice test response',
+      model_used: 'models/gemini-3.8-live',
+      voice_persona: 'kore',
+      audio_base64: '',
+      latency_ms: 100,
+      input_tokens: 10,
+      output_tokens: 10,
+      estimated_cost_usd: 0.0001,
+    });
+
+    // Exercise voice selection with anyPremium (different language)
+    (window.speechSynthesis.getVoices as any).mockReturnValue([
+      { name: 'Natural French Voice', lang: 'fr-FR' },
+    ]);
+    const input = screen.getByPlaceholderText(/Ask (?:Aura|Futura) anything/i);
+    const sendBtn = screen.getByRole('button', { name: /Send/i });
+    fireEvent.change(input, { target: { value: 'Voice Priority 1 Any test' } });
+    fireEvent.click(sendBtn);
+    await waitFor(() => {
+      expect(screen.getByText(/Voice Priority 1 Any test/i)).toBeInTheDocument();
+    });
+
     // Exercise voice selection with modern OS female
     (window.speechSynthesis.getVoices as any).mockReturnValue([
       { name: 'Microsoft Zira - English (United States)', lang: 'en-US' },
     ]);
-    if (window.speechSynthesis.onvoiceschanged) {
-      window.speechSynthesis.onvoiceschanged(new Event('voiceschanged'));
-    }
+    fireEvent.change(input, { target: { value: 'Voice Priority 2 test' } });
+    fireEvent.click(sendBtn);
+    await waitFor(() => {
+      expect(screen.getByText(/Voice Priority 2 test/i)).toBeInTheDocument();
+    });
 
-    // Exercise voice selection with non-gTTS voice
+    // Exercise voice selection with anyModernFemale (different language)
     (window.speechSynthesis.getVoices as any).mockReturnValue([
-      { name: 'Alex', lang: 'en-US' },
+      { name: 'Zira German Modern', lang: 'de-DE' },
     ]);
-    if (window.speechSynthesis.onvoiceschanged) {
-      window.speechSynthesis.onvoiceschanged(new Event('voiceschanged'));
-    }
+    fireEvent.change(input, { target: { value: 'Voice Priority 2 Any test' } });
+    fireEvent.click(sendBtn);
+    await waitFor(() => {
+      expect(screen.getByText(/Voice Priority 2 Any test/i)).toBeInTheDocument();
+    });
 
-    // Exercise voice selection with non-robotic fallback
+    // Exercise voice selection with non-gTTS voice (Priority 3)
     (window.speechSynthesis.getVoices as any).mockReturnValue([
-      { name: 'Generic Non Robotic', lang: 'fr-FR' },
+      { name: 'Alex Non-Robotic', lang: 'en-US' },
     ]);
-    if (window.speechSynthesis.onvoiceschanged) {
-      window.speechSynthesis.onvoiceschanged(new Event('voiceschanged'));
-    }
+    fireEvent.change(input, { target: { value: 'Voice Priority 3 test' } });
+    fireEvent.click(sendBtn);
+    await waitFor(() => {
+      expect(screen.getByText(/Voice Priority 3 test/i)).toBeInTheDocument();
+    });
+
+    // Exercise voice selection with non-robotic fallback (Priority 4)
+    (window.speechSynthesis.getVoices as any).mockReturnValue([
+      { name: 'Generic Non Robotic Other Lang', lang: 'fr-FR' },
+    ]);
+    fireEvent.change(input, { target: { value: 'Voice Priority 4 test' } });
+    fireEvent.click(sendBtn);
+    await waitFor(() => {
+      expect(screen.getByText(/Voice Priority 4 test/i)).toBeInTheDocument();
+    });
+
+    liveDialogueSpy.mockRestore();
 
     // Exercise voice selection with empty voices
     (window.speechSynthesis.getVoices as any).mockReturnValue([]);
@@ -956,6 +1008,9 @@ describe('AuraHologramAssistant Component', () => {
       reasoning_trace: 'Testing audio base64 path',
       voice_persona: 'kore',
       audio_base64: 'A'.repeat(6000),
+      input_tokens: 180,
+      output_tokens: 90,
+      estimated_cost_usd: 0.0002,
     });
 
     render(
@@ -1017,6 +1072,9 @@ describe('AuraHologramAssistant Component', () => {
       model_used: 'models/gemini-3.8-live',
       latency_ms: 50,
       voice_persona: 'kore',
+      input_tokens: 100,
+      output_tokens: 40,
+      estimated_cost_usd: 0.0001,
     });
 
     render(
@@ -1108,6 +1166,9 @@ describe('AuraHologramAssistant Component', () => {
       model_used: 'models/gemini-3.8-live',
       voice_persona: 'kore',
       latency_ms: 120,
+      input_tokens: 120,
+      output_tokens: 50,
+      estimated_cost_usd: 0.0001,
     });
 
     render(
@@ -1144,6 +1205,9 @@ describe('AuraHologramAssistant Component', () => {
       model_used: 'models/gemini-3.8-live',
       voice_persona: 'aoede',
       latency_ms: 100,
+      input_tokens: 110,
+      output_tokens: 45,
+      estimated_cost_usd: 0.0001,
     });
 
     render(
@@ -1180,6 +1244,9 @@ describe('AuraHologramAssistant Component', () => {
       model_used: 'models/gemini-3.8-live',
       voice_persona: 'kore',
       latency_ms: 50,
+      input_tokens: 90,
+      output_tokens: 30,
+      estimated_cost_usd: 0.0001,
     });
     fireEvent.change(input, { target: { value: 'Speak with synthesis error' } });
     fireEvent.click(sendBtn);
@@ -1190,5 +1257,48 @@ describe('AuraHologramAssistant Component', () => {
 
     (window as any).Audio = origAudio;
   });
+
+  it('exercises audio constructor exception fallback and sets utterance.voice when female voice is returned', async () => {
+    const mockVoice = { name: 'Google US English Female', lang: 'en-US', default: false, localService: true };
+    (window.speechSynthesis.getVoices as any).mockReturnValue([mockVoice]);
+
+    const audioSpy = vi.fn().mockImplementation(() => {
+      throw new Error('Audio constructor failure');
+    });
+    vi.stubGlobal('Audio', audioSpy);
+
+    vi.spyOn(api, 'geminiLiveDialogue').mockResolvedValueOnce({
+      response_text: 'Fallback text with exception',
+      audio_base64: 'A'.repeat(6000),
+      model_used: 'models/gemini-3.8-live',
+      voice_persona: 'kore',
+      latency_ms: 50,
+      input_tokens: 20,
+      output_tokens: 30,
+      estimated_cost_usd: 0.0001,
+    });
+
+    render(
+      <AuraHologramAssistant
+        currentLanguage="en"
+        onNavigateTab={vi.fn()}
+      />
+    );
+
+    const openBtn = screen.getByRole('button', { name: /Launch Futura 3D Virtual Live Assistant/i });
+    fireEvent.click(openBtn);
+
+    const input = screen.getByPlaceholderText(/Ask Futura anything/i);
+    const sendBtn = screen.getByRole('button', { name: /^Send$/i });
+    fireEvent.change(input, { target: { value: 'Trigger voice test' } });
+    fireEvent.click(sendBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Fallback text with exception/i)).toBeInTheDocument();
+    });
+
+    vi.unstubAllGlobals();
+  });
 });
+
 

@@ -23,6 +23,7 @@ export const en = {
   navEvidence: 'Evidence Vault',
   navFaqHelp: 'FAQ & Help',
   navAbout: 'About FuturaSculptAI',
+  navObservability: 'Observability & Telemetry',
   navSettings: 'Settings',
 
   // Categories in Navigation

@@ -173,3 +173,17 @@ def test_future_boardroom_red_line_prohibition():
         svc.simulate_future_boardroom(bad_req)
     assert exc_info.value.status_code == 403
     assert "Red-line violation" in str(exc_info.value)
+
+
+def test_worktwin_service_repository_properties():
+    """Verify _manifests and _consents property accessors on in-memory and non-in-memory repos."""
+    svc = WorkTwinService()
+    assert len(svc._manifests) >= 8
+    assert svc._consents == {}
+
+    from unittest.mock import MagicMock
+
+    custom_svc = WorkTwinService(twin_repo=MagicMock(), consent_repo=MagicMock())
+    assert custom_svc._manifests == {}
+    assert custom_svc._consents == {}
+

@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 import pytest
 from unittest.mock import patch
 
-from app.core.config import settings
+from app.core.config import Settings, settings
 from app.core.exceptions import PolicyViolationException, ResourceNotFoundException
 from app.core.rbac import (
     UserRole,
@@ -107,6 +107,18 @@ def test_production_mode_auth_enforcement():
 
     finally:
         settings.auth_dev_mode = orig_mode
+
+
+def test_production_auth_invariant_raises_runtime_error():
+    """Verify Settings model validator strictly enforces auth_dev_mode=False in production."""
+    with pytest.raises(RuntimeError) as exc_info:
+        Settings(environment="production", auth_dev_mode=True)
+    assert "AUTH_DEV_MODE must be false in production" in str(exc_info.value)
+
+    # When auth_dev_mode is explicitly set to False, production settings instantiate cleanly
+    prod_settings = Settings(environment="production", auth_dev_mode=False)
+    assert prod_settings.environment == "production"
+    assert prod_settings.auth_dev_mode is False
 
 
 def test_worktwin_cross_tenant_isolation_in_service():

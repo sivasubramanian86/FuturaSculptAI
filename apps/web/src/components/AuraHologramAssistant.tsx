@@ -368,15 +368,11 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
       synthRef.current = window.speechSynthesis || null;
 
       const loadVoices = () => {
-        try {
-          if (window.speechSynthesis) {
-            const list = window.speechSynthesis.getVoices();
-            if (list && list.length > 0) {
-              setAvailableVoices(list);
-            }
+        if (window.speechSynthesis) {
+          const list = window.speechSynthesis.getVoices();
+          if (list && list.length > 0) {
+            setAvailableVoices(list);
           }
-        } catch {
-          // ignore
         }
       };
       loadVoices();
@@ -657,25 +653,14 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
       return anyNonGtts;
     }
 
-    // Never pick legacy robotic gTTS voice as fallback
-    const nonRoboticFallback = all.find((v: any) => !isRoboticGtts(v)) || null;
-    if (nonRoboticFallback) {
-      setActiveVoiceEngine(nonRoboticFallback.name);
-      return nonRoboticFallback;
-    }
-
     setActiveVoiceEngine(`Gemini Live Audio Native (${selectedVoicePersona.toUpperCase()})`);
     return null;
   };
 
   const playAudioBase64 = (base64Data: string, fallbackText?: string) => {
     try {
-      if (typeof window === 'undefined') {
-        if (fallbackText) speakText(fallbackText);
-        return;
-      }
       if (!base64Data || base64Data.trim() === '' || base64Data.length < 5000) {
-        if (fallbackText && typeof (window as any).Audio === 'undefined') {
+        if (fallbackText) {
           speakText(fallbackText);
         }
         return;
@@ -711,7 +696,7 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
     } catch {
       setIsSpeaking(false);
       liveAudioRef.current = null;
-      if (fallbackText && typeof (window as any).Audio === 'undefined') {
+      if (fallbackText) {
         speakText(fallbackText);
       }
     }
@@ -989,6 +974,8 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
       setMessages((prev) => [...prev, auraMsg]);
       if (liveRes.audio_base64) {
         playAudioBase64(liveRes.audio_base64, liveRes.response_text);
+      } else if (liveRes.response_text) {
+        speakText(liveRes.response_text);
       }
     } catch {
       // Offline / fallback response without robotic speech synthesis
