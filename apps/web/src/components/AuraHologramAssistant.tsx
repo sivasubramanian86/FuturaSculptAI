@@ -1608,6 +1608,14 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
                         </button>
                         <button
                           type="button"
+                          onClick={() => handleJumpToSection('task_sculptor', 'logistics')}
+                          className="btn-subtle"
+                          style={{ padding: '4px 10px', fontSize: '11px', borderRadius: '9999px' }}
+                        >
+                          🚛 Sector Focus
+                        </button>
+                        <button
+                          type="button"
                           onClick={() => handleJumpToSection('governance')}
                           className="btn-subtle"
                           style={{ padding: '4px 10px', fontSize: '11px', borderRadius: '9999px' }}
