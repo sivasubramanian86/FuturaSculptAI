@@ -48,3 +48,20 @@ def test_api_v1_health_returns_healthy():
     data = response.json()
     assert data["status"] == "healthy"
     assert "service" in data
+
+
+def test_build_manifest_endpoint_returns_audit_metadata():
+    """Verify build manifest exposes version, git SHA, and capability flags."""
+    resp1 = client.get("/api/v1/system/build")
+    assert resp1.status_code == 200
+    data1 = resp1.json()
+    assert data1["application"] == "FuturaSculptAI"
+    assert data1["version"] == "0.2.0"
+    assert "git_sha" in data1
+    assert data1["features"]["worktwin"] == "live"
+    assert data1["features"]["ambient_copilot"] == "live"
+
+    resp2 = client.get("/system/build")
+    assert resp2.status_code == 200
+    assert resp2.json()["version"] == "0.2.0"
+
