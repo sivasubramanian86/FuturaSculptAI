@@ -10,7 +10,6 @@ import uuid
 from app.core.exceptions import PolicyViolationException, ResourceNotFoundException
 from app.models.worktwin import (
     AutonomyLevel,
-    BoardroomPerspective,
     BoardroomSimulationRequest,
     BoardroomSimulationResult,
     PersonalWorkTwinConsent,
