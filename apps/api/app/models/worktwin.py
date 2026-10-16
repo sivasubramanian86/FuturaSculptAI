@@ -85,6 +85,8 @@ class BoardroomPerspective(BaseModel):
     assumptions_requiring_evidence: List[str]
     cited_evidence_ids: List[str] = Field(default_factory=list)
     confidence_score: float = Field(default=0.92, ge=0.0, le=1.0)
+    source_spans: List[Dict[str, Any]] = Field(default_factory=list)
+    support_status: str = Field(default="SUPPORTED", description="SUPPORTED | INSUFFICIENT_EVIDENCE")
 
 
 class ConflictResolution(BaseModel):

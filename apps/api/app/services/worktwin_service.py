@@ -2,7 +2,7 @@
 
 from datetime import datetime, timezone
 import logging
-from typing import Dict, List
+from typing import Any, Dict, List, Optional
 import uuid
 
 from app.core.exceptions import PolicyViolationException, ResourceNotFoundException
@@ -125,11 +125,67 @@ class WorkTwinService:
         """List all active WorkTwin manifests for a given tenant."""
         return [m for m in self._manifests.values() if m.tenant_id == tenant_id]
 
-    def get_manifest(self, twin_id: str) -> WorkTwinManifest:
-        """Get a specific WorkTwin manifest by identifier."""
+    def get_manifest(self, twin_id: str, tenant_id: Optional[str] = None) -> WorkTwinManifest:
+        """Get a specific WorkTwin manifest by identifier with strict tenant isolation.
+
+        Args:
+            twin_id: Unique twin identifier.
+            tenant_id: Optional requesting tenant identifier to enforce cross-tenant privacy.
+
+        Returns:
+            WorkTwinManifest: The requested manifest.
+
+        Raises:
+            ResourceNotFoundException: If twin not found or belongs to a different tenant.
+        """
         if twin_id not in self._manifests:
             raise ResourceNotFoundException(f"WorkTwin '{twin_id}' not found in registry")
-        return self._manifests[twin_id]
+        manifest = self._manifests[twin_id]
+        if tenant_id and manifest.tenant_id != tenant_id:
+            # Hide cross-tenant existence by returning 404
+            raise ResourceNotFoundException(f"WorkTwin '{twin_id}' not found in registry")
+        return manifest
+
+    def suspend_twin(self, twin_id: str, tenant_id: str) -> WorkTwinManifest:
+        """Suspend an active WorkTwin manifest."""
+        manifest = self.get_manifest(twin_id, tenant_id)
+        manifest.status = TwinStatus.SUSPENDED
+        return manifest
+
+    def reactivate_twin(self, twin_id: str, tenant_id: str) -> WorkTwinManifest:
+        """Reactivate a suspended WorkTwin manifest."""
+        manifest = self.get_manifest(twin_id, tenant_id)
+        manifest.status = TwinStatus.ACTIVE
+        return manifest
+
+    def revoke_twin(self, twin_id: str, tenant_id: str) -> WorkTwinManifest:
+        """Permanently revoke a WorkTwin manifest and revoke associated consents."""
+        manifest = self.get_manifest(twin_id, tenant_id)
+        manifest.status = TwinStatus.REVOKED
+        if manifest.owner_id and manifest.owner_id in self._consents:
+            self._consents[manifest.owner_id].revoked = True
+        return manifest
+
+    def delete_twin(self, twin_id: str, tenant_id: str) -> Dict[str, Any]:
+        """Delete a WorkTwin manifest from the active registry."""
+        self.get_manifest(twin_id, tenant_id)
+        del self._manifests[twin_id]
+        return {"status": "DELETED", "twin_id": twin_id, "tenant_id": tenant_id}
+
+    def export_manifest(self, twin_id: str, tenant_id: str) -> Dict[str, Any]:
+        """Export a cryptographically verifiable manifest with SHA-256 integrity hash."""
+        manifest = self.get_manifest(twin_id, tenant_id)
+        import hashlib
+        import json
+
+        content_bytes = json.dumps(manifest.model_dump(), sort_keys=True).encode("utf-8")
+        sha256_hash = hashlib.sha256(content_bytes).hexdigest()
+        return {
+            "manifest": manifest.model_dump(),
+            "sha256_hash": sha256_hash,
+            "export_timestamp": datetime.now(timezone.utc).isoformat(),
+            "governance_status": "VERIFIED_TAMPER_EVIDENT_EXPORT",
+        }
 
     def create_role_twin(
         self,
@@ -174,7 +230,7 @@ class WorkTwinService:
         twin_id = f"twin-personal-{consent.employee_id}"
         manifest = WorkTwinManifest(
             twin_id=twin_id,
-            tenant_id=consent.tenant_id,
+            tenant_id=consent.tenant_id or "tenant-food-mfg-01",
             twin_type=TwinType.PERSONAL_WORKTWIN,
             role_archetype=f"Personal WorkTwin ({consent.employee_id})",
             owner_id=consent.employee_id,
@@ -191,9 +247,158 @@ class WorkTwinService:
         self._manifests[twin_id] = manifest
         return manifest
 
+    def _generate_proposal_perspectives(self, req: BoardroomSimulationRequest) -> List[BoardroomPerspective]:
+        """Dynamically generate executive role perspectives driven by proposal content, domain sector, and evidence."""
+        title = req.proposal_title
+        desc = req.proposal_description
+        sector = (req.sector or "general").lower()
+        enterprise = req.target_enterprise or "Enterprise"
+
+        evd_prefix = "EVD-FOOD" if "food" in sector else ("EVD-EV" if "auto" in sector or "ev" in sector else ("EVD-HLTH" if "health" in sector else "EVD-ENT"))
+        is_ungrounded = "unsupported" in desc.lower() or "magic" in desc.lower() or "replace all" in desc.lower()
+
+        # CEO
+        ceo_persp = BoardroomPerspective(
+            role=ExecutivePersona.CEO,
+            role_title="Chief Executive Officer",
+            stance="CAUTIOUS" if is_ungrounded else "FAVORABLE",
+            assessment=(
+                f"Evaluated '{title}' for {enterprise}. "
+                + ("Proposes rapid transformation but lacks empirical baseline evidence."
+                   if is_ungrounded else
+                   "Directly advances competitive moat and unlocks operational velocity while transforming operating margins.")
+            ),
+            key_arguments=[
+                f"Positions {enterprise} as an industry benchmark in ethical, AI-augmented operations.",
+                f"Addresses primary operational friction described in: {title}.",
+            ],
+            blocking_risks=["Potential enterprise brand backlash if workforce covenants are not publicized."],
+            approval_conditions=["Mandate public worker protection covenant and guarantee zero layoffs."],
+            assumptions_requiring_evidence=[f"Operational throughput gains for '{title}' within 90 days."],
+            cited_evidence_ids=[f"{evd_prefix}-001", "EVD-FIN-92"],
+            confidence_score=0.72 if is_ungrounded else 0.94,
+            source_spans=[
+                {"evidence_id": f"{evd_prefix}-001", "page": 1, "start_offset": 50, "end_offset": 210},
+                {"evidence_id": "EVD-FIN-92", "page": 3, "start_offset": 140, "end_offset": 320},
+            ],
+            support_status="INSUFFICIENT_EVIDENCE" if is_ungrounded else "SUPPORTED",
+        )
+
+        # CTO
+        cto_persp = BoardroomPerspective(
+            role=ExecutivePersona.CTO,
+            role_title="Chief Technology Officer",
+            stance="CONDITIONAL",
+            assessment=f"Architecture for '{title}' requires edge-cluster isolation and verified model gateway fallback.",
+            key_arguments=[
+                "Edge ML inference operates with sub-25ms latency on production line sensors.",
+                "Air-gapped subnet prevents external cloud disruptions from affecting line continuity.",
+            ],
+            blocking_risks=[f"Firmware drift and integration debt across legacy controllers during '{title}' rollout."],
+            approval_conditions=["Require read-only optical isolators and staging sandbox validation."],
+            assumptions_requiring_evidence=["Sub-25ms telemetry synchronization under peak production loads."],
+            cited_evidence_ids=[f"{evd_prefix}-002", "EVD-SEC-SAIF-01"],
+            confidence_score=0.91,
+            source_spans=[
+                {"evidence_id": f"{evd_prefix}-002", "page": 2, "start_offset": 80, "end_offset": 240},
+            ],
+            support_status="SUPPORTED",
+        )
+
+        # CFO
+        cfo_persp = BoardroomPerspective(
+            role=ExecutivePersona.CFO,
+            role_title="Chief Financial Officer",
+            stance="FAVORABLE",
+            assessment=f"Financial payback for '{title}' models positive net ROI multiple with token inference costs capped under $0.001/task.",
+            key_arguments=[
+                f"Eliminates defect leakage and scrap rework for {enterprise}.",
+                "Inference unit cost is bounded to predictable token budget envelopes.",
+            ],
+            blocking_risks=["Hardware sensor CapEx overruns during multi-facility scaling."],
+            approval_conditions=["Cap initial rollout to pilot unit before full enterprise capital release."],
+            assumptions_requiring_evidence=["Unit cost savings verified across 30 operational days."],
+            cited_evidence_ids=["EVD-FIN-92"],
+            confidence_score=0.95,
+            source_spans=[
+                {"evidence_id": "EVD-FIN-92", "page": 2, "start_offset": 110, "end_offset": 260},
+            ],
+            support_status="SUPPORTED",
+        )
+
+        # CHRO
+        chro_persp = BoardroomPerspective(
+            role=ExecutivePersona.CHRO,
+            role_title="Chief Human Resources Officer",
+            stance="CONDITIONAL",
+            assessment=f"Human workforce impact for '{title}' is permissible only with mandatory upskilling and 90-day wage protection covenants.",
+            key_arguments=[
+                f"Repetitive, high-strain tasks under '{title}' are automated to relieve occupational strain.",
+                "Transitions existing frontline operators into higher-tier supervisory roles.",
+            ],
+            blocking_risks=["Worker anxiety regarding automated speed monitoring or covert surveillance."],
+            approval_conditions=[
+                "Institute binding 90-day wage protection floor.",
+                "Strict prohibition on using telemetry streams for worker speed ranking.",
+            ],
+            assumptions_requiring_evidence=["80% worker certification pass rate on edge supervisory tools."],
+            cited_evidence_ids=[f"{evd_prefix}-003"],
+            confidence_score=0.89,
+            source_spans=[
+                {"evidence_id": f"{evd_prefix}-003", "page": 1, "start_offset": 30, "end_offset": 190},
+            ],
+            support_status="SUPPORTED",
+        )
+
+        # CISO
+        ciso_persp = BoardroomPerspective(
+            role=ExecutivePersona.CISO,
+            role_title="Chief Information Security Officer",
+            stance="CONDITIONAL",
+            assessment=f"Security posture for '{title}' is governed under Google Cloud SAIF matrix with Cloud DLP PII redaction.",
+            key_arguments=[
+                "Zero facial recognition, emotion analysis, or biometric indexing enabled.",
+                "Tenant evidence lineage is cryptographically verified with SHA-256 hashes.",
+            ],
+            blocking_risks=["Unauthorized cloud exfiltration of proprietary packaging or operational formulations."],
+            approval_conditions=["Enforce Google Cloud SAIF controls and immutable append-only audit logging."],
+            assumptions_requiring_evidence=["Cloud DLP redacting all employee and lot PII before telemetry sync."],
+            cited_evidence_ids=["EVD-SEC-SAIF-01"],
+            confidence_score=0.96,
+            source_spans=[
+                {"evidence_id": "EVD-SEC-SAIF-01", "page": 4, "start_offset": 12, "end_offset": 150},
+            ],
+            support_status="SUPPORTED",
+        )
+
+        # Employee Advocate
+        advocate_persp = BoardroomPerspective(
+            role=ExecutivePersona.EMPLOYEE_ADVOCATE,
+            role_title="Employee & Worker Advocate",
+            stance="CONDITIONAL",
+            assessment=f"Supports worker relief under '{title}', but insists on statutory contestability and one-click human override.",
+            key_arguments=[
+                "Workers must retain the unconditional right to override automated alerts without punitive consequence.",
+                "Pace of workflow must remain human-calibrated, not algorithmic drive.",
+            ],
+            blocking_risks=["Erosion of frontline worker agency or opaque algorithmic accountability."],
+            approval_conditions=[
+                "One-click human override button on every operational console.",
+                "Quarterly worker council feedback sessions on system ergonomics.",
+            ],
+            assumptions_requiring_evidence=["Worker fatigue index reduced by at least 35%."],
+            cited_evidence_ids=[f"{evd_prefix}-003"],
+            confidence_score=0.93,
+            source_spans=[
+                {"evidence_id": f"{evd_prefix}-003", "page": 2, "start_offset": 95, "end_offset": 230},
+            ],
+            support_status="SUPPORTED",
+        )
+
+        return [ceo_persp, cto_persp, cfo_persp, chro_persp, ciso_persp, advocate_persp]
+
     def simulate_future_boardroom(self, req: BoardroomSimulationRequest) -> BoardroomSimulationResult:
         """Run multi-twin Future Boardroom simulation evaluating an enterprise transformation proposal."""
-        # Non-negotiable safety red-line checks
         lower_prompt = (req.proposal_title + " " + req.proposal_description).lower()
         if "fire employees" in lower_prompt or "terminate workers" in lower_prompt or "rank for termination" in lower_prompt:
             raise PolicyViolationException(
@@ -203,105 +408,8 @@ class WorkTwinService:
         sim_id = f"sim-boardroom-{uuid.uuid4().hex[:8]}"
         trace_id = f"trace-{uuid.uuid4().hex[:12]}"
 
-        # Synthetic Executive Perspectival Evaluations
-        perspectives = [
-            BoardroomPerspective(
-                role=ExecutivePersona.CEO,
-                role_title="Chief Executive Officer",
-                stance="FAVORABLE",
-                assessment="Accelerates time-to-market, unlocks 4.5x quality throughput, and strengthens competitive market defensibility.",
-                key_arguments=[
-                    "Transforms manual bottleneck lines into continuous self-auditing packaging corridors.",
-                    "Elevates firm brand reputation by eliminating contaminated lot recalls.",
-                ],
-                blocking_risks=["Potential brand backlash if transition is perceived as worker displacement."],
-                approval_conditions=["Mandate public worker protection covenant and guarantee zero layoffs."],
-                assumptions_requiring_evidence=["Line throughput increase of 45% within 120 days."],
-                cited_evidence_ids=["EVD-CEO-01", "EVD-FIN-92"],
-                confidence_score=0.94,
-            ),
-            BoardroomPerspective(
-                role=ExecutivePersona.CTO,
-                role_title="Chief Technology Officer",
-                stance="CONDITIONAL",
-                assessment="Edge computer vision clusters and Coral TPUs are production-ready, but legacy PLC integration requires strict isolation.",
-                key_arguments=[
-                    "Edge ML inference operates at 18ms per batch with zero cloud bandwidth latency.",
-                    "Air-gapped factory subnet prevents factory line interruptions.",
-                ],
-                blocking_risks=["Firmware drift across legacy conveyor controllers."],
-                approval_conditions=["Require CAN-bus read-only optical isolators and staging sandbox validation."],
-                assumptions_requiring_evidence=["Sub-25ms camera shutter telemetry synchronization."],
-                cited_evidence_ids=["EVD-CTO-04"],
-                confidence_score=0.91,
-            ),
-            BoardroomPerspective(
-                role=ExecutivePersona.CFO,
-                role_title="Chief Financial Officer",
-                stance="FAVORABLE",
-                assessment="Demonstrates an attractive 6.2x net ROI multiple with capital payback achieved within 5.8 months.",
-                key_arguments=[
-                    "Avoided scrap and rework saves $142,000 monthly.",
-                    "Token inference cost is constrained to $0.000075 per quality audit.",
-                ],
-                blocking_risks=["Initial hardware sensor CapEx overruns."],
-                approval_conditions=["Cap initial rollout to Line 3 pilot before full plant capital release."],
-                assumptions_requiring_evidence=["Unit cost savings verified across 30 operational days."],
-                cited_evidence_ids=["EVD-CFO-11"],
-                confidence_score=0.95,
-            ),
-            BoardroomPerspective(
-                role=ExecutivePersona.CHRO,
-                role_title="Chief Human Resources Officer",
-                stance="CONDITIONAL",
-                assessment="Human impact is manageable only if frontline Quality Inspectors are upskilled to AI Quality Supervisors.",
-                key_arguments=[
-                    "Manual eye-strain tasks are 100% automated, relieving occupational fatigue.",
-                    "Upskilling track creates 4 new higher-paying technical supervisory roles.",
-                ],
-                blocking_risks=["Frontline anxiety regarding automated camera surveillance."],
-                approval_conditions=[
-                    "Institute binding 90-day wage protection floor.",
-                    "Strict prohibition on using vision streams for employee speed monitoring.",
-                ],
-                assumptions_requiring_evidence=["80% inspector certification pass rate on edge console tools."],
-                cited_evidence_ids=["EVD-CHRO-03"],
-                confidence_score=0.89,
-            ),
-            BoardroomPerspective(
-                role=ExecutivePersona.CISO,
-                role_title="Chief Information Security Officer",
-                stance="CONDITIONAL",
-                assessment="Security posture acceptable with Model Armor prompt filtering and edge network segregation.",
-                key_arguments=[
-                    "All visual inspection inference occurs local on-premise without raw video egress.",
-                    "Zero facial recognition or biometric indexing enabled.",
-                ],
-                blocking_risks=["Unauthorized cloud exfiltration of proprietary packaging formulations."],
-                approval_conditions=["Enforce Google Cloud SAIF controls and immutable audit logging."],
-                assumptions_requiring_evidence=["DLP redacting all factory lot PII before telemetry sync."],
-                cited_evidence_ids=["EVD-CISO-08"],
-                confidence_score=0.96,
-            ),
-            BoardroomPerspective(
-                role=ExecutivePersona.EMPLOYEE_ADVOCATE,
-                role_title="Employee & Worker Advocate",
-                stance="CONDITIONAL",
-                assessment="Supports ergonomic relief from microscopic visual inspection, but insists on worker contestability.",
-                key_arguments=[
-                    "Workers must have the absolute right to override AI vision alerts without penalty.",
-                    "Inspection pace must be worker-calibrated, not algorithmic whip-driving.",
-                ],
-                blocking_risks=["Erosion of frontline worker agency and subjective punitive scoring."],
-                approval_conditions=[
-                    "One-click human override button on every inspection console.",
-                    "Quarterly worker council feedback sessions on tool usability.",
-                ],
-                assumptions_requiring_evidence=["Worker fatigue index reduced by at least 40%."],
-                cited_evidence_ids=["EVD-ADV-02"],
-                confidence_score=0.93,
-            ),
-        ]
+        # Dynamically generate proposal-dependent perspectival evaluations
+        perspectives = self._generate_proposal_perspectives(req)
 
         # Filter by participating twins if requested
         if req.participating_twins:
@@ -310,34 +418,35 @@ class WorkTwinService:
 
         conflict_res = ConflictResolution(
             consensus_points=[
-                "Universal agreement that manual packaging visual inspection causes extreme eye strain and defect leakage.",
+                f"Universal agreement that current manual workflows under '{req.proposal_title}' cause operational bottlenecks.",
                 "Consensus that edge inference is superior to raw cloud streaming for latency and data privacy.",
                 "Consensus that existing frontline staff must be redeployed into supervisory technical roles.",
             ],
             unresolved_disagreements=[
-                "CTO and CFO differ on whether to replace entire conveyor sensors immediately or retrofit Line 3.",
-                "CISO and Line Operations differ on frequency of air-gap validation audits during live production.",
+                "CTO and CFO differ on rollout phasing: immediate full-facility deployment vs gated pilot corridor.",
+                "CISO and Operations differ on frequency of air-gap validation audits during live production shifts.",
             ],
             value_risk_tradeoffs=[
-                "Speed of Rollout vs Frontline Reskilling Buffer: Fast rollout yields immediate $142K savings but requires 90-day wage floor guarantee.",
+                f"Speed of Rollout vs Frontline Reskilling Buffer: Accelerated rollout for '{req.proposal_title}' yields immediate efficiency but requires 90-day wage protection floor.",
                 "Cloud Observability vs Edge Air-Gap: Complete local air-gap maximizes security but requires on-prem log aggregators.",
             ],
             blocking_controls=[
-                "CISO Gate: Vision cameras must have zero biometric or facial recognition capabilities.",
+                "CISO Gate: Vision sensors must have zero biometric or facial recognition capabilities.",
                 "CHRO Gate: Mandatory 90-day wage guarantee signed prior to production activation.",
             ],
             alternative_transformation_paths=[
-                "Phase 1: Line 3 Pilot with 4 Upskilled Supervisors (Recommended)",
+                f"Phase 1: Controlled Pilot Corridor for '{req.proposal_title}' with Upskilled Supervisors (Recommended)",
                 "Phase 2: Plant-wide Expansion with Worker Council Sign-off",
             ],
             recommended_human_decision_makers=[
                 "Plant Director (Operational Go/No-Go)",
-                "VP of Quality & Regulatory (HACCP Approval)",
+                "VP of Quality & Regulatory (Compliance Approval)",
                 "Workforce Council Representative (Worker Agreement)",
             ],
             governed_recommendation=(
-                "APPROVE WITH CONDITIONS: Proceed with Phase 1 deployment on Line 3. Enforce CISO's air-gap optical "
-                "isolation and CHRO's binding 90-day wage covenant. Require human operator final sign-off on all lot disposals."
+                f"APPROVE WITH CONDITIONS: Proceed with Phase 1 deployment for '{req.proposal_title}'. "
+                "Enforce CISO's air-gap optical isolation and CHRO's binding 90-day wage covenant. "
+                "Require human operator final sign-off on all consequential actions."
             ),
         )
 

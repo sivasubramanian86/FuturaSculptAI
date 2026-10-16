@@ -20,6 +20,8 @@ class Settings(BaseSettings):
     default_tenant_id: str = "tenant-food-mfg-01"
     gcp_project_id: str = "genai-apac-2026-491004"
     gcp_region: str = "asia-southeast1"
+    auth_dev_mode: bool = True  # Development/test mode allows mock IAM; production enforces Firebase cryptographic verification
+    firebase_project_id: str = "genai-apac-2026-491004"
 
     # CORS configuration
     cors_origins: List[str] = [
