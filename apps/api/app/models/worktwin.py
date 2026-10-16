@@ -106,6 +106,15 @@ class ConflictResolution(BaseModel):
     governed_recommendation: str
 
 
+class BoardroomConflictResolution(BaseModel):
+    """Reconciled consensus, disagreements, and conditions from ADK specialist role twins."""
+
+    consensus_strategy: str
+    disagreements: List[str]
+    consolidated_blocking_risks: List[str] = Field(default_factory=list)
+    mandatory_conditions: List[str] = Field(default_factory=list)
+
+
 class BoardroomSimulationRequest(BaseModel):
     """Payload to trigger a Future Boardroom multi-twin evaluation."""
 
@@ -131,6 +140,10 @@ class BoardroomSimulationResult(BaseModel):
     model_route: str
     total_cost_usd: float
     audit_verdict: str
+
+
+# Alias for response schema compatibility
+BoardroomSimulationResponse = BoardroomSimulationResult
 
 
 class PersonalWorkTwinConsent(BaseModel):

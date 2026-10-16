@@ -18,11 +18,28 @@ from app.agents.subagents import (
     WorkGraphArchitectAgent,
 )
 
+from app.agents.adk_boardroom import (
+    CHRORoleTwinAgent,
+    CISORoleTwinAgent,
+    ConflictResolverAgent,
+    CTORoleTwinAgent,
+    EvidenceVerifierAgent,
+    FutureBoardroomCoordinator,
+    boardroom_coordinator,
+)
+
 __all__ = [
     "AgentContext",
     "BaseSwarmAgent",
     "SwarmOrchestrator",
     "swarm_orchestrator",
+    "FutureBoardroomCoordinator",
+    "boardroom_coordinator",
+    "CTORoleTwinAgent",
+    "CHRORoleTwinAgent",
+    "CISORoleTwinAgent",
+    "EvidenceVerifierAgent",
+    "ConflictResolverAgent",
     "WorkGraphArchitectAgent",
     "FutureSignalsAgent",
     "TaskRedesignAgent",

@@ -36,3 +36,10 @@ Add a governed digital work-twin capability. Do not describe it as unrestricted 
 - Support employee access, correction, export, suspension and deletion.
 - On employee departure, suspend the PersonalWorkTwin immediately; any knowledge-retention transition requires a separate documented policy and authorization.
 
+## MANDATORY POST-PUSH GITHUB CI/CD PROTOCOL
+After EVERY `git push` to GitHub:
+1. Run `gh run list --limit 3` immediately to capture the newly triggered workflow run IDs.
+2. Monitor execution with `gh run watch <run_id>`.
+3. If any failure occurs, run `gh run view <run_id> --log-failed`, isolate the failure root cause, apply surgical fixes, verify locally, push, and monitor until every job reports `completed success`.
+4. Never conclude a turn without confirming green status across all GitHub Actions workflows.
+

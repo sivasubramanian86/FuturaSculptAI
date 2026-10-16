@@ -90,3 +90,6 @@ def get_logger(name: Optional[str] = None) -> logging.Logger:
         logging.Logger: Configured logger instance.
     """
     return logging.getLogger(name or "futurasculpt")
+
+
+logger: logging.Logger = get_logger()
