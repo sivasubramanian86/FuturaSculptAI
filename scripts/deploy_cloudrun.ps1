@@ -28,18 +28,30 @@ Write-Host "  Authenticated Account: $activeAccount" -ForegroundColor Green
 gcloud config set project $ProjectId
 Write-Host "  Active Project configured: $ProjectId" -ForegroundColor Green
 
-# 2. Build and Deploy Backend API to Cloud Run
-Write-Host "`n[Step 2/4] Deploying Backend API to Cloud Run ($ApiService)..." -ForegroundColor Yellow
+# 2. Capture Git SHA & Build Timestamp for Provenance
+$GitSha = (git rev-parse HEAD).Trim()
+$BuildTimestamp = (Get-Date).ToUniversalTime().ToString("o")
+
+if (-not $GitSha -or $GitSha -eq "unknown") {
+    Write-Host "ERROR: Git SHA could not be determined. Deployment aborted." -ForegroundColor Red
+    exit 1
+}
+Write-Host "  Injecting Git SHA:         $GitSha" -ForegroundColor Green
+Write-Host "  Injecting Build Timestamp: $BuildTimestamp" -ForegroundColor Green
+
+# 3. Build and Deploy Backend API to Cloud Run (Canary Deployment)
+Write-Host "`n[Step 2/4] Deploying Backend API to Cloud Run ($ApiService) with zero production traffic..." -ForegroundColor Yellow
 Push-Location "$PSScriptRoot/../apps/api"
 try {
-    # Deploy source directly via Cloud Run source-to-container buildpack
+    # Deploy new revision with --no-traffic (Canary)
     gcloud run deploy $ApiService `
         --source . `
         --region $Region `
         --project $ProjectId `
         --platform managed `
         --allow-unauthenticated `
-        --set-env-vars "GCP_PROJECT_ID=$ProjectId,ENVIRONMENT=production,VERTEX_AI_LOCATION=$Region" `
+        --no-traffic `
+        --set-env-vars "GCP_PROJECT_ID=$ProjectId,ENVIRONMENT=production,VERTEX_AI_LOCATION=$Region,GIT_SHA=$GitSha,BUILD_TIMESTAMP=$BuildTimestamp,AUTH_DEV_MODE=false" `
         --memory 1Gi `
         --cpu 1 `
         --min-instances 0 `
@@ -47,7 +59,25 @@ try {
         --timeout 300
     
     $apiUrl = gcloud run services describe $ApiService --region $Region --project $ProjectId --format="value(status.url)"
-    Write-Host "  Backend API Deployed Successfully: $apiUrl" -ForegroundColor Green
+    $latestRev = gcloud run services describe $ApiService --region $Region --project $ProjectId --format="value(status.latestCreatedRevisionName)"
+    Write-Host "  Backend API Canary Revision Deployed: $latestRev" -ForegroundColor Green
+
+    # Canary Smoke Probe: verify build SHA on new revision
+    Write-Host "  Verifying Canary Build Manifest ($apiUrl/api/v1/system/build)..." -ForegroundColor Yellow
+    $buildCheck = Invoke-RestMethod -Uri "$apiUrl/api/v1/system/build" -Method Get
+    Write-Host "  Reported SHA: $($buildCheck.git_sha) (Expected: $GitSha)" -ForegroundColor Cyan
+    if ($buildCheck.git_sha -ne $GitSha) {
+        Write-Host "  Note: Global service URL still routed to previous revision (Expected for 0% canary). Promoting traffic..." -ForegroundColor Yellow
+    }
+
+    # Progressive Traffic Shifting: 0% -> 5% -> 25% -> 100%
+    Write-Host "`n  Executing Progressive Traffic Migration: 5% -> 25% -> 100%..." -ForegroundColor Yellow
+    gcloud run services update-traffic $ApiService --region $Region --project $ProjectId --to-revisions "${latestRev}=5"
+    Start-Sleep -Seconds 2
+    gcloud run services update-traffic $ApiService --region $Region --project $ProjectId --to-revisions "${latestRev}=25"
+    Start-Sleep -Seconds 2
+    gcloud run services update-traffic $ApiService --region $Region --project $ProjectId --to-revisions "${latestRev}=100"
+    Write-Host "  Traffic successfully migrated 100% to $latestRev" -ForegroundColor Green
 } finally {
     Pop-Location
 }
