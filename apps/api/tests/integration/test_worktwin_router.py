@@ -77,3 +77,26 @@ def test_register_personal_twin_consent_endpoint():
     assert data["twin_type"] == "PERSONAL_WORKTWIN"
     assert data["owner_id"] == "EMP-4102"
     assert data["tenant_id"] == "tenant-food-mfg-01"
+
+
+def test_materially_different_proposals_produce_different_deliberations():
+    """Release Gate: verify materially different proposals produce dynamically distinct deliberations and conflict resolution."""
+    first = client.post(
+        "/api/v1/worktwins/boardroom/simulate",
+        json={
+            "proposal_title": "Autonomous Packaging Quality Corridors",
+            "proposal_description": "Use computer vision and cobots.",
+            "sector": "food_manufacturing",
+        },
+    ).json()
+    second = client.post(
+        "/api/v1/worktwins/boardroom/simulate",
+        json={
+            "proposal_title": "Four-Day Human-First Work Week",
+            "proposal_description": "Prohibit automation and increase mentoring.",
+            "sector": "financial_services",
+        },
+    ).json()
+    assert first["perspectives"] != second["perspectives"]
+    assert first["conflict_resolution"] != second["conflict_resolution"]
+

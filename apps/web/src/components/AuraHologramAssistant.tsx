@@ -516,9 +516,11 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
 
       // Draw Conical Hologram Projector Beam from base
       const beamGrad = ctx.createLinearGradient(centerX, height, centerX, centerY);
-      beamGrad.addColorStop(0, 'rgba(6, 182, 212, 0.28)');
-      beamGrad.addColorStop(0.5, 'rgba(99, 102, 241, 0.12)');
-      beamGrad.addColorStop(1, 'rgba(168, 85, 247, 0.0)');
+      if (beamGrad) {
+        beamGrad.addColorStop(0, 'rgba(6, 182, 212, 0.28)');
+        beamGrad.addColorStop(0.5, 'rgba(99, 102, 241, 0.12)');
+        beamGrad.addColorStop(1, 'rgba(168, 85, 247, 0.0)');
+      }
 
       ctx.beginPath();
       ctx.moveTo(centerX - 45, height);
@@ -526,7 +528,7 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
       ctx.lineTo(centerX + 85, centerY - 20);
       ctx.lineTo(centerX + 45, height);
       ctx.closePath();
-      ctx.fillStyle = beamGrad;
+      if (beamGrad) ctx.fillStyle = beamGrad;
       ctx.fill();
 
       // Render 3D Orbiting Hologram Particle Cloud

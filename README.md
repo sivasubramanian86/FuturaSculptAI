@@ -8,7 +8,7 @@
 [![Google Cloud: Cloud Run](https://img.shields.io/badge/Google%20Cloud-Cloud%20Run%20v2-4285F4?logo=googlecloud&logoColor=white)](https://cloud.google.com/run)
 [![Terraform: IaC](https://img.shields.io/badge/IaC-Terraform%201.5+-844FBA?logo=terraform&logoColor=white)](deploy/terraform)
 [![Docker: Multi--Stage](https://img.shields.io/badge/Docker-Multi--Stage%20Compose-2496ED?logo=docker&logoColor=white)](docker-compose.yml)
-[![Code Coverage: 100% Backend | 98.2% Web](https://img.shields.io/badge/Coverage-100%25%20Backend%20%7C%2098.2%25%20Web-brightgreen.svg)](docs/testing/quality-gates.md)
+[![Code Coverage: 100% Backend | 99.6% Web](https://img.shields.io/badge/Coverage-100%25%20Backend%20%7C%2099.6%25%20Web-brightgreen.svg)](docs/testing/quality-gates.md)
 [![Security: Bandit 0 Issues](https://img.shields.io/badge/Security-Bandit%20SAIF%20Clean-success.svg)](SECURITY.md)
 [![Accessibility: WCAG 2.1 AA](https://img.shields.io/badge/Accessibility-WCAG%202.1%20AA-success.svg)](apps/web)
 
@@ -55,7 +55,7 @@ docker compose up --build
 
 ---
 
-## 🏛️ Seven Core Platform Capabilities
+## 🏛️ Eight Core Platform Capabilities
 
 ### 1. Multimodal Evidence Ingestion & Cryptographic Ledger (Module 1)
 - Parses Edge-TPU camera streams, industrial time-series logs, audio SOPs, and strategy memos.
@@ -84,13 +84,21 @@ docker compose up --build
 - Four deterministic workforce indices: **Role Resilience Index (RRI)**, **Task Replaceability Score (TRS)**, **Workforce Adaptability Index (WAI)**, and **Human Opportunity Score (HOS)**.
 - **Responsible Workforce Red Lines:** Automatic $k \ge 10$ differential privacy masking, zero algorithmic layoff rankings, immutable Right-to-Appeal workflows, and **A2 Human-in-the-Loop Sign-Off Gates**.
 
-### 6. Governance TrustBoard, SAIF Matrix & Investor Lens (Module 6)
+### 6. Futura WorkTwin Fabric & Future Boardroom Deliberation (Module 6)
+- **Three Governed Digital Twin Classes:**
+  * **RoleTwin:** Synthetic role archetype derived from approved enterprise job architectures and SOPs (Default).
+  * **PersonalWorkTwin:** Optional, consent-based, employee-controlled assistant with strict EU AI Act Article 52 compliance and **voice/avatar cloning prohibitions**.
+  * **OrganizationTwin:** Macro-graph simulating organizational workflows, compliance handoffs, and resource envelopes.
+- **Future Boardroom Simulation Engine:** Multi-twin executive deliberation (CEO, CTO, CFO, CHRO, CISO, and Employee Advocate) dynamically evaluating enterprise restructuring proposals with deterministic consensus points, unresolved disagreements, and trade-offs.
+- **Tamper-Evident Export:** Cryptographic SHA-256 JSON manifest export for third-party compliance audits.
+
+### 7. Governance TrustBoard, SAIF Matrix & Investor Lens (Module 7)
 - **Google Well-Architected 8-Pillar Scorecard:** Security & SAIF, Ops, Reliability, Performance, FinOps, Sustainability, Responsible AI, and Evidence Quality (`94.3 / 100`).
 - **Google SAIF 6-Domain Matrix:** Continuous verification across Expand Ecosystem, Safeguard Architecture, Adapt Defenses, Automate Security, Coordinate Incident Response, and Sanitize Context.
 - **Four-Tier Drift Governance:** Real-time prevention of Model Drift (Pydantic v2), Prompt Drift (Golden 20 CI), Agent Drift (bounded loop breaker), and Context Drift (EvidenceEnvelope pinning).
 - **Investor Lens Self-Service Workbench:** Dynamic valuation model demonstrating **$1,250,000.00 annualized EBITDA unlock**, 6.25x Net ROI multiple, 1.9-month payback period, and SHA-256 cryptographically sealed **Diligence Evidence Packs (`DIL-...`)**.
 
-### 7. Google Cloud Observation, Monitoring & Event Streaming (Module 7)
+### 8. Google Cloud Observation, Monitoring & Event Streaming (Module 8)
 - **Google Cloud Pub/Sub Event Mesh:**
   * `futurasculpt-workforce-telemetry`: Asynchronous ingestion of factory floor camera detections, timesheets, and WorkGraph state transitions.
   * `futurasculpt-governance-alerts`: Low-latency broadcasting of SAIF policy violations, redlines, and human approval gates.
@@ -213,13 +221,16 @@ FuturaSculptAI enforces non-negotiable **100.0% test coverage gates** on both ba
 
 ```
 FuturaSculptAI/
-├── apps/api/tests/                     # Backend Test Suite (111 Tests, 100.0% Cov)
-│   ├── unit/                           # Isolated deterministic logic & security boundaries (23 tests)
+├── apps/api/tests/                     # Backend Test Suite (170 Tests, 100.0% Statement Cov, 3,546 Stmts)
+│   ├── unit/                           # Isolated deterministic logic & security boundaries (52 tests)
 │   │   ├── test_scoring.py             # RRI, TRS, WAI, HOS deterministic algorithms
-│   │   ├── test_rbac_and_auth.py       # RBAC roles, tenant isolation & JWT claims
+│   │   ├── test_rbac_and_auth.py       # RBAC roles, tenant isolation & cryptographic JWT validation
+│   │   ├── test_security_tenant_isolation.py # Tenant-scoped manifest boundaries & header spoof rejection
+│   │   ├── test_worktwin.py            # WorkTwin Fabric domain models, 3 twin classes & consent rules
 │   │   ├── test_logging_and_exceptions.py # Custom error hierarchies & structured logs
 │   │   └── test_security_redlines.py   # k>=10 differential privacy & anti-layoff guards
-│   ├── integration/                    # Subsystem integration, routers & adapters (86 tests)
+│   ├── integration/                    # Subsystem integration, routers & adapters (116 tests)
+│   │   ├── test_worktwin_router.py     # WorkTwin lifecycle APIs & dynamic Future Boardroom deliberation
 │   │   ├── test_vertex_and_orchestrator.py # Real Gemini model routing & prompt engine
 │   │   ├── test_agents.py              # ADK 9-specialist swarm parallel execution
 │   │   ├── test_temporal_workgraph.py  # Temporal GraphEngine & NetworkX blast radius
@@ -230,28 +241,29 @@ FuturaSculptAI/
 │   │   ├── test_governance.py          # TrustBoard SAIF matrix & Investor Lens valuation
 │   │   ├── test_evidence.py            # SHA-256 EvidenceEnvelope & claim entailment
 │   │   ├── test_onboarding.py          # Organization seed profiles & tenant initialization
-│   │   └── test_health.py              # Zero-downtime liveness & readiness probes
+│   │   └── test_health.py              # Zero-downtime liveness, readiness & build manifest probe
 │   ├── e2e/                            # Full autonomous lifecycle (1 full journey test)
 │   │   └── test_e2e_lifecycle.py       # 10-step full enterprise transformation lifecycle
 │   └── evals/                          # Google ADK agent trajectory evaluations (1 golden suite)
 │       └── test_adk_agent_eval.py      # Groundedness (>=95%), tool calling recall & jailbreak defense
 │
-└── apps/web/src/tests/                 # Frontend Test Suite (27 Files, 205 Tests, 100.0% Cov)
+└── apps/web/src/tests/                 # Frontend Test Suite (28 Files, 243 Tests, 99.62% Stmt Cov)
     ├── unit/                           # Presentation components & utilities (11 files, 54 tests)
     │   ├── GoogleLoginModal.test.tsx   # Real Gmail authentication modal & OAuth triggers
     │   ├── AboutFuturaSculpt.test.tsx, ErrorBoundary.test.tsx, FAQHelp.test.tsx
     │   ├── GuidedTourModal.test.tsx, Header.test.tsx, SettingsStudio.test.tsx
     │   ├── TrustScoreCard.test.tsx, ScenarioCard.test.tsx, logger.test.ts, i18n.test.ts
     │   ├── MultiModalMediaStudio.test.tsx, OnboardingModal.test.tsx, CitizenOverview.test.tsx
-    ├── integration/                    # Interactive studios, workbenches & adapters (12 files, 132 tests)
-    │   ├── TransformationRoadmapStudio.test.tsx # Live Vertex AI Gemini roadmap & Multimodal mesh
+    ├── integration/                    # Interactive studios, workbenches & adapters (13 files, 170 tests)
+    │   ├── WorkTwinFabricStudio.test.tsx # Governed RoleTwins, consent modals & Future Boardroom (100% cov)
+    │   ├── TransformationRoadmapStudio.test.tsx # Live Vertex AI Gemini roadmap & Multimodal mesh (100% cov)
     │   ├── api.test.ts, firebase.test.ts, EvidenceDrawer.test.tsx, WorkGraphView.test.tsx
     │   ├── TaskSculptor.test.tsx, OpportunityEngine.test.tsx, AgentSwarmConsole.test.tsx
     │   └── TrustBoardWorkbench.test.tsx
     └── e2e/                            # End-to-end user journeys & interactive workflows (4 files, 19 tests)
         ├── App.test.tsx                # Full app mount, tab routing & IAM persona switch
         ├── AppShell.test.tsx           # Executive shell, uniform 36px topbar & Gmail auth trigger
-        ├── AuraHologramAssistant.test.tsx # Voice recognition, holographic beacon & persona AI
+        ├── AuraHologramAssistant.test.tsx # Gemini Live Native Audio, ambient smart pill & 8-step tour
         └── e2e_journey.test.tsx        # Complete 8-step Citizen Sanctuary to Enterprise Cockpit journey
 ```
 

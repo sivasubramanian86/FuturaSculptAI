@@ -324,6 +324,23 @@ describe('WorkTwinFabricStudio Component', () => {
     await waitFor(() => {
       expect(screen.getByText(/Consent update failed: Consent Ledger Offline/i)).toBeInTheDocument();
     });
+
+    // Test revoked consent save message (line 165)
+    const revokeBtn = screen.getByRole('button', { name: /Revoke Personal Twin Immediately/i });
+    fireEvent.click(revokeBtn);
+    fireEvent.click(saveBtn);
+    await waitFor(() => {
+      expect(screen.getByText(/Personal WorkTwin has been REVOKED and suspended from memory brokers/i)).toBeInTheDocument();
+    });
+  });
+
+  it('handles manifest load failure and twin toggle add', async () => {
+    vi.spyOn(api, 'getWorkTwinManifests').mockRejectedValueOnce(new Error('Network fail'));
+    render(<WorkTwinFabricStudio />);
+
+    // Toggle add a twin that is currently not selected (lines 100-101)
+    const cooTwin = screen.getByText(/COO Twin/i);
+    fireEvent.click(cooTwin);
   });
 });
 

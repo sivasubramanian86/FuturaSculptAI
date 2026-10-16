@@ -2,7 +2,7 @@ import '@testing-library/jest-dom/vitest';
 import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { TransformationRoadmapStudio } from '../../components/TransformationRoadmapStudio';
+import { TransformationRoadmapStudio, parseUrlToBrand } from '../../components/TransformationRoadmapStudio';
 import { api } from '../../services/api';
 import { getTranslations } from '../../i18n';
 
@@ -369,6 +369,10 @@ describe('TransformationRoadmapStudio Component', () => {
     fireEvent.click(screen.getByRole('button', { name: /All Sectors/i }));
     expect(screen.getByRole('button', { name: /Tesla Gigafactory/i })).toBeInTheDocument();
 
+    // Switch sector filter chip to Automotive and Food Mfg
+    fireEvent.click(screen.getByRole('button', { name: /🚗 Automotive/i }));
+    fireEvent.click(screen.getByRole('button', { name: /🍞 Food Mfg/i }));
+
     // Rerender with it_technology sector prop
     rerender(<TransformationRoadmapStudio i18n={i18n} simulationDelayMs={0} sector="it_technology" />);
     expect(screen.getByRole('button', { name: /Microsoft/i })).toBeInTheDocument();
@@ -631,6 +635,60 @@ describe('TransformationRoadmapStudio Component', () => {
     });
 
     vi.useRealTimers();
+  });
+
+  it('simulates spacex roadmap', () => {
+    render(<TransformationRoadmapStudio i18n={i18n} simulationDelayMs={0} />);
+    const input = screen.getByLabelText(/Traditional Work Description/i);
+    fireEvent.change(input, { target: { value: 'SpaceX Starlink orbital rocket transportation' } });
+    fireEvent.click(screen.getByRole('button', { name: /Generate 1Y, 3Y, 5Y & 10Y Roadmap/i }));
+    expect(screen.getAllByText(/SpaceX & Starlink Orbital Logistics/i).length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('simulates khan academy roadmap', () => {
+    render(<TransformationRoadmapStudio i18n={i18n} simulationDelayMs={0} />);
+    const input = screen.getByLabelText(/Traditional Work Description/i);
+    fireEvent.change(input, { target: { value: 'Khan Academy Khanmigo adaptive education' } });
+    fireEvent.click(screen.getByRole('button', { name: /Generate 1Y, 3Y, 5Y & 10Y Roadmap/i }));
+    expect(screen.getAllByText(/Khan Academy & Khanmigo Adaptive Learning/i).length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('simulates fintech URL website mode', () => {
+    render(<TransformationRoadmapStudio i18n={i18n} simulationDelayMs={0} />);
+    const urlModeBtn = screen.getByRole('button', { name: /Enter Company Website URL/i });
+    fireEvent.click(urlModeBtn);
+    const urlInput = screen.getByLabelText(/Company Website URL/i);
+    fireEvent.change(urlInput, { target: { value: 'https://www.fintechpay.com' } });
+    fireEvent.click(screen.getByRole('button', { name: /Generate 1Y, 3Y, 5Y & 10Y Roadmap/i }));
+    expect(screen.getAllByText(/Fintechpay/i).length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('simulates custom school without regional tag in text mode', () => {
+    render(<TransformationRoadmapStudio i18n={i18n} simulationDelayMs={0} />);
+    const input = screen.getByLabelText(/Traditional Work Description/i);
+    fireEvent.change(input, { target: { value: 'St Jude Catholic Academy teacher lesson planning' } });
+    fireEvent.click(screen.getByRole('button', { name: /Generate 1Y, 3Y, 5Y & 10Y Roadmap/i }));
+    expect(screen.getAllByText(/Regional Academic Institution & School District/i).length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('tests parseUrlToBrand for education, banking, and generic fallback domains', () => {
+    const spacexRes = parseUrlToBrand('https://www.spacex.com');
+    expect(spacexRes.brandName).toBe('SpaceX & Starlink Orbital Logistics');
+
+    const healthRes = parseUrlToBrand('https://www.cityhealthclinic.com');
+    expect(healthRes.inferredSector).toBe('healthcare');
+    expect(healthRes.inferredCategory).toBe('public_health');
+
+    const eduRes = parseUrlToBrand('https://www.oxford-learn.edu/courses');
+    expect(eduRes.inferredSector).toBe('education');
+    expect(eduRes.inferredCategory).toBe('public_education');
+
+    const bankRes = parseUrlToBrand('https://www.globalinvest.bank');
+    expect(bankRes.inferredSector).toBe('financial_services');
+    expect(bankRes.inferredCategory).toBe('commercial_enterprise');
+
+    const genericRes = parseUrlToBrand('custom-corp');
+    expect(genericRes.brandName).toBe('Custom-corp');
   });
 });
 

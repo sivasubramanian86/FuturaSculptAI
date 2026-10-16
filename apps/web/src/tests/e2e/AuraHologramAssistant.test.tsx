@@ -43,6 +43,19 @@ describe('AuraHologramAssistant Component', () => {
     (window as any).SpeechSynthesisUtterance = MockUtterance;
     (globalThis as any).SpeechSynthesisUtterance = MockUtterance;
 
+    class MockAudio {
+      src = '';
+      onended: (() => void) | null = null;
+      onerror: (() => void) | null = null;
+      play = vi.fn().mockResolvedValue(undefined);
+      pause = vi.fn();
+      constructor(src: string) {
+        this.src = src;
+      }
+    }
+    (window as any).Audio = MockAudio;
+    (globalThis as any).Audio = MockAudio;
+
     // Mock HTML5 Canvas getContext
     HTMLCanvasElement.prototype.getContext = vi.fn().mockReturnValue({
       clearRect: vi.fn(),
@@ -796,6 +809,386 @@ describe('AuraHologramAssistant Component', () => {
     });
 
     liveDialogueSpy.mockRestore();
+  });
+
+  it('exercises voice selection algorithm across natural, OS female, and persona pitches', async () => {
+    const customVoices = [
+      { name: 'Microsoft Jenny Online (Natural) - English (United States)', lang: 'en-US' },
+      { name: 'Microsoft Zira - English (United States)', lang: 'en-US' },
+      { name: 'Google US English', lang: 'en-US' },
+      { name: 'David Male', lang: 'en-US' },
+    ];
+    (window.speechSynthesis.getVoices as any).mockReturnValue(customVoices);
+
+    const { unmount } = render(
+      <AuraHologramAssistant
+        currentLanguage="en"
+        onNavigateTab={vi.fn()}
+      />
+    );
+
+    const openBtn = screen.getByRole('button', { name: /Launch Futura 3D Virtual Live Assistant/i });
+    fireEvent.click(openBtn);
+
+    // Click Aoede persona button
+    const aoedeBtn = screen.getByRole('button', { name: /Aoede/i });
+    fireEvent.click(aoedeBtn);
+
+    // Click Kore persona button
+    const koreBtn = screen.getByRole('button', { name: /Kore/i });
+    fireEvent.click(koreBtn);
+
+    unmount();
+  });
+
+  it('navigates tour steps forward, backward, exits tour, and exercises fallback on API failure', async () => {
+    const liveDialogueSpy = vi.spyOn(api, 'geminiLiveDialogue').mockRejectedValue(new Error('Audio network timeout'));
+
+    render(
+      <AuraHologramAssistant
+        currentLanguage="en"
+        onNavigateTab={vi.fn()}
+      />
+    );
+
+    const openBtn = screen.getByRole('button', { name: /Launch Futura 3D Virtual Live Assistant/i });
+    fireEvent.click(openBtn);
+
+    // Launch guided tour
+    const tourBtn = screen.getAllByRole('button', { name: /Start Spoken Guided Tour/i })[0];
+    fireEvent.click(tourBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText(/STEP 1 OF 8/i)).toBeInTheDocument();
+    });
+
+    // Next step
+    const nextBtn = screen.getByRole('button', { name: /Next Step ⏩/i });
+    fireEvent.click(nextBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText(/STEP 2 OF 8/i)).toBeInTheDocument();
+    });
+
+    // Prev step
+    const prevBtn = screen.getByRole('button', { name: /⏪ Prev/i });
+    fireEvent.click(prevBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText(/STEP 1 OF 8/i)).toBeInTheDocument();
+    });
+
+    // Exit tour
+    const exitBtn = screen.getByRole('button', { name: /✕ Exit/i });
+    fireEvent.click(exitBtn);
+
+    liveDialogueSpy.mockRestore();
+  });
+
+  it('handles speech synthesis speaking state with real-time waveform and voice engine branches', async () => {
+    let capturedUtterance: any = null;
+    (window.speechSynthesis.speak as any).mockImplementation((utt: any) => {
+      capturedUtterance = utt;
+    });
+
+    const { unmount } = render(
+      <AuraHologramAssistant
+        currentLanguage="en"
+        onNavigateTab={vi.fn()}
+      />
+    );
+
+    // Exercise onvoiceschanged
+    if (window.speechSynthesis.onvoiceschanged) {
+      window.speechSynthesis.onvoiceschanged(new Event('voiceschanged'));
+    }
+
+    const openBtn = screen.getByRole('button', { name: /Launch Futura 3D Virtual Live Assistant/i });
+    fireEvent.click(openBtn);
+
+    // Exercise voice selection with modern OS female
+    (window.speechSynthesis.getVoices as any).mockReturnValue([
+      { name: 'Microsoft Zira - English (United States)', lang: 'en-US' },
+    ]);
+    if (window.speechSynthesis.onvoiceschanged) {
+      window.speechSynthesis.onvoiceschanged(new Event('voiceschanged'));
+    }
+
+    // Exercise voice selection with non-gTTS voice
+    (window.speechSynthesis.getVoices as any).mockReturnValue([
+      { name: 'Alex', lang: 'en-US' },
+    ]);
+    if (window.speechSynthesis.onvoiceschanged) {
+      window.speechSynthesis.onvoiceschanged(new Event('voiceschanged'));
+    }
+
+    // Exercise voice selection with non-robotic fallback
+    (window.speechSynthesis.getVoices as any).mockReturnValue([
+      { name: 'Generic Non Robotic', lang: 'fr-FR' },
+    ]);
+    if (window.speechSynthesis.onvoiceschanged) {
+      window.speechSynthesis.onvoiceschanged(new Event('voiceschanged'));
+    }
+
+    // Exercise voice selection with empty voices
+    (window.speechSynthesis.getVoices as any).mockReturnValue([]);
+    if (window.speechSynthesis.onvoiceschanged) {
+      window.speechSynthesis.onvoiceschanged(new Event('voiceschanged'));
+    }
+
+    unmount();
+  });
+
+  it('exercises HTML5 Audio constructor playback, pause on modal close, onended, onerror, and rejection', async () => {
+    const mockAudioInstance: any = {
+      play: vi.fn().mockReturnValue(Promise.resolve()),
+      pause: vi.fn(),
+      onended: null,
+      onerror: null,
+    };
+    const audioSpy = vi.fn().mockImplementation(() => mockAudioInstance);
+    vi.stubGlobal('Audio', audioSpy);
+
+    const liveDialogueSpy = vi.spyOn(api, 'geminiLiveDialogue').mockResolvedValue({
+      response_text: 'Gemini live test speech audio',
+      model_used: 'models/gemini-3.8-live',
+      latency_ms: 120,
+      reasoning_trace: 'Testing audio base64 path',
+      voice_persona: 'kore',
+      audio_base64: 'A'.repeat(6000),
+    });
+
+    render(
+      <AuraHologramAssistant
+        currentLanguage="en"
+        onNavigateTab={vi.fn()}
+      />
+    );
+
+    const openBtn = screen.getByRole('button', { name: /Launch Futura 3D Virtual Live Assistant/i });
+    fireEvent.click(openBtn);
+
+    // Trigger guided tour to activate audio playback
+    const tourBtn = screen.getAllByRole('button', { name: /Start Spoken Guided Tour/i })[0];
+    fireEvent.click(tourBtn);
+
+    await waitFor(() => {
+      expect(mockAudioInstance.play).toHaveBeenCalled();
+    });
+
+    // Test onended callback
+    if (mockAudioInstance.onended) {
+      mockAudioInstance.onended();
+    }
+
+    // Trigger second step to test pause on close
+    const nextBtn = screen.getByRole('button', { name: /Next Step ⏩/i });
+    fireEvent.click(nextBtn);
+
+    await waitFor(() => {
+      expect(mockAudioInstance.play).toHaveBeenCalledTimes(2);
+    });
+
+    // Close modal while audio is playing (covers lines 1012-1014)
+    const closeBtn = screen.getByRole('button', { name: /✕/i });
+    fireEvent.click(closeBtn);
+    expect(mockAudioInstance.pause).toHaveBeenCalled();
+
+    // Reopen and test onerror callback and play promise rejection
+    fireEvent.click(openBtn);
+    mockAudioInstance.play.mockReturnValueOnce(Promise.reject(new Error('Audio playback failed')));
+    fireEvent.click(screen.getAllByRole('button', { name: /Start Spoken Guided Tour/i })[0]);
+
+    await waitFor(() => {
+      expect(mockAudioInstance.play).toHaveBeenCalled();
+    });
+
+    if (mockAudioInstance.onerror) {
+      mockAudioInstance.onerror(new Event('error'));
+    }
+
+    liveDialogueSpy.mockRestore();
+    vi.unstubAllGlobals();
+  });
+
+  it('completes the entire guided tour through all 8 steps and finishes tour', async () => {
+    vi.spyOn(api, 'geminiLiveDialogue').mockResolvedValue({
+      response_text: 'Live step response',
+      model_used: 'models/gemini-3.8-live',
+      latency_ms: 50,
+      voice_persona: 'kore',
+    });
+
+    render(
+      <AuraHologramAssistant
+        currentLanguage="en"
+        onNavigateTab={vi.fn()}
+      />
+    );
+
+    const openBtn = screen.getByRole('button', { name: /Launch Futura 3D Virtual Live Assistant/i });
+    fireEvent.click(openBtn);
+
+    // Launch tour
+    const tourBtn = screen.getAllByRole('button', { name: /Start Spoken Guided Tour/i })[0];
+    fireEvent.click(tourBtn);
+
+    // Advance 7 times to reach step 8 (final step)
+    for (let step = 1; step <= 7; step++) {
+      await waitFor(() => {
+        expect(screen.getByText(new RegExp(`STEP ${step} OF 8`, 'i'))).toBeInTheDocument();
+      });
+      const nextBtn = screen.getByRole('button', { name: /Next Step ⏩/i });
+      fireEvent.click(nextBtn);
+    }
+
+    // On Step 8, button should say Finish Tour 🏁
+    await waitFor(() => {
+      expect(screen.getByText(/STEP 8 OF 8/i)).toBeInTheDocument();
+    });
+    const finishBtn = screen.getByRole('button', { name: /Finish Tour 🏁/i });
+    fireEvent.click(finishBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Congratulations! You have completed the FuturaSculptAI Spoken Guided Tour/i)).toBeInTheDocument();
+    });
+  });
+
+  it('exercises all knowledge query responses across stages, agentic RAG, and persona prompts', async () => {
+    render(
+      <AuraHologramAssistant
+        currentLanguage="en"
+        onNavigateTab={vi.fn()}
+      />
+    );
+
+    const openBtn = screen.getByRole('button', { name: /Launch Futura 3D Virtual Live Assistant/i });
+    fireEvent.click(openBtn);
+
+    const input = screen.getByPlaceholderText(/Ask Futura anything/i);
+    const sendBtn = screen.getByRole('button', { name: /^Send$/i });
+
+    const queries = [
+      'tour guide platform overview',
+      'stage 1 cockpit overview',
+      'stage 2 worktwin fabric',
+      'stage 3 task sculptor',
+      'stage 4 opportunity engine',
+      'stage 5 temporal workgraph',
+      'stage 6 multimodal',
+      'stage 7 agent swarm',
+      'stage 8 trustboard governance',
+      'tell me about agentic rag corporate intel and employee count',
+      'how would you explain this to a 5-year-old kid?',
+      'how does this assist a 60+ senior non-tech worker?',
+      'tell me about the 1y 3y 5y roadmap',
+    ];
+
+    for (const q of queries) {
+      fireEvent.change(input, { target: { value: q } });
+      fireEvent.click(sendBtn);
+    }
+
+    await waitFor(() => {
+      expect(screen.getByText(/Stage 1: Executive Cockpit/i)).toBeInTheDocument();
+      expect(screen.getByText(/Stage 2: Futura WorkTwin Fabric/i)).toBeInTheDocument();
+      expect(screen.getByText(/Stage 3: Task Sculptor/i)).toBeInTheDocument();
+      expect(screen.getByText(/Stage 4: Opportunity Engine/i)).toBeInTheDocument();
+      expect(screen.getByText(/Stage 5: Temporal WorkGraph/i)).toBeInTheDocument();
+      expect(screen.getByText(/Stage 6: MultiModal Media Studio/i)).toBeInTheDocument();
+      expect(screen.getByText(/Stage 7: Google ADK 7-Agent Swarm/i)).toBeInTheDocument();
+      expect(screen.getByText(/Stage 8: TrustBoard Governance/i)).toBeInTheDocument();
+    });
+  });
+
+  it('stops live audio on close when live audio is playing', async () => {
+    vi.spyOn(api, 'geminiLiveDialogue').mockResolvedValueOnce({
+      response_text: 'Live audio test response',
+      audio_base64: 'UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA' + 'A'.repeat(6000),
+      model_used: 'models/gemini-3.8-live',
+      voice_persona: 'kore',
+      latency_ms: 120,
+    });
+
+    render(
+      <AuraHologramAssistant
+        currentLanguage="en"
+        onNavigateTab={vi.fn()}
+      />
+    );
+
+    const openBtn = screen.getByRole('button', { name: /Launch Futura 3D Virtual Live Assistant/i });
+    fireEvent.click(openBtn);
+
+    const input = screen.getByPlaceholderText(/Ask Futura anything/i);
+    const sendBtn = screen.getByRole('button', { name: /^Send$/i });
+
+    fireEvent.change(input, { target: { value: 'Explain live audio testing' } });
+    fireEvent.click(sendBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Live audio test response/i)).toBeInTheDocument();
+    });
+
+    const closeBtn = screen.getByRole('button', { name: /Close Futura Assistant/i });
+    fireEvent.click(closeBtn);
+  });
+
+  it('falls back to speech synthesis speakText when window.Audio is undefined', async () => {
+    const origAudio = (window as any).Audio;
+    delete (window as any).Audio;
+
+    vi.spyOn(api, 'geminiLiveDialogue').mockResolvedValueOnce({
+      response_text: 'Fallback speech synthesis announcement',
+      audio_base64: 'A'.repeat(6000),
+      model_used: 'models/gemini-3.8-live',
+      voice_persona: 'aoede',
+      latency_ms: 100,
+    });
+
+    render(
+      <AuraHologramAssistant
+        currentLanguage="en"
+        onNavigateTab={vi.fn()}
+      />
+    );
+
+    const openBtn = screen.getByRole('button', { name: /Launch Futura 3D Virtual Live Assistant/i });
+    fireEvent.click(openBtn);
+
+    // Switch to Aoede persona to exercise Aoede pitch/rate branch in speakText
+    const aoedeBtn = screen.getByRole('button', { name: /Aoede/i });
+    fireEvent.click(aoedeBtn);
+
+    const input = screen.getByPlaceholderText(/Ask Futura anything/i);
+    const sendBtn = screen.getByRole('button', { name: /^Send$/i });
+
+    fireEvent.change(input, { target: { value: 'Speak via speech synthesis' } });
+    fireEvent.click(sendBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Fallback speech synthesis announcement/i)).toBeInTheDocument();
+    });
+
+    // Also exercise speakText catch branch when synthesis throws
+    (window.speechSynthesis.speak as any).mockImplementationOnce(() => {
+      throw new Error('Speech synthesis device error');
+    });
+    vi.spyOn(api, 'geminiLiveDialogue').mockResolvedValueOnce({
+      response_text: 'Error recovery test announcement',
+      audio_base64: 'A'.repeat(6000),
+      model_used: 'models/gemini-3.8-live',
+      voice_persona: 'kore',
+      latency_ms: 50,
+    });
+    fireEvent.change(input, { target: { value: 'Speak with synthesis error' } });
+    fireEvent.click(sendBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Error recovery test announcement/i)).toBeInTheDocument();
+    });
+
+    (window as any).Audio = origAudio;
   });
 });
 

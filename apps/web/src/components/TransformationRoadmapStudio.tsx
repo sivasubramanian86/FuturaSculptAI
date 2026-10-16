@@ -419,7 +419,7 @@ export const TransformationRoadmapStudio: React.FC<TransformationRoadmapStudioPr
 
     const execute = () => {
       let source = inputText;
-      const customName = companyName.trim();
+      const customName = inputMode === 'company' ? companyName.trim() : '';
       let detectedDomain = customName || 'Precision Automotive & Engineering Services';
       let category: TransformationRoadmapResult['category'] = 'commercial_enterprise';
       let detectedSector = sector;
@@ -478,6 +478,11 @@ export const TransformationRoadmapStudio: React.FC<TransformationRoadmapStudioPr
         detectedDomain = 'OpenAI Research & Deployment';
         category = 'tech_titan';
       }
+      // Adaptive Education & EdTech
+      else if (lower.includes('khan') || lower.includes('khanacademy') || lower.includes('khanmigo')) {
+        detectedDomain = 'Khan Academy & Khanmigo Adaptive Learning';
+        category = 'public_education';
+      }
       // Education & Academic Institutions
       else if (
         lower.includes('school') ||
@@ -534,11 +539,6 @@ export const TransformationRoadmapStudio: React.FC<TransformationRoadmapStudioPr
       else if (lower.includes('spacex') || lower.includes('starlink')) {
         detectedDomain = 'SpaceX & Starlink Orbital Logistics';
         category = 'commercial_enterprise';
-      }
-      // Adaptive Education & EdTech
-      else if (lower.includes('khan') || lower.includes('khanacademy') || lower.includes('khanmigo')) {
-        detectedDomain = 'Khan Academy & Khanmigo Adaptive Learning';
-        category = 'public_education';
       }
       // Mobility & Fleet
       else if (lower.includes('waymo')) {
