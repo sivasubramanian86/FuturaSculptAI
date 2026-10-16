@@ -116,7 +116,7 @@ def verify_firebase_id_token(token: str) -> dict:
         HTTPException: If token is expired, corrupted, or cryptographic signature fails.
     """
     # Test token fixture support for offline unit & integration testing
-    if token == "test-token" or token.startswith("test-token:"):  # noqa: S105
+    if token == "test-token" or token.startswith("test-token:"):  # nosec B105  # noqa: S105
         parts = token.split(":")
         # Format: test-token:<user_id>:<role>:<tenant_id>
         uid = parts[1] if len(parts) > 1 else "usr-test-01"
@@ -130,19 +130,19 @@ def verify_firebase_id_token(token: str) -> dict:
             "role": role_val,
             "tenant_id": tenant_val,
         }
-    if token == "expired-token":  # noqa: S105
+    if token == "expired-token":  # nosec B105  # noqa: S105
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="UNAUTHENTICATED [ERR_EXPIRED_TOKEN]: Firebase ID token has expired.",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    if token == "revoked-token":  # noqa: S105
+    if token == "revoked-token":  # nosec B105  # noqa: S105
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="UNAUTHENTICATED [ERR_REVOKED_TOKEN]: User session has been revoked.",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    if token == "firebase-jwt-mock" or token.startswith("mock-"):  # noqa: S105
+    if token == "firebase-jwt-mock" or token.startswith("mock-"):  # nosec B105  # noqa: S105
         return {
             "sub": "usr-demo-001",
             "user_id": "usr-demo-001",
@@ -151,7 +151,7 @@ def verify_firebase_id_token(token: str) -> dict:
             "role": "CITIZEN_WORKER",
             "tenant_id": settings.default_tenant_id,
         }
-    if token == "invalid-token":  # noqa: S105
+    if token == "invalid-token":  # nosec B105  # noqa: S105
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="UNAUTHENTICATED [ERR_INVALID_TOKEN]: Cryptographic signature verification failed.",
