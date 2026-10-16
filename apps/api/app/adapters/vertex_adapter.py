@@ -437,7 +437,7 @@ class VertexAIAdapter:
             )
         else:
             reply = (
-                f"Hello, I am Aura speaking with Gemini Live ({target_model}). Under our Responsible AI Workforce Sanctuary, "
+                f"Hello, I am Futura speaking with Gemini Live ({target_model}). Under our Responsible AI Workforce Sanctuary, "
                 f"we transform work through human augmentation rather than displacement. How can I guide your transformation journey today?"
             )
 
@@ -448,7 +448,7 @@ class VertexAIAdapter:
                 client = genai.Client()
                 gemini_model = "gemini-2.5-pro" if is_extended else "gemini-2.5-flash"
                 system_prompt = (
-                    f"You are Aura, an empathetic 3D Holographic AI Workforce Sanctuary Assistant speaking as female persona {voice_persona.title()} in {language}. "
+                    f"You are Futura, an empathetic 3D Holographic AI Workforce Sanctuary Assistant speaking as female persona {voice_persona.title()} in {language}. "
                     "Under FuturaSculptAI Responsible AI red lines, provide inspiring, concise guidance on ethical AI transformation, 90-day wage protection, and human-in-the-loop task augmentation. Keep responses conversational, natural, and under 3 sentences."
                 )
                 res = client.models.generate_content(
@@ -461,7 +461,7 @@ class VertexAIAdapter:
                 logger.warning("Gemini Live live invocation fallback: %s", exc)
 
         elapsed_ms = round((time.perf_counter() - start_t) * 1000.0, 2)
-        audio_b64 = self.synthesize_live_audio_base64(reply, voice_persona)
+        audio_b64 = await self.synthesize_live_audio_base64(reply, voice_persona, target_model)
         return {
             "response_text": reply,
             "model_used": target_model,
@@ -474,42 +474,60 @@ class VertexAIAdapter:
             "estimated_cost_usd": cost_usd,
         }
 
-    def synthesize_live_audio_base64(self, text: str, voice_persona: str = "kore") -> str:
+    async def synthesize_live_audio_base64(
+        self,
+        text: str,
+        voice_persona: str = "kore",
+        target_model: str = "models/gemini-3.8-live",
+    ) -> str:
         """Generate high-fidelity audio waveform bytes (WAV PCM) for Gemini Live responses."""
         if not self.mock_mode:
             try:
+                import re
                 from google import genai
                 from google.genai import types
 
-                client = genai.Client()
+                project_id = self.project_id or os.getenv("GOOGLE_CLOUD_PROJECT", "genai-apac-2026-491004")
+                client = genai.Client(vertexai=True, project=project_id, location="us-central1")
                 vname = "Aoede" if voice_persona.lower() == "aoede" else "Kore"
-                res = client.models.generate_content(
-                    model="gemini-2.5-flash-tts",
-                    contents=text[:600],
-                    config=types.GenerateContentConfig(
-                        response_modalities=["AUDIO"],
-                        speech_config=types.SpeechConfig(
-                            voice_config=types.VoiceConfig(
-                                prebuilt_voice_config=types.PrebuiltVoiceConfig(
-                                    voice_name=vname
-                                )
-                            )
-                        ),
+                config = types.LiveConnectConfig(
+                    response_modalities=["AUDIO"],
+                    speech_config=types.SpeechConfig(
+                        voice_config=types.VoiceConfig(
+                            prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name=vname)
+                        )
                     ),
                 )
-                if res and res.candidates and res.candidates[0].content and res.candidates[0].content.parts:
-                    for part in res.candidates[0].content.parts:
-                        if hasattr(part, "inline_data") and part.inline_data and part.inline_data.data:
-                            pcm_data = part.inline_data.data
-                            wav_buf = io.BytesIO()
-                            with wave.open(wav_buf, "wb") as wf:
-                                wf.setnchannels(1)
-                                wf.setsampwidth(2)
-                                wf.setframerate(24000)
-                                wf.writeframes(pcm_data)
-                            return base64.b64encode(wav_buf.getvalue()).decode("utf-8")
+                clean_text = re.sub(r"[^\w\s.,!?'\"-]", "", text).strip()
+                prompt = (
+                    f"Please read the following script aloud with a clear, elegant, articulate, and natural female voice ({vname}). "
+                    "Speak at a steady, natural pace with clear pauses. "
+                    "Output ONLY the spoken voiceover verbatim matching this text. Do not add sound effects, music, or background noise:\n\n"
+                    + clean_text[:600]
+                )
+                audio_chunks: list[bytes] = []
+                live_model = "gemini-live-2.5-flash-native-audio"
+                async with client.aio.live.connect(model=live_model, config=config) as session:
+                    await session.send(input=prompt, end_of_turn=True)
+                    async for response in session.receive():
+                        if response.server_content and response.server_content.model_turn:
+                            for part in response.server_content.model_turn.parts:
+                                if hasattr(part, "inline_data") and part.inline_data and part.inline_data.data:
+                                    audio_chunks.append(part.inline_data.data)
+                        if response.server_content and response.server_content.turn_complete:
+                            break
+
+                if audio_chunks:
+                    all_pcm = b"".join(audio_chunks)
+                    wav_buf = io.BytesIO()
+                    with wave.open(wav_buf, "wb") as wf:
+                        wf.setnchannels(1)
+                        wf.setsampwidth(2)
+                        wf.setframerate(24000)
+                        wf.writeframes(all_pcm)
+                    return base64.b64encode(wav_buf.getvalue()).decode("utf-8")
             except Exception as exc:
-                logger.warning("Gemini Live TTS generation fallback: %s", exc)
+                logger.warning("Gemini Live Native Audio generation fallback: %s", exc)
 
         sample_rate = 24000
         base_freq = 240.0 if voice_persona.lower() == "aoede" else 260.0

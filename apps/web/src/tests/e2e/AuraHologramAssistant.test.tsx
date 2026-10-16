@@ -84,14 +84,14 @@ describe('AuraHologramAssistant Component', () => {
       />
     );
 
-    const triggerBtn = screen.getByLabelText(/Launch Aura 3D Virtual Live Assistant/i);
+    const triggerBtn = screen.getByLabelText(/Launch (?:Aura|Futura) 3D Virtual Live Assistant/i);
     expect(triggerBtn).toBeInTheDocument();
 
     // Click trigger to open modal
     fireEvent.click(triggerBtn);
 
-    expect(screen.getByText(/Aura — 3D Virtual Live Assistant/i)).toBeInTheDocument();
-    expect(screen.getByText(/Hello! I am Aura/i)).toBeInTheDocument();
+    expect(screen.getByText(/(?:Aura|Futura) — 3D Virtual Live Assistant/i)).toBeInTheDocument();
+    expect(screen.getByText(/Hello! I am (?:Aura|Futura)/i)).toBeInTheDocument();
   });
 
   it('handles user text input, blank sends, and generates smart persona responses', async () => {
@@ -106,9 +106,9 @@ describe('AuraHologramAssistant Component', () => {
       />
     );
 
-    fireEvent.click(screen.getByLabelText(/Launch Aura 3D Virtual Live Assistant/i));
+    fireEvent.click(screen.getByLabelText(/Launch (?:Aura|Futura) 3D Virtual Live Assistant/i));
 
-    const input = screen.getByPlaceholderText(/Ask Aura anything/i);
+    const input = screen.getByPlaceholderText(/Ask (?:Aura|Futura) anything/i);
     const sendBtn = screen.getByRole('button', { name: /Send/i });
 
     // Test blank input does nothing
@@ -170,7 +170,7 @@ describe('AuraHologramAssistant Component', () => {
     expect(onNav).toHaveBeenCalledWith('task_sculptor');
 
     // Reopen modal and test jump to sector focus button inside message
-    fireEvent.click(screen.getByLabelText(/Launch Aura 3D Virtual Live Assistant/i));
+    fireEvent.click(screen.getByLabelText(/Launch (?:Aura|Futura) 3D Virtual Live Assistant/i));
     const jumpSectorBtns = screen.getAllByRole('button', { name: /Sector Focus/i });
     expect(jumpSectorBtns.length).toBeGreaterThan(0);
     fireEvent.click(jumpSectorBtns[0]);
@@ -178,24 +178,24 @@ describe('AuraHologramAssistant Component', () => {
     expect(onSelectSector).toHaveBeenCalledWith('logistics');
 
     // Reopen modal and test jump to SAIF
-    fireEvent.click(screen.getByLabelText(/Launch Aura 3D Virtual Live Assistant/i));
+    fireEvent.click(screen.getByLabelText(/Launch (?:Aura|Futura) 3D Virtual Live Assistant/i));
     const jumpSaifBtns = screen.getAllByRole('button', { name: /SAIF Posture/i });
     expect(jumpSaifBtns.length).toBeGreaterThan(0);
     fireEvent.click(jumpSaifBtns[0]);
     expect(onNav).toHaveBeenCalledWith('governance');
 
     // Reopen modal and test synth speak error catch
-    fireEvent.click(screen.getByLabelText(/Launch Aura 3D Virtual Live Assistant/i));
+    fireEvent.click(screen.getByLabelText(/Launch (?:Aura|Futura) 3D Virtual Live Assistant/i));
     (window.speechSynthesis.speak as any).mockImplementationOnce(() => {
       throw new Error('synth error');
     });
-    fireEvent.change(screen.getByPlaceholderText(/Ask Aura anything/i), { target: { value: 'Test synth error catch' } });
+    fireEvent.change(screen.getByPlaceholderText(/Ask (?:Aura|Futura) anything/i), { target: { value: 'Test synth error catch' } });
     fireEvent.click(screen.getByRole('button', { name: /Send/i }));
 
     // Test close button
-    const closeBtn = screen.getByLabelText(/Close Aura Assistant/i);
+    const closeBtn = screen.getByLabelText(/Close (?:Aura|Futura) Assistant/i);
     fireEvent.click(closeBtn);
-    expect(screen.queryByText(/Aura — 3D Virtual Live Assistant/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/(?:Aura|Futura) — 3D Virtual Live Assistant/i)).not.toBeInTheDocument();
   });
 
   it('triggers quick prompt pills for UPI QR, Uber drivers, and Cinema industry', async () => {
@@ -206,7 +206,7 @@ describe('AuraHologramAssistant Component', () => {
       />
     );
 
-    fireEvent.click(screen.getByLabelText(/Launch Aura 3D Virtual Live Assistant/i));
+    fireEvent.click(screen.getByLabelText(/Launch (?:Aura|Futura) 3D Virtual Live Assistant/i));
 
     // Click UPI QR pill
     const upiPill = screen.getByRole('button', { name: /💳 UPI & QR Payment Safety/i });
@@ -260,7 +260,7 @@ describe('AuraHologramAssistant Component', () => {
       />
     );
 
-    fireEvent.click(screen.getByLabelText(/Launch Aura 3D Virtual Live Assistant/i));
+    fireEvent.click(screen.getByLabelText(/Launch (?:Aura|Futura) 3D Virtual Live Assistant/i));
 
     // Start listening
     const startMicBtn = screen.getByLabelText(/Start speaking with microphone/i);
@@ -296,7 +296,7 @@ describe('AuraHologramAssistant Component', () => {
       mockUtteranceInstance = utterance;
       if (utterance.onstart) utterance.onstart();
     });
-    const testInput = screen.getByPlaceholderText(/Ask Aura anything/i);
+    const testInput = screen.getByPlaceholderText(/Ask (?:Aura|Futura) anything/i);
     fireEvent.change(testInput, { target: { value: 'Activate speaking node' } });
     fireEvent.click(screen.getByRole('button', { name: /Send/i }));
     if (mockUtteranceInstance && mockUtteranceInstance.onend) {
@@ -310,11 +310,11 @@ describe('AuraHologramAssistant Component', () => {
     fireEvent.click(screen.getByLabelText(/Start speaking with microphone/i));
 
     // Test backdrop overlay click to close
-    const overlay = screen.getByText(/Aura Quantum Holo-Node/i).closest('.modal-overlay');
+    const overlay = screen.getByText(/(?:Aura|Futura) Quantum Holo-Node/i).closest('.modal-overlay');
     expect(overlay).not.toBeNull();
     fireEvent.click(overlay!);
 
-    expect(screen.queryByText(/Aura — 3D Virtual Live Assistant/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/(?:Aura|Futura) — 3D Virtual Live Assistant/i)).not.toBeInTheDocument();
   });
 
   it('shows browser alert when SpeechRecognition is unsupported', () => {
@@ -330,7 +330,7 @@ describe('AuraHologramAssistant Component', () => {
       />
     );
 
-    fireEvent.click(screen.getByLabelText(/Launch Aura 3D Virtual Live Assistant/i));
+    fireEvent.click(screen.getByLabelText(/Launch (?:Aura|Futura) 3D Virtual Live Assistant/i));
 
     const micBtn = screen.getByLabelText(/Start speaking with microphone/i);
     fireEvent.click(micBtn);
@@ -361,7 +361,7 @@ describe('AuraHologramAssistant Component', () => {
 
     expect(capturedRecognition.lang).toBe('en-US');
 
-    fireEvent.click(screen.getByLabelText(/Launch Aura 3D Virtual Live Assistant/i));
+    fireEvent.click(screen.getByLabelText(/Launch (?:Aura|Futura) 3D Virtual Live Assistant/i));
     expect(mockUtteranceInstance.lang).toBe('en-US');
   });
 
@@ -379,10 +379,10 @@ describe('AuraHologramAssistant Component', () => {
       />
     );
 
-    fireEvent.click(screen.getByLabelText(/Launch Aura 3D Virtual Live Assistant/i));
+    fireEvent.click(screen.getByLabelText(/Launch (?:Aura|Futura) 3D Virtual Live Assistant/i));
 
     // Send text when speechSynthesis is null (covers if (!synthRef.current) return)
-    const input = screen.getByPlaceholderText(/Ask Aura anything/i);
+    const input = screen.getByPlaceholderText(/Ask (?:Aura|Futura) anything/i);
     fireEvent.change(input, { target: { value: 'Test without speech synthesis' } });
     fireEvent.click(screen.getByRole('button', { name: /Send/i }));
 
@@ -397,7 +397,7 @@ describe('AuraHologramAssistant Component', () => {
       />
     );
 
-    fireEvent.click(screen.getByLabelText(/Launch Aura 3D Virtual Live Assistant/i));
+    fireEvent.click(screen.getByLabelText(/Launch (?:Aura|Futura) 3D Virtual Live Assistant/i));
 
     // Initially general-purpose live model is selected
     expect(screen.getByRole('button', { name: /⚡ models\/gemini-3.8-live/i })).toBeInTheDocument();
@@ -436,12 +436,12 @@ describe('AuraHologramAssistant Component', () => {
       />
     );
 
-    fireEvent.click(screen.getByLabelText(/Launch Aura 3D Virtual Live Assistant/i));
+    fireEvent.click(screen.getByLabelText(/Launch (?:Aura|Futura) 3D Virtual Live Assistant/i));
 
     // Switch to extended thinking model
     fireEvent.click(screen.getByRole('button', { name: /🧠 models\/gemini-3.8-live-extended-thinking/i }));
 
-    const input = screen.getByPlaceholderText(/Ask Aura anything/i);
+    const input = screen.getByPlaceholderText(/Ask (?:Aura|Futura) anything/i);
     fireEvent.change(input, { target: { value: 'How does Gemini Live safeguard workers?' } });
     fireEvent.click(screen.getByRole('button', { name: /Send/i }));
 

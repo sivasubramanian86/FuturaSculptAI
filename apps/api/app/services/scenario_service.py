@@ -554,16 +554,16 @@ async def generate_transformation_roadmap(
     # 3. Lyria Podcast Studio
     lyria_podcast = LyriaPodcast(
         title=f"Lyria Future Podcast: Echoes of 2036 at {firm_name}",
-        speakers=["Aura (Host)", f"Dr. Jordan (Chief Transformation Officer, {firm_name})"],
+        speakers=["Futura (Host)", f"Dr. Jordan (Chief Transformation Officer, {firm_name})"],
         script=(
             f"[Music: Ambient Lyria harmonic chime fading in]\n\n"
-            f"AURA: Welcome to Echoes of 2036. Today we are visiting {firm_name}, an organization that made headlines "
+            f"FUTURA: Welcome to Echoes of 2036. Today we are visiting {firm_name}, an organization that made headlines "
             f"a decade ago when they deployed FuturaSculptAI and the Google ADK multi-agent mesh. "
             f"Dr. Jordan, looking back at 2026, people feared mass layoffs from AI. What actually happened?\n\n"
-            f"DR. JORDAN: Aura, the opposite occurred. We decomposed 74 granular SOP workflows, transferred the clerical toil "
+            f"DR. JORDAN: Futura, the opposite occurred. We decomposed 74 granular SOP workflows, transferred the clerical toil "
             f"to Gemini 2.5 Pro and autonomous swarms, and placed our frontline workforce into high-empathy supervisory roles. "
             f"Our output multiplied by 14x, and our workers now enjoy a 4-day workweek with guaranteed 90-day salary protection.\n\n"
-            f"AURA: That is extraordinary. What was the turning point in building trust with your workforce?\n\n"
+            f"FUTURA: That is extraordinary. What was the turning point in building trust with your workforce?\n\n"
             f"DR. JORDAN: The A2 Human Sign-Off Gate and complete evidence lineage. No algorithm could terminate an employee or "
             f"alter compensation without human executive and worker representative consent. Trust drove our transformation."
         ),

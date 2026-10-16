@@ -310,7 +310,7 @@ async def test_vertex_generate_live_dialogue_all_branches():
         reasoning_budget=None,
     )
     assert "2048 token budget" in res_thinking_default["reasoning_trace"]
-    assert "Hello, I am Aura" in res_thinking_default["response_text"]
+    assert "Hello, I am Futura" in res_thinking_default["response_text"]
 
     # 3. 5-year-old kid explanation
     res_kid = await adapter.generate_live_dialogue(
@@ -373,15 +373,31 @@ async def test_vertex_generate_live_dialogue_all_branches():
     adapter_live = VertexAIAdapter(mock_mode=False)
     with patch("google.genai.Client") as mock_client_cls:
         mock_instance = MagicMock()
-        mock_part = MagicMock()
-        mock_part.inline_data.data = b"\x00\x00" * 200
-        mock_candidate = MagicMock()
-        mock_candidate.content.parts = [mock_part]
-        mock_gen_res = MagicMock(
-            text="Dynamic live Gemini speech response.",
-            candidates=[mock_candidate],
+        mock_instance.models.generate_content.return_value = MagicMock(
+            text="Dynamic live Gemini speech response."
         )
-        mock_instance.models.generate_content.return_value = mock_gen_res
+
+        class MockSession:
+            async def __aenter__(self):
+                return self
+
+            async def __aexit__(self, exc_type, exc_val, exc_tb):
+                pass
+
+            async def send(self, *args, **kwargs):
+                pass
+
+            async def receive(self):
+                mock_part = MagicMock()
+                mock_part.inline_data.data = b"\x00\x00" * 200
+                mock_turn = MagicMock()
+                mock_turn.parts = [mock_part]
+                mock_resp = MagicMock()
+                mock_resp.server_content.model_turn = mock_turn
+                mock_resp.server_content.turn_complete = True
+                yield mock_resp
+
+        mock_instance.aio.live.connect.return_value = MockSession()
         mock_client_cls.return_value = mock_instance
         res_live = await adapter_live.generate_live_dialogue(
             prompt="Hello from live dialogue",

@@ -60,9 +60,9 @@ export const CitizenOverview: React.FC<CitizenOverviewProps> = ({
     },
     {
       icon: '🎙️',
-      title: 'Talk to Aura in Your Language (நேரடி பேச்சு)',
-      summary: 'Tap the purple orb in the bottom-right corner! Aura speaks Tamil, Hindi, Telugu, Kannada, Malayalam, and English.',
-      spoken: 'Whenever you have questions, tap Aura, the purple holographic assistant in the bottom right corner, to talk in your mother tongue.',
+      title: 'Talk to Futura in Your Language (நேரடி பேச்சு)',
+      summary: 'Tap the purple orb in the bottom-right corner! Futura speaks Tamil, Hindi, Telugu, Kannada, Malayalam, and English.',
+      spoken: 'Whenever you have questions, tap Futura, the purple holographic assistant in the bottom right corner, to talk in your mother tongue.',
     },
   ];
 

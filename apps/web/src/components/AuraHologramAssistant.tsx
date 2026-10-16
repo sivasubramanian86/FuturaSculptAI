@@ -133,7 +133,7 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
   useEffect(() => {
     if (isOpen && messages.length === 0) {
       const welcomeText =
-        '✨ Hello! I am Aura, your 3D Holographic Sanctuary Assistant. I am here to guide workers, seniors, kids, freelancers, movie artists, and industrialists in any language. Tap a question or talk to me!';
+        '✨ Hello! I am Futura, your 3D Holographic Sanctuary Assistant. I am here to guide workers, seniors, kids, freelancers, movie artists, and industrialists in any language. Tap a question or talk to me!';
       const welcome: ChatMessage = {
         id: 'msg-welcome',
         sender: 'aura',
@@ -555,7 +555,7 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
         id="btn-hologram-assistant"
         type="button"
         onClick={() => setIsOpen(true)}
-        aria-label="Launch Aura 3D Virtual Live Assistant"
+        aria-label="Launch Futura 3D Virtual Live Assistant"
         className="hologram-trigger-orb"
         style={{
           position: 'fixed',
@@ -576,7 +576,7 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
           fontSize: '26px',
           transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
         }}
-        title="✨ Aura 3D Hologram Live Assistant"
+        title="✨ Futura 3D Hologram Live Assistant"
       >
         <span style={{ animation: 'hologram-spin 8s linear infinite', display: 'inline-block' }}>🔮</span>
         <div
@@ -657,7 +657,7 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
                 </div>
                 <div>
                   <div style={{ fontWeight: 800, fontSize: '17px', color: '#fff', letterSpacing: '-0.01em' }}>
-                    Aura &mdash; 3D Virtual Live Assistant
+                    Futura &mdash; 3D Virtual Live Assistant
                   </div>
                   <div style={{ fontSize: '12px', color: 'var(--accent-cyan)' }}>
                     Universal Workforce Sanctuary Guide • Multilingual Voice AI
@@ -687,7 +687,7 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
                   }}
                   className="btn-subtle"
                   style={{ padding: '6px 12px', borderRadius: '50%', fontSize: '14px' }}
-                  aria-label="Close Aura Assistant"
+                  aria-label="Close Futura Assistant"
                 >
                   ✕
                 </button>
@@ -867,7 +867,7 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
                   }}
                 />
                 <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '8px', textAlign: 'center' }}>
-                  Aura Quantum Holo-Node • 60 FPS Engine
+                  Futura Quantum Holo-Node • 60 FPS Engine
                 </div>
 
                 {/* Gemini Live Audio Profile Badge & Persona Toggles */}
@@ -1251,7 +1251,7 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') handleSendMessage();
                 }}
-                placeholder="Ask Aura anything (e.g. 5yo kid, 60+ senior, UPI QR safety, Uber drivers, movies)..."
+                placeholder="Ask Futura anything (e.g. 5yo kid, 60+ senior, UPI QR safety, Uber drivers, movies)..."
                 style={{
                   flex: 1,
                   padding: '12px 18px',
@@ -1285,3 +1285,5 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
     </>
   );
 };
+
+export const FuturaHologramAssistant = AuraHologramAssistant;

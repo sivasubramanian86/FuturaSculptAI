@@ -259,15 +259,15 @@ describe('FuturaSculptAI End-to-End (E2E) User Journey', () => {
       expect(screen.getByText(/Governance TrustBoard & Investor Lens/i)).toBeInTheDocument();
     });
 
-    // 8. Open Aura Hologram Assistant beacon
-    const auraBeacon = screen.getByLabelText(/Launch Aura 3D Virtual Live Assistant/i);
-    fireEvent.click(auraBeacon);
+    // 8. Open Futura Hologram Assistant beacon
+    const futuraBeacon = screen.getByLabelText(/Launch (?:Aura|Futura) 3D Virtual Live Assistant/i);
+    fireEvent.click(futuraBeacon);
     await waitFor(() => {
-      expect(screen.getByText(/Aura — 3D Virtual Live Assistant/i)).toBeInTheDocument();
+      expect(screen.getByText(/(?:Aura|Futura) — 3D Virtual Live Assistant/i)).toBeInTheDocument();
     });
 
-    // Send a message to Aura
-    const inputField = screen.getByPlaceholderText(/Ask Aura anything/i);
+    // Send a message to Futura
+    const inputField = screen.getByPlaceholderText(/Ask (?:Aura|Futura) anything/i);
     fireEvent.change(inputField, { target: { value: 'How does wage escrow protect my salary?' } });
     const sendBtn = screen.getByRole('button', { name: /Send/i });
     fireEvent.click(sendBtn);
@@ -275,9 +275,9 @@ describe('FuturaSculptAI End-to-End (E2E) User Journey', () => {
       expect(screen.getByText(/How does wage escrow protect my salary\?/i)).toBeInTheDocument();
     });
 
-    // Close Aura assistant
-    const auraClose = screen.getByRole('button', { name: /Close Aura Assistant/i });
-    fireEvent.click(auraClose);
+    // Close Futura assistant
+    const futuraClose = screen.getByRole('button', { name: /Close (?:Aura|Futura) Assistant/i });
+    fireEvent.click(futuraClose);
   }, 60000);
 });
 
