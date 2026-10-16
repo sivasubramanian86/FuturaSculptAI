@@ -551,5 +551,138 @@ describe('AuraHologramAssistant Component', () => {
 
     liveDialogueSpy.mockRestore();
   });
+
+  it('triggers Gemini Flash Native Audio dialogue on launch and updates welcome message', async () => {
+    const liveDialogueSpy = vi.spyOn(api, 'geminiLiveDialogue').mockResolvedValueOnce({
+      response_text: 'Welcome to FuturaSculptAI! I am Futura, your 3D Holographic AI Workforce Sanctuary Assistant.',
+      model_used: 'models/gemini-3.8-live',
+      voice_persona: 'kore',
+      audio_base64: 'UklGRgAAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=',
+      latency_ms: 95.0,
+      input_tokens: 28,
+      output_tokens: 32,
+      estimated_cost_usd: 0.0001,
+    });
+
+    render(
+      <AuraHologramAssistant
+        currentLanguage="en"
+        onNavigateTab={vi.fn()}
+      />
+    );
+
+    fireEvent.click(screen.getByLabelText(/Launch (?:Aura|Futura) 3D Virtual Live Assistant/i));
+
+    await waitFor(() => {
+      expect(liveDialogueSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          context_topic: 'welcome',
+          model: 'models/gemini-3.8-live',
+          voice_persona: 'kore',
+        })
+      );
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText(/Welcome to FuturaSculptAI! I am Futura/i)).toBeInTheDocument();
+    });
+
+    liveDialogueSpy.mockRestore();
+  });
+
+  it('executes interactive spoken guided tour across all 8 modules and synchronizes tabs', async () => {
+    const onNav = vi.fn();
+    const liveDialogueSpy = vi.spyOn(api, 'geminiLiveDialogue').mockImplementation(async (req) => ({
+      response_text: `Live commentary for ${req.context_topic || req.message}`,
+      model_used: 'models/gemini-3.8-live',
+      voice_persona: 'kore',
+      audio_base64: 'UklGRgAAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=',
+      latency_ms: 110.0,
+      input_tokens: 30,
+      output_tokens: 35,
+      estimated_cost_usd: 0.00012,
+    }));
+
+    render(
+      <AuraHologramAssistant
+        currentLanguage="en"
+        onNavigateTab={onNav}
+      />
+    );
+
+    fireEvent.click(screen.getByLabelText(/Launch (?:Aura|Futura) 3D Virtual Live Assistant/i));
+
+    // Start tour from the guided tour banner button
+    const startTourBtn = screen.getAllByRole('button', { name: /Start Spoken Guided Tour/i })[0];
+    expect(startTourBtn).toBeInTheDocument();
+    fireEvent.click(startTourBtn);
+
+    // Verify Stage 1 is active (overview tab)
+    await waitFor(() => {
+      expect(onNav).toHaveBeenCalledWith('overview');
+      expect(screen.getByText(/STEP 1 OF 8/i)).toBeInTheDocument();
+      expect(screen.getByText(/Executive Cockpit & Citizen Overview/i)).toBeInTheDocument();
+    });
+
+    // Advance to Stage 2 (worktwins tab)
+    const nextBtn = screen.getByRole('button', { name: /Next Step ⏩/i });
+    fireEvent.click(nextBtn);
+
+    await waitFor(() => {
+      expect(onNav).toHaveBeenCalledWith('worktwins');
+      expect(screen.getByText(/STEP 2 OF 8/i)).toBeInTheDocument();
+      expect(screen.getByText(/Futura WorkTwin Fabric/i)).toBeInTheDocument();
+    });
+
+    // Test Previous button navigates back to Stage 1 (overview tab)
+    const prevBtn = screen.getByRole('button', { name: /⏪ Prev/i });
+    fireEvent.click(prevBtn);
+
+    await waitFor(() => {
+      expect(onNav).toHaveBeenCalledWith('overview');
+      expect(screen.getByText(/STEP 1 OF 8/i)).toBeInTheDocument();
+    });
+
+    // Test Replay voice button on current step
+    const replayBtn = screen.getByRole('button', { name: /🔊 Replay Voice/i });
+    fireEvent.click(replayBtn);
+
+    await waitFor(() => {
+      expect(liveDialogueSpy).toHaveBeenCalled();
+    });
+
+    // Advance through stages 2 to 8
+    const tabSequence = ['worktwins', 'task_sculptor', 'opportunity', 'workgraph', 'multimodal', 'agent_swarm', 'governance'];
+    for (let i = 0; i < tabSequence.length; i++) {
+      const stepNextBtn = screen.getByRole('button', { name: i === tabSequence.length - 1 ? /Finish Tour 🏁|Next Step ⏩/i : /Next Step ⏩/i });
+      fireEvent.click(stepNextBtn);
+      await waitFor(() => {
+        expect(onNav).toHaveBeenCalledWith(tabSequence[i]);
+      });
+    }
+
+    // On Stage 8, click Finish Tour
+    const finishTourBtn = screen.getByRole('button', { name: /Finish Tour 🏁/i });
+    fireEvent.click(finishTourBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText(/You have completed the FuturaSculptAI Spoken Guided Tour/i)).toBeInTheDocument();
+    });
+
+    // Test Exit Tour functionality
+    const startTourAgain = screen.getAllByRole('button', { name: /Start Spoken Guided Tour/i })[0];
+    fireEvent.click(startTourAgain);
+    await waitFor(() => {
+      expect(screen.getByText(/STEP 1 OF 8/i)).toBeInTheDocument();
+    });
+    const exitTourBtn = screen.getByRole('button', { name: /✕ Exit/i });
+    fireEvent.click(exitTourBtn);
+
+    await waitFor(() => {
+      expect(screen.queryByText(/STEP 1 OF 8/i)).not.toBeInTheDocument();
+    });
+
+    liveDialogueSpy.mockRestore();
+  });
 });
 

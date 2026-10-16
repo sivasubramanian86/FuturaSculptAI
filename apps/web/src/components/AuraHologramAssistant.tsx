@@ -44,6 +44,116 @@ const BCP47_MAP: Record<string, string> = {
   de: 'de-DE',
 };
 
+export interface GuidedTourStep {
+  step: number;
+  tabId: string;
+  title: string;
+  badge: string;
+  icon: string;
+  prompt: string;
+  description: string;
+  highlights: string[];
+}
+
+export const FUTURA_TOUR_STEPS: GuidedTourStep[] = [
+  {
+    step: 1,
+    tabId: 'overview',
+    title: 'Executive Cockpit & Citizen Overview',
+    badge: 'STAGE 1: COCKPIT & SECTORS',
+    icon: '📊',
+    prompt:
+      'Explain Stage 1: The Executive Cockpit and Citizen Overview in FuturaSculptAI. Mention our 94.3% ethical trust score, multi-sector switching between food processing, automotive EV, healthcare, and robotics, and zero-layoff workforce guarantees.',
+    description:
+      'Unified executive and citizen cockpit tracking real-time workforce health, 94.3% trust scores, 18 active transformation tasks, and instantaneous multi-sector digital twin switching.',
+    highlights: ['94.3% TrustBoard Governance Score', 'Multi-Sector Presets (Food, EV, Healthcare, Robotics)', 'Citizen Worker Simple Voice & Visual Mode'],
+  },
+  {
+    step: 2,
+    tabId: 'worktwins',
+    title: 'Futura WorkTwin Fabric',
+    badge: 'STAGE 2: DIGITAL TWINS',
+    icon: '👥',
+    prompt:
+      'Explain Stage 2: The Futura WorkTwin Fabric. Explain the three governed twin classes: RoleTwin archetype (default), PersonalWorkTwin (consent-based and revocable), and OrganizationTwin (scenario simulation), emphasizing that we never create unrestricted AI clones.',
+    description:
+      'Governed workforce digital twins. RoleTwin provides synthetic role archetypes; PersonalWorkTwin offers opt-in, revocable employee task delegation; and OrganizationTwin models systemic enterprise workflows.',
+    highlights: ['RoleTwin synthetic role archetypes', 'PersonalWorkTwin consent & purpose binding', 'OrganizationTwin systemic enterprise simulations'],
+  },
+  {
+    step: 3,
+    tabId: 'task_sculptor',
+    title: 'Task Sculptor & 6-Part Taxonomy',
+    badge: 'STAGE 3: WORK REBALANCING',
+    icon: '🧬',
+    prompt:
+      'Explain Stage 3: Task Sculptor in FuturaSculptAI. Describe how we decompose workflows into Automate, Augment, Assist, Retain, Redesign, and Retire, while enforcing the A2 Human Sign-Off Gate for supervisor approval.',
+    description:
+      'Deconstruct jobs into granular tasks categorized across our 6-part taxonomy. Rebalance human agency and AI autonomy with mandatory A2 Human Sign-Off Gates.',
+    highlights: ['6-Taxonomy allocation (Augment, Automate, Retain, etc.)', 'A2 Supervisor Sign-Off gate', 'Worker cognitive load rebalancing'],
+  },
+  {
+    step: 4,
+    tabId: 'opportunity',
+    title: 'Opportunity Engine & Mobility',
+    badge: 'STAGE 4: CAREER MOBILITY',
+    icon: '🚀',
+    prompt:
+      'Explain Stage 4: The Opportunity Engine and Career Mobility. Explain deterministic Role Resilience Indices, +15% to +38% wage mobility trajectories, sponsored reskilling pathways, and k>=10 differential privacy.',
+    description:
+      'Deterministic indices (RRI, TCI, HVI, SRI) matching displaced tasks to sponsored career mobility pathways protected by k>=10 differential privacy and statutory right of appeal.',
+    highlights: ['Deterministic Role Resilience Index (RRI)', '+15% to +38% wage increase trajectories', 'k>=10 Differential Privacy protection'],
+  },
+  {
+    step: 5,
+    tabId: 'workgraph',
+    title: 'Temporal WorkGraph & Scenarios',
+    badge: 'STAGE 5: TEMPORAL SIMULATION',
+    icon: '🌐',
+    prompt:
+      'Explain Stage 5: The Temporal WorkGraph and Scenario Simulations. Explain how we project organizational impact across T0, T+30, T+90, and Year 3 horizons, evaluating blast radius before automating.',
+    description:
+      '8-layer enterprise graph connecting Outcomes, Capabilities, Workflows, Tasks, Roles, Skills, Systems, and Agents. Simulate multi-year automation blast radius before deploying.',
+    highlights: ['8-layer enterprise ontology', 'T0 to Year 3 temporal horizon forecasting', 'Automation blast radius cascade visualizer'],
+  },
+  {
+    step: 6,
+    tabId: 'multimodal',
+    title: 'MultiModal Media Studio',
+    badge: 'STAGE 6: MULTIMODAL INGESTION',
+    icon: '🎙️',
+    prompt:
+      'Explain Stage 6: The MultiModal Media Studio. Describe how we ingest workplace audio memos, equipment schematics, camera feeds, and documents using Gemini 2.5 Pro and Gemini Flash Native Audio.',
+    description:
+      'Ingest and analyze real-world shift voice recordings, factory equipment blueprints, CCTV ergonomics feeds, and standard operating procedure documents in real time.',
+    highlights: ['Voice & acoustic shift note transcription', 'Equipment schematic visual grounding', 'Gemini Flash Native Audio narration'],
+  },
+  {
+    step: 7,
+    tabId: 'agent_swarm',
+    title: 'Google ADK 7-Agent Swarm Console',
+    badge: 'STAGE 7: MULTI-AGENT SWARM',
+    icon: '🤖',
+    prompt:
+      'Explain Stage 7: The Google ADK Multi-Agent Swarm Console. Describe our 7 neuro-symbolic specialist agents collaborating with the Adversarial Safety Critic and consensus voting.',
+    description:
+      '7 specialized Google ADK agents (Task Decomposer, Skills Mobility, FinOps, WorkGraph Architect, Adversarial Critic, etc.) collaborating with verifiable tool trajectories and consensus voting.',
+    highlights: ['7 Google ADK neuro-symbolic specialists', 'Adversarial Safety Critic red-line verification', 'Live reasoning traces and tool trajectory inspection'],
+  },
+  {
+    step: 8,
+    tabId: 'governance',
+    title: 'TrustBoard Governance & Evidence Vault',
+    badge: 'STAGE 8: GOVERNANCE & PROOF',
+    icon: '🛡️',
+    prompt:
+      'Explain Stage 8: TrustBoard Governance and Cryptographic Evidence. Explain our 8 Well-Architected pillars, 16 Google SAIF security controls, Cloud DLP PII protection, and SHA-256 evidence vault.',
+    description:
+      'Rigorous AI governance scoring 8 Well-Architected pillars, 16 Google SAIF security controls, and Cloud DLP crypto-hashing, with tamper-evident SHA-256 evidence packages for audit compliance.',
+    highlights: ['8 Well-Architected governance pillars', '16 Google SAIF security matrix controls', 'Cryptographic SHA-256 Evidence Vault'],
+  },
+];
+
 export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
   currentLanguage,
   onNavigateTab,
@@ -62,6 +172,9 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
   const [selectedVoicePersona, setSelectedVoicePersona] = useState<'kore' | 'aoede'>('kore');
   const [availableVoices, setAvailableVoices] = useState<any[]>([]);
   const [activeVoiceEngine, setActiveVoiceEngine] = useState<string>('Detecting Voice...');
+  const [isTourActive, setIsTourActive] = useState<boolean>(false);
+  const [tourStepIndex, setTourStepIndex] = useState<number>(0);
+  const liveAudioRef = useRef<HTMLAudioElement | null>(null);
 
   const handleJumpToSection = (tabId: string, sectorId?: string) => {
     onNavigateTab(tabId);
@@ -129,11 +242,11 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
     }
   }, [currentLanguage]);
 
-  // Initial Welcome Message
+  // Initial Welcome Message with Gemini Flash Native Audio LLM
   useEffect(() => {
     if (isOpen && messages.length === 0) {
       const welcomeText =
-        '✨ Hello! I am Futura, your 3D Holographic Sanctuary Assistant. I am here to guide workers, seniors, kids, freelancers, movie artists, and industrialists in any language. Tap a question or talk to me!';
+        '✨ Hello! I am Futura, your 3D Holographic Sanctuary Assistant powered by Gemini Live Native Audio. Welcome to FuturaSculptAI! I am here to guide workers, seniors, kids, freelancers, movie artists, and industrialists in any language. Tap "Start Guided Tour" below for an interactive spoken walkthrough, or tap a question to talk to me!';
       const welcome: ChatMessage = {
         id: 'msg-welcome',
         sender: 'aura',
@@ -143,7 +256,43 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
       };
       setMessages([welcome]);
 
-      speakText(welcomeText);
+      setIsLoadingLive(true);
+      api
+        .geminiLiveDialogue({
+          message:
+            'Hello! Warmly introduce yourself as Futura, the 3D Holographic AI Workforce Sanctuary Assistant powered by Gemini Live Native Audio. Welcome the user to FuturaSculptAI, mention that you can give an interactive spoken guided tour of all 8 app modules, and invite them to explore.',
+          model: selectedModel,
+          voice_persona: selectedVoicePersona,
+          language: currentLanguage,
+          context_topic: 'welcome',
+        })
+        .then((res) => {
+          if (res.response_text) {
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === 'msg-welcome'
+                  ? {
+                      ...m,
+                      text: res.response_text,
+                      modelUsed: res.model_used,
+                      reasoningTrace: res.reasoning_trace,
+                      latencyMs: res.latency_ms,
+                      voicePersona: res.voice_persona,
+                    }
+                  : m
+              )
+            );
+          }
+          if (res.audio_base64) {
+            playAudioBase64(res.audio_base64, res.response_text || welcomeText);
+          }
+        })
+        .catch(() => {
+          // Keep welcome text visible without robotic speech fallback
+        })
+        .finally(() => {
+          setIsLoadingLive(false);
+        });
     }
   }, [isOpen]);
 
@@ -344,30 +493,136 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
     return null;
   };
 
-  const playAudioBase64 = (base64Data: string, fallbackText: string) => {
+  const playAudioBase64 = (base64Data: string, fallbackText?: string) => {
     try {
       if (typeof window === 'undefined' || typeof (window as any).Audio === 'undefined') {
-        speakText(fallbackText);
+        if (fallbackText) speakText(fallbackText);
         return;
       }
+      if (liveAudioRef.current) {
+        liveAudioRef.current.pause();
+        liveAudioRef.current = null;
+      }
       const audio = new (window as any).Audio(`data:audio/wav;base64,${base64Data}`);
+      liveAudioRef.current = audio;
       setIsSpeaking(true);
       setActiveVoiceEngine(`Gemini Live Native Audio (${selectedVoicePersona.toUpperCase()})`);
-      audio.onended = () => setIsSpeaking(false);
+      audio.onended = () => {
+        setIsSpeaking(false);
+        liveAudioRef.current = null;
+      };
       audio.onerror = () => {
         setIsSpeaking(false);
-        speakText(fallbackText);
+        liveAudioRef.current = null;
       };
       const playPromise = audio.play?.();
       if (playPromise !== undefined) {
         playPromise.catch(() => {
           setIsSpeaking(false);
-          speakText(fallbackText);
+          liveAudioRef.current = null;
         });
       }
     } catch {
-      speakText(fallbackText);
+      setIsSpeaking(false);
+      liveAudioRef.current = null;
+      if (fallbackText) speakText(fallbackText);
     }
+  };
+
+  const handleStartTour = async (stepIdx: number = 0) => {
+    const idx = Math.max(0, Math.min(stepIdx, FUTURA_TOUR_STEPS.length - 1));
+    const step = FUTURA_TOUR_STEPS[idx];
+    setIsTourActive(true);
+    setTourStepIndex(idx);
+
+    // Synchronize cockpit navigation tab
+    onNavigateTab(step.tabId);
+
+    const tourMsg: ChatMessage = {
+      id: `tour-${step.step}-${Date.now()}`,
+      sender: 'aura',
+      text: `🎙️ Stage ${step.step}/8: ${step.title}\n\n${step.description}\n\nKey Capabilities:\n• ${step.highlights.join('\n• ')}`,
+      category: 'guided_tour',
+      modelUsed: selectedModel,
+      voicePersona: selectedVoicePersona,
+    };
+    setMessages((prev) => [...prev, tourMsg]);
+    setIsLoadingLive(true);
+
+    try {
+      const liveRes = await api.geminiLiveDialogue({
+        message: step.prompt,
+        model: selectedModel,
+        voice_persona: selectedVoicePersona,
+        language: currentLanguage,
+        context_topic: step.tabId,
+      });
+
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === tourMsg.id
+            ? {
+                ...m,
+                text: `🎙️ Stage ${step.step}/8: ${step.title}\n\n${liveRes.response_text}\n\nKey Capabilities:\n• ${step.highlights.join('\n• ')}`,
+                modelUsed: liveRes.model_used,
+                reasoningTrace: liveRes.reasoning_trace,
+                latencyMs: liveRes.latency_ms,
+                voicePersona: liveRes.voice_persona,
+              }
+            : m
+        )
+      );
+
+      if (liveRes.audio_base64) {
+        playAudioBase64(liveRes.audio_base64, liveRes.response_text);
+      }
+    } catch {
+      // Offline fallback: use local knowledge text
+      const fallbackReply = generateAuraResponse(step.prompt);
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === tourMsg.id
+            ? {
+                ...m,
+                text: `🎙️ Stage ${step.step}/8: ${step.title}\n\n${fallbackReply}\n\nKey Capabilities:\n• ${step.highlights.join('\n• ')}`,
+              }
+            : m
+        )
+      );
+    } finally {
+      setIsLoadingLive(false);
+    }
+  };
+
+  const handleNextTourStep = () => {
+    if (tourStepIndex < FUTURA_TOUR_STEPS.length - 1) {
+      handleStartTour(tourStepIndex + 1);
+    } else {
+      setIsTourActive(false);
+      const completionMsg: ChatMessage = {
+        id: `tour-complete-${Date.now()}`,
+        sender: 'aura',
+        text: '🎉 Congratulations! You have completed the FuturaSculptAI Spoken Guided Tour across all 8 modules. Feel free to explore any tab or ask me questions anytime!',
+        modelUsed: selectedModel,
+        voicePersona: selectedVoicePersona,
+      };
+      setMessages((prev) => [...prev, completionMsg]);
+    }
+  };
+
+  const handlePrevTourStep = () => {
+    if (tourStepIndex > 0) {
+      handleStartTour(tourStepIndex - 1);
+    }
+  };
+
+  const handleExitTour = () => {
+    setIsTourActive(false);
+    if (liveAudioRef.current) {
+      liveAudioRef.current.pause();
+      liveAudioRef.current = null;
+    }
+    setIsSpeaking(false);
   };
 
   const speakText = (text: string) => {
@@ -428,6 +683,35 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
 
   const generateAuraResponse = (query: string): string => {
     const q = query.toLowerCase();
+
+    // Spoken Guided Tour Keywords
+    if (q.includes('tour') || q.includes('guide')) {
+      return '🎙️ Welcome to the FuturaSculptAI Guided Tour! Across 8 integrated modules, we explore the Executive Cockpit, WorkTwin Fabric, Task Sculptor, Opportunity Engine, Temporal WorkGraph, MultiModal Media Studio, 7-Agent Swarm, and TrustBoard SAIF Governance. Tap Next Step to advance through the modules!';
+    }
+    if (q.includes('stage 1') || (q.includes('cockpit') && q.includes('overview'))) {
+      return '📊 Stage 1: Executive Cockpit & Citizen Overview tracks 94.3% workforce trust scores, 18 active transformation tasks, and cross-sector digital twins for Food, Automotive, Healthcare, and Robotics with zero layoff guarantees.';
+    }
+    if (q.includes('stage 2') || q.includes('worktwin')) {
+      return '👥 Stage 2: Futura WorkTwin Fabric provides governed digital work-twins across three classes: RoleTwin synthetic archetypes, consent-based PersonalWorkTwins, and OrganizationTwin enterprise simulations.';
+    }
+    if (q.includes('stage 3') || q.includes('task sculptor')) {
+      return '🧬 Stage 3: Task Sculptor decomposes workflows into Automate, Augment, Assist, Retain, Redesign, and Retire categories with mandatory A2 Human Sign-Off supervisor gates.';
+    }
+    if (q.includes('stage 4') || q.includes('opportunity engine') || q.includes('mobility')) {
+      return '🚀 Stage 4: Opportunity Engine calculates deterministic Role Resilience Indices and +15% to +38% wage mobility pathways protected by k>=10 differential privacy and statutory right of appeal.';
+    }
+    if (q.includes('stage 5') || q.includes('temporal workgraph') || q.includes('workgraph')) {
+      return '🌐 Stage 5: Temporal WorkGraph projects organizational impact across T0, T+30, T+90, and Year 3 horizons to visualize automation blast radius before deployment.';
+    }
+    if (q.includes('stage 6') || q.includes('multimodal')) {
+      return '🎙️ Stage 6: MultiModal Media Studio ingests workplace shift audio memos, equipment schematics, and camera feeds using Gemini 2.5 Pro and Gemini Flash Native Audio.';
+    }
+    if (q.includes('stage 7') || q.includes('agent swarm') || q.includes('swarm')) {
+      return '🤖 Stage 7: Google ADK 7-Agent Swarm deploys neuro-symbolic specialist agents with an Adversarial Safety Critic, verifiable tool trajectories, and consensus voting.';
+    }
+    if (q.includes('stage 8') || q.includes('governance') || q.includes('trustboard') || q.includes('evidence')) {
+      return '🛡️ Stage 8: TrustBoard Governance monitors 8 Well-Architected pillars, 16 Google SAIF security controls, and Cloud DLP crypto-hashing, with tamper-evident SHA-256 evidence packages.';
+    }
 
     // Agentic RAG & MCP Company Intelligence Grounding
     if (q.includes('agentic rag') || q.includes('company') || q.includes('headcount') || q.includes('employee count') || q.includes('revenue') || q.includes('profit') || q.includes('moat') || q.includes('futuristic score')) {
@@ -517,11 +801,9 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
       setMessages((prev) => [...prev, auraMsg]);
       if (liveRes.audio_base64) {
         playAudioBase64(liveRes.audio_base64, liveRes.response_text);
-      } else {
-        speakText(liveRes.response_text);
       }
     } catch {
-      // Offline / fallback response
+      // Offline / fallback response without robotic speech synthesis
       const replyText = generateAuraResponse(text);
       const auraMsg: ChatMessage = {
         id: `aura-${Date.now() + 1}`,
@@ -531,13 +813,25 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
         voicePersona: selectedVoicePersona,
       };
       setMessages((prev) => [...prev, auraMsg]);
-      speakText(replyText);
     } finally {
       setIsLoadingLive(false);
     }
   };
 
+  const handleClose = () => {
+    setIsOpen(false);
+    setIsTourActive(false);
+    if (synthRef.current) synthRef.current.cancel();
+    if (liveAudioRef.current) {
+      liveAudioRef.current.pause();
+      liveAudioRef.current = null;
+    }
+    setIsSpeaking(false);
+  };
+
   const QUICK_PROMPTS = [
+    { label: '🎙️ Spoken Guided Tour', prompt: 'Give me an interactive spoken guided tour of the entire FuturaSculptAI platform.' },
+    { label: '👥 WorkTwin Fabric Tour', prompt: 'Explain the Futura WorkTwin Fabric and its three governed twin classes.' },
     { label: '🏢 Agentic RAG Corporate Intel', prompt: 'Tell me the real employee count, revenue, profit, moat, and futuristic score for Google using Agentic RAG!' },
     { label: '🔮 1Y, 3Y, 5Y & 10Y Roadmap', prompt: 'Tell me the future work style and firm growth roadmap for the next 1y, 3y, 5y, and 10y!' },
     { label: '👶 5-Year-Old Explanation', prompt: 'How would you explain this to a 5-year-old kid?' },
@@ -608,8 +902,7 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
           }}
           onClick={(e) => {
             if (e.target === e.currentTarget) {
-              setIsOpen(false);
-              if (synthRef.current) synthRef.current.cancel();
+              handleClose();
             }
           }}
         >
@@ -681,10 +974,7 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
 
                 <button
                   type="button"
-                  onClick={() => {
-                    setIsOpen(false);
-                    if (synthRef.current) synthRef.current.cancel();
-                  }}
+                  onClick={handleClose}
                   className="btn-subtle"
                   style={{ padding: '6px 12px', borderRadius: '50%', fontSize: '14px' }}
                   aria-label="Close Futura Assistant"
@@ -794,6 +1084,162 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
                 </div>
               )}
             </div>
+
+            {/* Guided Tour Banner / Active Tour Control Deck */}
+            {isTourActive ? (
+              <div
+                id="tour-control-deck"
+                style={{
+                  padding: '12px 24px',
+                  background: 'linear-gradient(90deg, rgba(6, 182, 212, 0.22) 0%, rgba(139, 92, 246, 0.22) 100%)',
+                  borderBottom: '1px solid rgba(6, 182, 212, 0.4)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <span style={{ fontSize: '22px' }}>{FUTURA_TOUR_STEPS[tourStepIndex].icon}</span>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span
+                          style={{
+                            fontSize: '10px',
+                            fontWeight: 800,
+                            padding: '2px 8px',
+                            borderRadius: '12px',
+                            background: 'rgba(6, 182, 212, 0.3)',
+                            color: '#38bdf8',
+                            border: '1px solid rgba(6, 182, 212, 0.5)',
+                            letterSpacing: '0.04em',
+                          }}
+                        >
+                          STEP {tourStepIndex + 1} OF {FUTURA_TOUR_STEPS.length}: {FUTURA_TOUR_STEPS[tourStepIndex].badge}
+                        </span>
+                        <span style={{ fontSize: '11px', color: '#cbd5e1' }}>
+                          Tab: <strong style={{ color: '#38bdf8' }}>{FUTURA_TOUR_STEPS[tourStepIndex].tabId}</strong>
+                        </span>
+                      </div>
+                      <div style={{ fontSize: '14px', fontWeight: 700, color: '#fff', marginTop: '2px' }}>
+                        {FUTURA_TOUR_STEPS[tourStepIndex].title}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <button
+                      id="btn-tour-prev"
+                      type="button"
+                      disabled={tourStepIndex === 0}
+                      onClick={handlePrevTourStep}
+                      className="btn-subtle"
+                      style={{
+                        padding: '5px 12px',
+                        fontSize: '11px',
+                        borderRadius: '8px',
+                        opacity: tourStepIndex === 0 ? 0.4 : 1,
+                        cursor: tourStepIndex === 0 ? 'not-allowed' : 'pointer',
+                      }}
+                    >
+                      ⏪ Prev
+                    </button>
+                    <button
+                      id="btn-tour-replay"
+                      type="button"
+                      onClick={() => handleStartTour(tourStepIndex)}
+                      className="btn-subtle"
+                      style={{ padding: '5px 12px', fontSize: '11px', borderRadius: '8px' }}
+                      title="Replay Spoken Audio for this step"
+                    >
+                      🔊 Replay Voice
+                    </button>
+                    <button
+                      id="btn-tour-next"
+                      type="button"
+                      onClick={handleNextTourStep}
+                      className="btn-primary"
+                      style={{
+                        padding: '5px 16px',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        borderRadius: '8px',
+                        background: 'linear-gradient(135deg, #06b6d4, #6366f1)',
+                      }}
+                    >
+                      {tourStepIndex === FUTURA_TOUR_STEPS.length - 1 ? 'Finish Tour 🏁' : 'Next Step ⏩'}
+                    </button>
+                    <button
+                      id="btn-tour-exit"
+                      type="button"
+                      onClick={handleExitTour}
+                      className="btn-subtle"
+                      style={{ padding: '5px 10px', fontSize: '11px', borderRadius: '8px', color: '#f43f5e' }}
+                      title="Exit Guided Tour"
+                    >
+                      ✕ Exit
+                    </button>
+                  </div>
+                </div>
+
+                {/* Progress Bar */}
+                <div
+                  style={{
+                    width: '100%',
+                    height: '4px',
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    borderRadius: '2px',
+                    overflow: 'hidden',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: `${((tourStepIndex + 1) / FUTURA_TOUR_STEPS.length) * 100}%`,
+                      height: '100%',
+                      background: 'linear-gradient(90deg, #06b6d4, #8b5cf6, #ec4899)',
+                      transition: 'width 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                    }}
+                  />
+                </div>
+              </div>
+            ) : (
+              <div
+                style={{
+                  padding: '8px 24px',
+                  background: 'linear-gradient(90deg, rgba(6, 182, 212, 0.12) 0%, rgba(99, 102, 241, 0.12) 100%)',
+                  borderBottom: '1px solid rgba(6, 182, 212, 0.25)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '8px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '16px' }}>✨</span>
+                  <span style={{ fontSize: '12px', fontWeight: 600, color: '#e0f2fe' }}>
+                    Spoken Guided Tour: Let Futura speak on launch and guide you across all 8 app modules!
+                  </span>
+                </div>
+                <button
+                  id="btn-start-guided-tour"
+                  type="button"
+                  onClick={() => handleStartTour(0)}
+                  className="btn-primary"
+                  style={{
+                    fontSize: '11px',
+                    padding: '5px 14px',
+                    borderRadius: '20px',
+                    background: 'linear-gradient(135deg, #06b6d4, #6366f1)',
+                    fontWeight: 700,
+                    boxShadow: '0 0 12px rgba(6, 182, 212, 0.4)',
+                    cursor: 'pointer',
+                  }}
+                >
+                  🎙️ Start Spoken Guided Tour
+                </button>
+              </div>
+            )}
 
             {/* Main Stage: Left 3D Hologram + Right Chat & Prompts */}
             <div
@@ -938,9 +1384,8 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
                           })
                           .then((res) => {
                             if (res.audio_base64) playAudioBase64(res.audio_base64, msg);
-                            else speakText(msg);
                           })
-                          .catch(() => speakText(msg));
+                          .catch(() => {});
                       }}
                       style={{
                         padding: '3px 8px',
@@ -971,9 +1416,8 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
                           })
                           .then((res) => {
                             if (res.audio_base64) playAudioBase64(res.audio_base64, msg);
-                            else speakText(msg);
                           })
-                          .catch(() => speakText(msg));
+                          .catch(() => {});
                       }}
                       style={{
                         padding: '3px 8px',
@@ -1128,6 +1572,24 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
                     )}
                     {m.sender === 'aura' && (
                       <div style={{ display: 'flex', gap: '8px', marginTop: '8px', flexWrap: 'wrap' }}>
+                        {m.id === 'msg-welcome' && (
+                          <button
+                            id="btn-welcome-start-tour"
+                            type="button"
+                            onClick={() => handleStartTour(0)}
+                            className="btn-primary"
+                            style={{
+                              padding: '4px 12px',
+                              fontSize: '11px',
+                              borderRadius: '9999px',
+                              background: 'linear-gradient(135deg, #06b6d4, #6366f1)',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                            }}
+                          >
+                            🎙️ Start Spoken Guided Tour
+                          </button>
+                        )}
                         <button
                           type="button"
                           onClick={() => handleJumpToSection('task_sculptor')}
@@ -1138,11 +1600,11 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
                         </button>
                         <button
                           type="button"
-                          onClick={() => handleJumpToSection('task_sculptor', 'logistics')}
+                          onClick={() => handleJumpToSection('worktwins')}
                           className="btn-subtle"
                           style={{ padding: '4px 10px', fontSize: '11px', borderRadius: '9999px' }}
                         >
-                          🚛 Sector Focus
+                          👥 WorkTwin Fabric
                         </button>
                         <button
                           type="button"
