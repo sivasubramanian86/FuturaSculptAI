@@ -12,6 +12,7 @@ from app.routers import (
     scoring,
     tasks,
     workgraph,
+    worktwin,
 )
 
 __all__ = [
@@ -26,4 +27,5 @@ __all__ = [
     "scoring",
     "tasks",
     "workgraph",
+    "worktwin",
 ]

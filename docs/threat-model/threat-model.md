@@ -39,3 +39,15 @@ This document formalizes the threat model for FuturaSculptAI, evaluating attack 
 - [x] **SAIF-04: Harmonize Platform Controls:** Uniform tenant boundary enforcement across BigQuery, Firestore, and Vertex AI.
 - [x] **SAIF-05: Adapt Controls for AI Capabilities:** Explicit human-in-the-loop (HITL) gates for A2/A3 actions; total prohibition of A4 consequential actions.
 - [x] **SAIF-06: Contextualize AI System Risks:** Sector-specific compliance profiles (FDA CFR Part 11 for Food Manufacturing, HIPAA for Healthcare).
+
+---
+
+## 4. WorkTwin Fabric Threat Mitigations
+
+| Threat Vector | Attack Scenario | SAIF Mitigation & Enforcement |
+|---|---|---|
+| **Identity Replication** | Malicious actor attempts to forge an employee's digital twin to impersonate authority. | **RoleTwin Default:** All simulations use synthetic role archetypes, not named individuals. **PersonalWorkTwin:** Strictly opt-in, employee-owned proxy; cannot be invoked by employers or third parties without explicit multi-party cryptographic signature. |
+| **Twin Memory Poisoning** | Injected documents attempt to alter twin decision criteria or bias simulation outcomes. | All retrieved memories, skills, and prompts treated as untrusted inputs. Scoped to verified EvidenceEnvelope citations with SHA-256 integrity hashes. |
+| **Unauthorized Action Delegation** | A twin attempts to trigger external API calls or production mutations without human authorization. | **Autonomy Capping (WT0-WT4):** Consequential decisions (WT5 - hiring, firing, disciplinary) are strictly blocked at schema validation level. WT3/WT4 requires human quorum approval. |
+| **Post-Departure Persistence** | An employee departs, but their twin continues to operate or leak proprietary context. | Immediate lifecycle revocation; on offboarding, PersonalWorkTwin is permanently suspended with auditable deletion receipts. |
+

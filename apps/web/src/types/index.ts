@@ -600,3 +600,101 @@ export interface DlpRedactionResult {
   has_violations: boolean;
 }
 
+export type TwinType = 'ROLE_TWIN' | 'PERSONAL_WORKTWIN' | 'ORGANIZATION_TWIN';
+
+export type AutonomyLevel =
+  | 'WT0_OBSERVE'
+  | 'WT1_ASSIST'
+  | 'WT2_SIMULATE'
+  | 'WT3_PREPARE'
+  | 'WT4_EXECUTE'
+  | 'WT5_CONSEQUENTIAL';
+
+export type TwinStatus = 'ACTIVE' | 'SUSPENDED' | 'REVOKED' | 'ARCHIVED';
+
+export type ExecutivePersona =
+  | 'CEO'
+  | 'CTO'
+  | 'CFO'
+  | 'CHRO'
+  | 'CISO'
+  | 'COO'
+  | 'SUSTAINABILITY'
+  | 'EMPLOYEE_ADVOCATE';
+
+export interface WorkTwinManifest {
+  twin_id: string;
+  tenant_id: string;
+  twin_type: TwinType;
+  role_archetype: string;
+  owner_id?: string | null;
+  declared_purpose: string;
+  autonomy_level: AutonomyLevel;
+  status: TwinStatus;
+  skills: string[];
+  allowed_tools: string[];
+  approved_evidence_collections: string[];
+  memory_namespaces: string[];
+  model_tier: string;
+  token_budget_per_run: number;
+  created_at: string;
+  disclosure_text: string;
+}
+
+export interface BoardroomPerspective {
+  role: ExecutivePersona;
+  role_title: string;
+  stance: 'FAVORABLE' | 'SKEPTICAL' | 'CONDITIONAL' | 'OPPOSED';
+  assessment: string;
+  key_arguments: string[];
+  identified_risks: string[];
+  mandatory_conditions: string[];
+  evidence_citations: string[];
+  autonomy_limit: string;
+}
+
+export interface ConflictResolution {
+  consensus_points: string[];
+  unresolved_disagreements: string[];
+  trade_offs: string[];
+  blocking_controls: string[];
+  alternative_transformation_paths: string[];
+  governed_recommendation: string;
+  required_human_approvers: string[];
+}
+
+export interface BoardroomSimulationRequest {
+  proposal_title: string;
+  proposal_description: string;
+  sector?: string;
+  target_enterprise?: string;
+  participating_twins?: ExecutivePersona[];
+  tenant_id?: string;
+}
+
+export interface BoardroomSimulationResult {
+  simulation_id: string;
+  proposal_title: string;
+  proposal_description: string;
+  sector: string;
+  target_enterprise: string;
+  perspectives: BoardroomPerspective[];
+  conflict_resolution: ConflictResolution;
+  trace_id: string;
+  model_route: string;
+  total_cost_usd: number;
+  audit_verdict: string;
+}
+
+export interface PersonalWorkTwinConsent {
+  employee_id: string;
+  tenant_id?: string;
+  knowledge_consent: boolean;
+  writing_style_consent: boolean;
+  delegated_task_consent: boolean;
+  voice_avatar_consent: boolean;
+  revoked: boolean;
+  consent_timestamp: string;
+}
+
+

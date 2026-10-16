@@ -23,6 +23,7 @@ from app.routers import (
     scoring,
     tasks,
     workgraph,
+    worktwin,
 )
 
 # Initialize structured logging system
@@ -133,6 +134,9 @@ app.include_router(scoring.router)
 app.include_router(agents.router)
 app.include_router(tasks.router)
 app.include_router(opportunity.router)
+app.include_router(worktwin.router, prefix="/api/v1")
+app.include_router(worktwin.router, prefix="/api")
+app.include_router(worktwin.router)
 app.include_router(governance.router, prefix="/api/v1/governance")
 app.include_router(governance.router, prefix="/governance")
 

@@ -958,6 +958,151 @@ describe('ApiClient', () => {
       client.geminiLiveDialogue({ message: 'Hello Futura' })
     ).rejects.toThrow('Failed to generate Gemini Live dialogue: Internal Server Error');
   });
+
+  it('manages WorkTwin manifests and handles failures', async () => {
+    const mockManifests = [
+      {
+        twin_id: 'twin-role-cto',
+        tenant_id: 'tenant-food-mfg-01',
+        twin_type: 'ROLE_TWIN',
+        role_archetype: 'CTO Role Twin',
+      },
+    ];
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockManifests,
+    } as Response);
+
+    const manifests = await client.getWorkTwinManifests();
+    expect(manifests).toEqual(mockManifests);
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: false,
+      statusText: 'Not Found',
+    } as Response);
+
+    await expect(client.getWorkTwinManifests()).rejects.toThrow('Failed to fetch WorkTwin manifests: Not Found');
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockManifests[0],
+    } as Response);
+
+    const twin = await client.getWorkTwinById('twin-role-cto');
+    expect(twin).toEqual(mockManifests[0]);
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: false,
+      statusText: 'Not Found',
+    } as Response);
+
+    await expect(client.getWorkTwinById('twin-unknown')).rejects.toThrow('Failed to fetch WorkTwin manifest for twin-unknown: Not Found');
+  });
+
+  it('creates RoleTwin and handles failure', async () => {
+    const mockCreated = {
+      twin_id: 'twin-role-new',
+      role_archetype: 'Test Role',
+    };
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockCreated,
+    } as Response);
+
+    const res = await client.createRoleTwin({
+      role_archetype: 'Test Role',
+      declared_purpose: 'Test Purpose',
+      skills: ['Skill1'],
+    });
+    expect(res).toEqual(mockCreated);
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: false,
+      statusText: 'Bad Request',
+    } as Response);
+
+    await expect(
+      client.createRoleTwin({
+        role_archetype: '',
+        declared_purpose: '',
+        skills: [],
+      })
+    ).rejects.toThrow('Failed to create RoleTwin: Bad Request');
+  });
+
+  it('simulates Future Boardroom and handles failure', async () => {
+    const mockResult = {
+      simulation_id: 'sim-001',
+      perspectives: [],
+      conflict_resolution: { consensus_points: [] },
+    };
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockResult,
+    } as Response);
+
+    const res = await client.simulateFutureBoardroom({
+      proposal_title: 'Test Proposal',
+      proposal_description: 'Test Desc',
+    });
+    expect(res).toEqual(mockResult);
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: false,
+      statusText: 'Forbidden',
+    } as Response);
+
+    await expect(
+      client.simulateFutureBoardroom({
+        proposal_title: 'Fire workers',
+        proposal_description: 'Terminate all',
+      })
+    ).rejects.toThrow('Failed to simulate Future Boardroom: Forbidden');
+  });
+
+  it('registers PersonalWorkTwin consent and handles failure', async () => {
+    const mockConsentRes = {
+      twin_id: 'twin-personal-emp1',
+      twin_type: 'PERSONAL_WORKTWIN',
+      owner_id: 'emp1',
+    };
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockConsentRes,
+    } as Response);
+
+    const res = await client.registerPersonalTwinConsent({
+      employee_id: 'emp1',
+      knowledge_consent: true,
+      writing_style_consent: true,
+      delegated_task_consent: true,
+      voice_avatar_consent: false,
+      revoked: false,
+      consent_timestamp: '2026-10-16T10:00:00Z',
+    });
+    expect(res).toEqual(mockConsentRes);
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: false,
+      statusText: 'Unprocessable Entity',
+    } as Response);
+
+    await expect(
+      client.registerPersonalTwinConsent({
+        employee_id: '',
+        knowledge_consent: false,
+        writing_style_consent: false,
+        delegated_task_consent: false,
+        voice_avatar_consent: false,
+        revoked: false,
+        consent_timestamp: '',
+      })
+    ).rejects.toThrow('Failed to register PersonalWorkTwin consent: Unprocessable Entity');
+  });
 });
 
 

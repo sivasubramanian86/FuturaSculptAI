@@ -62,6 +62,7 @@ export const AppShell: React.FC<AppShellProps> = ({
     { id: 'task_sculptor', label: i18n.navTaskSculptor, icon: '🧬', category: 'core' },
     { id: 'opportunity', label: i18n.navOpportunity, icon: '🚀', category: 'core' },
     { id: 'workgraph', label: i18n.navWorkGraph, icon: '🌐', category: 'core' },
+    { id: 'worktwins', label: 'WorkTwin Fabric', icon: '👥', category: 'core' },
 
     // Intelligence & Media
     { id: 'multimodal', label: i18n.navMultimodal, icon: '👁️', category: 'media' },

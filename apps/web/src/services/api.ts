@@ -37,6 +37,10 @@ import {
   TemporalGraphResponse,
   TrustScoreResult,
   WorkGraphResponse,
+  WorkTwinManifest,
+  BoardroomSimulationRequest,
+  BoardroomSimulationResult,
+  PersonalWorkTwinConsent,
 } from '../types';
 import { firebaseAuth } from './firebase';
 
@@ -499,6 +503,66 @@ export class ApiClient {
     });
     if (!res.ok) {
       throw new Error(`Failed to generate Gemini Live dialogue: ${res.statusText}`);
+    }
+    return res.json();
+  }
+
+  async getWorkTwinManifests(): Promise<WorkTwinManifest[]> {
+    const res = await fetch(`${API_BASE}/worktwins/manifests`, {
+      headers: this.getHeaders(),
+    });
+    if (!res.ok) {
+      throw new Error(`Failed to fetch WorkTwin manifests: ${res.statusText}`);
+    }
+    return res.json();
+  }
+
+  async getWorkTwinById(twinId: string): Promise<WorkTwinManifest> {
+    const res = await fetch(`${API_BASE}/worktwins/manifests/${twinId}`, {
+      headers: this.getHeaders(),
+    });
+    if (!res.ok) {
+      throw new Error(`Failed to fetch WorkTwin manifest for ${twinId}: ${res.statusText}`);
+    }
+    return res.json();
+  }
+
+  async createRoleTwin(payload: {
+    role_archetype: string;
+    declared_purpose: string;
+    skills: string[];
+  }): Promise<WorkTwinManifest> {
+    const res = await fetch(`${API_BASE}/worktwins/manifests`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      throw new Error(`Failed to create RoleTwin: ${res.statusText}`);
+    }
+    return res.json();
+  }
+
+  async simulateFutureBoardroom(payload: BoardroomSimulationRequest): Promise<BoardroomSimulationResult> {
+    const res = await fetch(`${API_BASE}/worktwins/boardroom/simulate`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      throw new Error(`Failed to simulate Future Boardroom: ${res.statusText}`);
+    }
+    return res.json();
+  }
+
+  async registerPersonalTwinConsent(payload: PersonalWorkTwinConsent): Promise<WorkTwinManifest> {
+    const res = await fetch(`${API_BASE}/worktwins/personal/consent`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      throw new Error(`Failed to register PersonalWorkTwin consent: ${res.statusText}`);
     }
     return res.json();
   }

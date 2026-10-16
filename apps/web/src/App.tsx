@@ -24,6 +24,7 @@ import { MultiModalMediaStudio } from './components/MultiModalMediaStudio';
 import { FAQHelp } from './components/FAQHelp';
 import { AboutFuturaSculpt } from './components/AboutFuturaSculpt';
 import { SettingsStudio } from './components/SettingsStudio';
+import { WorkTwinFabricStudio } from './components/WorkTwinFabricStudio';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { api } from './services/api';
 import { firebaseAuth, UserRole } from './services/firebase';
@@ -265,6 +266,8 @@ export const App: React.FC = () => {
                 </div>
               </div>
             )}
+
+            {activeTab === 'worktwins' && <WorkTwinFabricStudio i18n={i18n} />}
 
             {activeTab === 'multimodal' && <MultiModalMediaStudio i18n={i18n} />}
 
