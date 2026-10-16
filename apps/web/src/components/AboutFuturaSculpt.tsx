@@ -54,7 +54,7 @@ export const AboutFuturaSculpt: React.FC<AboutFuturaSculptProps> = ({ i18n }) =>
                 v0.2.0 • RELEASE READY
               </span>
               <code style={{ fontSize: '12px', background: 'rgba(0,0,0,0.4)', padding: '2px 8px', borderRadius: '4px', color: '#38bdf8' }}>
-                SHA: 80c1905
+                SHA: e619fd5
               </code>
             </div>
             <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>

@@ -10,8 +10,8 @@ class Settings(BaseSettings):
 
     app_name: str = "FuturaSculptAI API"
     app_version: str = "0.2.0"
-    git_sha: str = "290a28e"
-    build_timestamp: str = "2026-10-16T12:30:00Z"
+    git_sha: str = "e619fd5"
+    build_timestamp: str = "2026-10-16T13:00:00Z"
     environment: str = "development"
     debug: bool = False
     log_level: str = "INFO"
