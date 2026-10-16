@@ -290,7 +290,7 @@ describe('App Component', () => {
     // Navigate to Specialist Swarm
     fireEvent.click(screen.getByTitle(/Specialist Swarm/i));
     await waitFor(() => {
-      expect(screen.getByText(/Google ADK Multi-Agent Swarm/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/Google ADK Multi-Agent Swarm/i).length).toBeGreaterThan(0);
     });
 
     // Navigate to Governance TrustBoard

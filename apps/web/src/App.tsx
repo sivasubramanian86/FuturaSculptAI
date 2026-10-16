@@ -318,6 +318,7 @@ export const App: React.FC = () => {
           currentLanguage={currentLanguage}
           onNavigateTab={setActiveTab}
           onSelectSector={setSector}
+          activeTab={activeTab}
         />
       </AppShell>
     </ErrorBoundary>

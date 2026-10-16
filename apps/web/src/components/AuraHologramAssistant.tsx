@@ -6,6 +6,7 @@ interface AuraHologramAssistantProps {
   currentLanguage: LanguageCode;
   onNavigateTab: (tabId: string) => void;
   onSelectSector?: (sector: string) => void;
+  activeTab?: string;
 }
 
 interface ChatMessage {
@@ -154,12 +155,182 @@ export const FUTURA_TOUR_STEPS: GuidedTourStep[] = [
   },
 ];
 
+export interface TabContextGuide {
+  title: string;
+  badge: string;
+  icon: string;
+  quickTip: string;
+  whatToDo: string[];
+  spokenPrompt: string;
+}
+
+export const TAB_CONTEXT_GUIDES: Record<string, TabContextGuide> = {
+  overview: {
+    title: 'Executive Cockpit',
+    badge: 'STAGE 1: COCKPIT',
+    icon: '📊',
+    quickTip: 'Review aggregate workforce trust (94.3%), switch sector presets, or switch to Citizen Mode.',
+    whatToDo: [
+      'Switch between Food, EV, Healthcare & Robotics sectors at the top.',
+      'Check the 94.3% TrustBoard Governance Score and zero-layoff policy.',
+      'Click Citizen Mode in top right for simplified frontline voice/visual cards.',
+    ],
+    spokenPrompt:
+      'Explain Stage 1: The Executive Cockpit and Citizen Overview in FuturaSculptAI. Mention our 94.3% ethical trust score, multi-sector switching between food processing, automotive EV, healthcare, and robotics, and zero-layoff workforce guarantees.',
+  },
+  worktwins: {
+    title: 'WorkTwin Fabric & Boardroom',
+    badge: 'STAGE 2: DIGITAL TWINS',
+    icon: '👥',
+    quickTip: 'Simulate role archetypes, run multi-agent Future Boardroom debates, or manage consent.',
+    whatToDo: [
+      'Inspect synthetic RoleTwins (Operations Director, Plant Floor Lead, etc.).',
+      'Run a Future Boardroom simulation to hear CTO, CHRO, CISO, and CFO debate a proposal.',
+      'Test consent controls: PersonalWorkTwin is opt-in, revocable, and purpose-bound.',
+    ],
+    spokenPrompt:
+      'Explain Stage 2: The Futura WorkTwin Fabric. Explain the three governed twin classes: RoleTwin archetype (default), PersonalWorkTwin (consent-based and revocable), and OrganizationTwin (scenario simulation), emphasizing that we never create unrestricted AI clones.',
+  },
+  task_sculptor: {
+    title: 'Task Sculptor & 6-Part Taxonomy',
+    badge: 'STAGE 3: REBALANCING',
+    icon: '🧬',
+    quickTip: 'Deconstruct jobs into Automate, Augment, Assist, Retain, Redesign, and Retire.',
+    whatToDo: [
+      'Filter roles by sector and inspect task breakdown percentages.',
+      'Review cognitive load and human agency scores.',
+      'Enforce A2 Human Supervisor Sign-Off gate before finalizing task shifts.',
+    ],
+    spokenPrompt:
+      'Explain Stage 3: Task Sculptor in FuturaSculptAI. Describe how we decompose workflows into Automate, Augment, Assist, Retain, Redesign, and Retire, while enforcing the A2 Human Sign-Off Gate for supervisor approval.',
+  },
+  opportunity: {
+    title: 'Opportunity & Career Mobility',
+    badge: 'STAGE 4: MOBILITY',
+    icon: '🚀',
+    quickTip: 'Explore deterministic Role Resilience Indices (RRI) and wage mobility pathways.',
+    whatToDo: [
+      'Inspect RRI and Transition Complexity Index (TCI) metrics.',
+      'View +15% to +38% wage progression curves with sponsored training.',
+      'Verify k>=10 differential privacy preserving employee confidentiality.',
+    ],
+    spokenPrompt:
+      'Explain Stage 4: The Opportunity Engine and Career Mobility. Explain deterministic Role Resilience Indices, +15% to +38% wage mobility trajectories, sponsored reskilling pathways, and k>=10 differential privacy.',
+  },
+  workgraph: {
+    title: 'Temporal WorkGraph & Scenarios',
+    badge: 'STAGE 5: TEMPORAL GRAPH',
+    icon: '🌐',
+    quickTip: 'Simulate organizational changes across T0, T+30, T+90, and Year 3 time horizons.',
+    whatToDo: [
+      'Explore the 8-layer enterprise ontology from Outcomes to Agents.',
+      'Toggle time horizons (T0 to Year 3) to see blast radius ripple effects.',
+      'Inspect node dependencies before approving agent automation.',
+    ],
+    spokenPrompt:
+      'Explain Stage 5: The Temporal WorkGraph and Scenario Simulations. Explain how we project organizational impact across T0, T+30, T+90, and Year 3 horizons, evaluating blast radius before automating.',
+  },
+  multimodal: {
+    title: 'MultiModal Media Studio',
+    badge: 'STAGE 6: MULTIMODAL',
+    icon: '🎙️',
+    quickTip: 'Ingest shift audio memos, factory schematics, and SOP PDFs with Gemini 2.5.',
+    whatToDo: [
+      'Upload an equipment blueprint or SOP document.',
+      'Record or play a voice shift handover memo with live transcription.',
+      'Listen to Gemini Flash Native Audio live acoustic breakdown.',
+    ],
+    spokenPrompt:
+      'Explain Stage 6: The MultiModal Media Studio. Describe how we ingest workplace audio memos, equipment schematics, camera feeds, and documents using Gemini 2.5 Pro and Gemini Flash Native Audio.',
+  },
+  agent_swarm: {
+    title: 'Google ADK Multi-Agent Swarm',
+    badge: 'STAGE 7: AGENT SWARM',
+    icon: '🤖',
+    quickTip: 'Monitor 7 neuro-symbolic specialist agents and live tool trajectory calls.',
+    whatToDo: [
+      'Trigger collaborative swarm debate on an enterprise workflow.',
+      'Inspect reasoning traces and tool calls of the Adversarial Safety Critic.',
+      'Verify consensus voting before changes are written to the WorkGraph.',
+    ],
+    spokenPrompt:
+      'Explain Stage 7: The Google ADK Multi-Agent Swarm Console. Describe our 7 neuro-symbolic specialist agents collaborating with the Adversarial Safety Critic and consensus voting.',
+  },
+  governance: {
+    title: 'TrustBoard & Evidence Vault',
+    badge: 'STAGE 8: GOVERNANCE',
+    icon: '🛡️',
+    quickTip: 'Audit 8 Well-Architected pillars, 16 SAIF controls, and cryptographic evidence hashes.',
+    whatToDo: [
+      'Verify SHA-256 evidence envelope lineage and integrity hashes.',
+      'Inspect Google SAIF security controls and Cloud DLP PII redaction.',
+      'Export verifiable investor and regulatory compliance certificates.',
+    ],
+    spokenPrompt:
+      'Explain Stage 8: TrustBoard Governance and Cryptographic Evidence. Explain our 8 Well-Architected pillars, 16 Google SAIF security controls, Cloud DLP PII protection, and SHA-256 evidence vault.',
+  },
+  evidence: {
+    title: 'Evidence Vault & Lineage',
+    badge: 'STAGE 8B: EVIDENCE PROVENANCE',
+    icon: '📁',
+    quickTip: 'Inspect tamper-evident EvidenceEnvelopes, source spans, and cryptographic hashes.',
+    whatToDo: [
+      'Filter evidence by tenant, category, and confidence level.',
+      'Inspect cryptographic SHA-256 hashes for data integrity.',
+      'Review claim-level citations before authorizing AI transformations.',
+    ],
+    spokenPrompt:
+      'Explain the Evidence Vault and provenance tracking in FuturaSculptAI. Detail how every fact and recommendation is bound to an immutable EvidenceEnvelope with cryptographic hashes and human auditability.',
+  },
+  faq_help: {
+    title: 'Workforce Sanctuary FAQ & Appeals',
+    badge: 'HELP: SANCTUARY FAQ',
+    icon: '❓',
+    quickTip: 'Explore statutory Right to Appeal, union protections, and career safeguards.',
+    whatToDo: [
+      'Check answers to common workforce transition questions.',
+      'Learn about statutory Right of Appeal mechanisms.',
+      'Review zero-layoff pledge compliance.',
+    ],
+    spokenPrompt:
+      'Explain the Workforce Sanctuary FAQ and statutory Right to Appeal in FuturaSculptAI. Highlight how workers are protected from adverse automated decisions and guaranteed human appeal.',
+  },
+  about: {
+    title: 'About FuturaSculptAI & Build Manifest',
+    badge: 'SYSTEM: BUILD MANIFEST',
+    icon: 'ℹ️',
+    quickTip: 'Inspect system architecture, live Git SHA, verified capabilities, and team credentials.',
+    whatToDo: [
+      'Verify the live Cloud Run Git SHA and build timestamp.',
+      'Review Live, Simulated, and Planned capability badges.',
+      'Inspect the Google Cloud AI Builder Cup 2026 submission profile.',
+    ],
+    spokenPrompt:
+      'Explain the About panel and Verified Build Manifest in FuturaSculptAI. Mention our Git SHA tracking, production deployment parity, and authentic Google Cloud architecture.',
+  },
+  settings: {
+    title: 'System Settings & Tenant Config',
+    badge: 'SYSTEM: CONFIGURATION',
+    icon: '⚙️',
+    quickTip: 'Configure tenant profiles, API keys, AI model preferences, and telemetry.',
+    whatToDo: [
+      'Select active tenant and industry sector configuration.',
+      'Adjust model routing and token budget limits.',
+      'Inspect telemetry and audit trail settings.',
+    ],
+    spokenPrompt:
+      'Explain System Settings in FuturaSculptAI. Detail tenant configuration, model selection, privacy controls, and FinOps token budget governance.',
+  },
+};
+
 export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
   currentLanguage,
   onNavigateTab,
   onSelectSector,
+  activeTab = 'overview',
 }) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [isAmbientPillDismissed, setIsAmbientPillDismissed] = useState<boolean>(false);
   const [isListening, setIsListening] = useState<boolean>(false);
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
   const [inputText, setInputText] = useState<string>('');
@@ -175,6 +346,8 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
   const [isTourActive, setIsTourActive] = useState<boolean>(false);
   const [tourStepIndex, setTourStepIndex] = useState<number>(0);
   const liveAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  const currentGuide = TAB_CONTEXT_GUIDES[activeTab] || TAB_CONTEXT_GUIDES['overview'];
 
   const handleJumpToSection = (tabId: string, sectorId?: string) => {
     onNavigateTab(tabId);
@@ -857,6 +1030,129 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
 
   return (
     <>
+      {/* Seamless Ambient Co-Pilot Smart Pill (Visible when modal is closed) */}
+      {!isOpen && (
+        <aside
+          id="futura-ambient-pill"
+          aria-label="Futura Co-Pilot Ambient Guidance"
+          style={{
+            position: 'fixed',
+            bottom: '24px',
+            right: '98px',
+            zIndex: 998,
+            display: isAmbientPillDismissed ? 'none' : 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            padding: '8px 16px',
+            borderRadius: '24px',
+            background: 'rgba(15, 23, 42, 0.94)',
+            border: '1px solid rgba(56, 189, 248, 0.4)',
+            backdropFilter: 'blur(16px)',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.45), 0 0 16px rgba(56, 189, 248, 0.25)',
+            color: '#fff',
+            fontSize: '12px',
+            maxWidth: '520px',
+            animation: 'fadeInSlideLeft 0.3s ease-out',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
+            <span style={{ fontSize: '18px' }}>{currentGuide.icon}</span>
+            <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span
+                  style={{
+                    fontWeight: 700,
+                    color: '#38bdf8',
+                    fontSize: '11px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                  }}
+                >
+                  Futura Co-Pilot
+                </span>
+                <span style={{ fontSize: '10px', color: '#94a3b8' }}>• {currentGuide.title}</span>
+              </div>
+              <span
+                style={{
+                  color: '#cbd5e1',
+                  fontSize: '11px',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                {currentGuide.quickTip}
+              </span>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+            <button
+              id="btn-ambient-explain-screen"
+              aria-label="Explain Screen Ambient"
+              type="button"
+              onClick={() => handleSendMessage(currentGuide.spokenPrompt)}
+              disabled={isLoadingLive || isSpeaking}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                padding: '6px 12px',
+                borderRadius: '16px',
+                background: isSpeaking ? 'rgba(236, 72, 153, 0.25)' : 'rgba(56, 189, 248, 0.18)',
+                border: isSpeaking ? '1px solid #ec4899' : '1px solid rgba(56, 189, 248, 0.45)',
+                color: isSpeaking ? '#f472b6' : '#38bdf8',
+                fontSize: '11px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.2s ease',
+              }}
+              title="Have Futura speak live guided instructions for this screen"
+            >
+              {isSpeaking ? '🔊 Speaking...' : isLoadingLive ? '⏳ Thinking...' : '🎙️ Explain Screen'}
+            </button>
+            <button
+              id="btn-ambient-open-assistant"
+              type="button"
+              onClick={() => setIsOpen(true)}
+              style={{
+                padding: '6px 10px',
+                borderRadius: '16px',
+                background: 'rgba(255, 255, 255, 0.08)',
+                border: '1px solid rgba(255, 255, 255, 0.15)',
+                color: '#e2e8f0',
+                fontSize: '11px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+              }}
+              title="Open full Futura 3D Hologram Assistant"
+            >
+              💬 Ask
+            </button>
+            <button
+              id="btn-ambient-dismiss"
+              type="button"
+              onClick={() => setIsAmbientPillDismissed(true)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: '#64748b',
+                cursor: 'pointer',
+                fontSize: '14px',
+                padding: '2px 4px',
+                lineHeight: 1,
+              }}
+              aria-label="Dismiss ambient pill"
+              title="Dismiss ambient tip"
+            >
+              ✕
+            </button>
+          </div>
+        </aside>
+      )}
+
       {/* Floating 3D Holographic Beacon Trigger Button */}
       <button
         id="btn-hologram-assistant"
@@ -1253,6 +1549,54 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
                 </button>
               </div>
             )}
+
+            {/* In-View Module Context Banner */}
+            <div
+              id="futura-modal-context-banner"
+              style={{
+                padding: '10px 24px',
+                background: 'rgba(56, 189, 248, 0.08)',
+                borderBottom: '1px solid rgba(56, 189, 248, 0.18)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '8px',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '18px' }}>{currentGuide.icon}</span>
+                <div>
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#38bdf8', letterSpacing: '0.4px' }}>
+                    CURRENT SCREEN: {currentGuide.title.toUpperCase()}
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#cbd5e1' }}>{currentGuide.quickTip}</div>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <button
+                  id="btn-modal-explain-screen"
+                  aria-label="Explain Screen Live"
+                  type="button"
+                  onClick={() => handleSendMessage(currentGuide.spokenPrompt)}
+                  disabled={isLoadingLive || isSpeaking}
+                  className="btn-secondary"
+                  style={{
+                    padding: '4px 12px',
+                    fontSize: '11px',
+                    borderRadius: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    borderColor: 'rgba(56, 189, 248, 0.4)',
+                    color: '#38bdf8',
+                  }}
+                  title="Futura explains this screen using Gemini Native Audio"
+                >
+                  {isSpeaking ? '🔊 Speaking...' : isLoadingLive ? '⏳ Loading...' : '🎙️ Explain Screen Live'}
+                </button>
+              </div>
+            </div>
 
             {/* Main Stage: Left 3D Hologram + Right Chat & Prompts */}
             <div

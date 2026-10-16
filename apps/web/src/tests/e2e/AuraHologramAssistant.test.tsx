@@ -725,5 +725,77 @@ describe('AuraHologramAssistant Component', () => {
 
     liveDialogueSpy.mockRestore();
   });
+
+  it('renders ambient smart pill when modal is closed, explains screen on demand, and dismisses on click', async () => {
+    const liveDialogueSpy = vi.spyOn(api, 'geminiLiveDialogue').mockResolvedValue({
+      response_text: 'Live explanation of the WorkTwin Fabric.',
+      audio_base64: 'UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=',
+      model_used: 'gemini-2.5-flash',
+    });
+
+    render(
+      <AuraHologramAssistant
+        currentLanguage="en"
+        onNavigateTab={vi.fn()}
+        activeTab="worktwins"
+      />
+    );
+
+    // Verify ambient pill is visible when modal is closed
+    const ambientPill = document.getElementById('futura-ambient-pill');
+    expect(ambientPill).toBeInTheDocument();
+    expect(screen.getByText(/WorkTwin Fabric & Boardroom/i)).toBeInTheDocument();
+
+    // Click Explain Screen on ambient pill
+    const explainBtn = screen.getByRole('button', { name: /Explain Screen Ambient/i });
+    fireEvent.click(explainBtn);
+
+    await waitFor(() => {
+      expect(liveDialogueSpy).toHaveBeenCalled();
+    });
+
+    // Test dismiss button
+    const dismissBtn = screen.getByRole('button', { name: /Dismiss ambient pill/i });
+    fireEvent.click(dismissBtn);
+
+    expect(ambientPill).toHaveStyle({ display: 'none' });
+
+    liveDialogueSpy.mockRestore();
+  });
+
+  it('renders in-view context banner inside modal and triggers live screen explanation', async () => {
+    const liveDialogueSpy = vi.spyOn(api, 'geminiLiveDialogue').mockResolvedValue({
+      response_text: 'Live explanation for Task Sculptor screen.',
+      audio_base64: 'UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=',
+      model_used: 'gemini-2.5-flash',
+    });
+
+    render(
+      <AuraHologramAssistant
+        currentLanguage="en"
+        onNavigateTab={vi.fn()}
+        activeTab="task_sculptor"
+      />
+    );
+
+    // Open modal via beacon orb
+    const openBtn = screen.getByRole('button', { name: /Launch Futura 3D Virtual Live Assistant/i });
+    fireEvent.click(openBtn);
+
+    // Verify modal context banner is present
+    const contextBanner = document.getElementById('futura-modal-context-banner');
+    expect(contextBanner).toBeInTheDocument();
+    expect(screen.getByText(/CURRENT SCREEN: TASK SCULPTOR & 6-PART TAXONOMY/i)).toBeInTheDocument();
+
+    // Trigger modal explain screen live
+    const modalExplainBtn = screen.getByRole('button', { name: /Explain Screen Live/i });
+    fireEvent.click(modalExplainBtn);
+
+    await waitFor(() => {
+      expect(liveDialogueSpy).toHaveBeenCalled();
+    });
+
+    liveDialogueSpy.mockRestore();
+  });
 });
 
