@@ -495,15 +495,26 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
 
   const playAudioBase64 = (base64Data: string, fallbackText?: string) => {
     try {
-      if (typeof window === 'undefined' || typeof (window as any).Audio === 'undefined') {
+      if (typeof window === 'undefined') {
         if (fallbackText) speakText(fallbackText);
+        return;
+      }
+      if (!base64Data || base64Data.trim() === '' || base64Data.length < 5000) {
+        if (fallbackText && typeof (window as any).Audio === 'undefined') {
+          speakText(fallbackText);
+        }
         return;
       }
       if (liveAudioRef.current) {
         liveAudioRef.current.pause();
         liveAudioRef.current = null;
       }
-      const audio = new (window as any).Audio(`data:audio/wav;base64,${base64Data}`);
+      const AudioConstructor = (window as any).Audio;
+      if (!AudioConstructor) {
+        if (fallbackText) speakText(fallbackText);
+        return;
+      }
+      const audio = new AudioConstructor(`data:audio/wav;base64,${base64Data}`);
       liveAudioRef.current = audio;
       setIsSpeaking(true);
       setActiveVoiceEngine(`Gemini Live Native Audio (${selectedVoicePersona.toUpperCase()})`);
@@ -525,7 +536,9 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
     } catch {
       setIsSpeaking(false);
       liveAudioRef.current = null;
-      if (fallbackText) speakText(fallbackText);
+      if (fallbackText && typeof (window as any).Audio === 'undefined') {
+        speakText(fallbackText);
+      }
     }
   };
 

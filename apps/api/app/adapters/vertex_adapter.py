@@ -446,7 +446,8 @@ class VertexAIAdapter:
             try:
                 from google import genai
 
-                client = genai.Client()
+                project_id = self.project_id or os.getenv("GOOGLE_CLOUD_PROJECT", "genai-apac-2026-491004")
+                client = genai.Client(vertexai=True, project=project_id, location="us-central1")
                 gemini_model = "gemini-2.5-pro" if is_extended else "gemini-2.5-flash"
                 system_prompt = (
                     f"You are Futura, an empathetic 3D Holographic AI Workforce Sanctuary Assistant speaking as female persona {voice_persona.title()} in {language}. "
@@ -531,35 +532,14 @@ class VertexAIAdapter:
                 logger.warning("Gemini Live Native Audio generation fallback: %s", exc)
 
         sample_rate = 24000
-        base_freq = 240.0 if voice_persona.lower() == "aoede" else 260.0
-        duration_sec = min(3.0, max(0.6, len(text.split()) * 0.08))
-        n_samples = int(sample_rate * duration_sec)
+        n_samples = int(sample_rate * 0.05)
         buf = io.BytesIO()
 
         with wave.open(buf, "wb") as wf:
             wf.setnchannels(1)
             wf.setsampwidth(2)
             wf.setframerate(sample_rate)
-
-            for i in range(n_samples):
-                t = i / sample_rate
-                f0 = base_freq + 12.0 * math.sin(2 * math.pi * 3.5 * t)
-                carrier = (
-                    0.55 * math.sin(2 * math.pi * f0 * t)
-                    + 0.25 * math.sin(2 * math.pi * (f0 * 2.0) * t)
-                    + 0.12 * math.sin(2 * math.pi * (f0 * 3.0) * t)
-                    + 0.08 * math.sin(2 * math.pi * (f0 * 4.0) * t)
-                )
-                progress = i / n_samples
-                if progress < 0.08:
-                    env = progress / 0.08
-                elif progress > 0.88:
-                    env = (1.0 - progress) / 0.12
-                else:
-                    env = 1.0 + 0.05 * math.sin(2 * math.pi * 2.0 * t)
-
-                sample_val = int(carrier * env * 22000.0)
-                wf.writeframes(struct.pack("<h", max(-32768, min(32767, sample_val))))
+            wf.writeframes(b"\x00\x00" * n_samples)
 
         return base64.b64encode(buf.getvalue()).decode("utf-8")
 

@@ -35,7 +35,7 @@ class Settings(BaseSettings):
     model_high_volume_utility: str = "gemini-3.8-flash-lite"
     model_frontier_workspace: str = "gemini-4-argon-preview"
     vertex_context_cache_enabled: bool = True
-    mock_llm_mode: bool = True  # Allows offline testing with local adapters
+    mock_llm_mode: bool = False  # Default to live Vertex AI; tests set MOCK_LLM_MODE=true via conftest
 
     # Session budget & FinOps limits
     session_cost_cap_usd: float = 2.00
