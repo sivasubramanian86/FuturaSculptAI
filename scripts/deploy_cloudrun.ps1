@@ -51,7 +51,7 @@ try {
         --platform managed `
         --allow-unauthenticated `
         --no-traffic `
-        --set-env-vars "GCP_PROJECT_ID=$ProjectId,ENVIRONMENT=production,VERTEX_AI_LOCATION=$Region,GIT_SHA=$GitSha,BUILD_TIMESTAMP=$BuildTimestamp,AUTH_DEV_MODE=false" `
+        --set-env-vars "GCP_PROJECT_ID=$ProjectId,ENVIRONMENT=production,VERTEX_AI_LOCATION=global,VERTEX_AI_LIVE_LOCATION=us-central1,GIT_SHA=$GitSha,BUILD_TIMESTAMP=$BuildTimestamp,AUTH_DEV_MODE=false" `
         --memory 1Gi `
         --cpu 1 `
         --min-instances 0 `

@@ -28,7 +28,7 @@ import { SettingsStudio } from './components/SettingsStudio';
 import { WorkTwinFabricStudio } from './components/WorkTwinFabricStudio';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { api } from './services/api';
-import { firebaseAuth, UserRole } from './services/firebase';
+import { firebaseAuth, UserRole, UserSession } from './services/firebase';
 import { getTranslations, LanguageCode } from './i18n';
 import {
   EvidenceEnvelope,
@@ -60,7 +60,9 @@ export const App: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [googleUser, setGoogleUser] = useState<{ email: string; displayName: string; avatar?: string } | null>(null);
-  const [isGoogleLoginOpen, setIsGoogleLoginOpen] = useState<boolean>(false);
+  const [authSession, setAuthSession] = useState<UserSession | null>(() => firebaseAuth.getCurrentSession());
+  const [authReady, setAuthReady] = useState<boolean>(false);
+  const [isGoogleLoginOpen, setIsGoogleLoginOpen] = useState<boolean>(import.meta.env.PROD);
 
   const i18n = getTranslations(currentLanguage);
 
@@ -68,8 +70,8 @@ export const App: React.FC = () => {
     setIsGoogleLoginOpen(true);
   };
 
-  const handlePerformGoogleLogin = async (email: string, displayName: string): Promise<void> => {
-    const session = await firebaseAuth.signInWithGoogle(email, displayName);
+  const handlePerformGoogleLogin = async (): Promise<void> => {
+    const session = await firebaseAuth.signInWithGoogle();
     setGoogleUser({
       email: session.email,
       displayName: session.displayName,
@@ -85,6 +87,7 @@ export const App: React.FC = () => {
   };
 
   const handleSelectRole = async (role: UserRole): Promise<void> => {
+    if (!import.meta.env.DEV) return;
     setCurrentRole(role);
     await firebaseAuth.switchPersona(role, tenantId);
     const profile = firebaseAuth.getPersonaProfile(role);
@@ -139,9 +142,27 @@ export const App: React.FC = () => {
     }
   };
 
+  useEffect(() => firebaseAuth.onAuthStateChanged((session) => {
+    setAuthSession(session);
+    setAuthReady(true);
+    if (session?.isGoogleAuthenticated) {
+      setGoogleUser({ email: session.email, displayName: session.displayName, avatar: session.avatar });
+      setCurrentRole(session.role);
+      setIsGoogleLoginOpen(false);
+    } else if (import.meta.env.PROD) {
+      setGoogleUser(null);
+      setIsGoogleLoginOpen(true);
+    }
+  }), []);
+
   useEffect(() => {
-    loadData();
-  }, [tenantId, sector]);
+    if (!authReady) return;
+    if (!import.meta.env.DEV && !authSession) {
+      setLoading(false);
+      return;
+    }
+    void loadData();
+  }, [authReady, authSession, tenantId, sector]);
 
   const handleOnboardSubmit = async (payload: OnboardingPayload): Promise<void> => {
     const res = await api.onboard(payload);
@@ -188,7 +209,7 @@ export const App: React.FC = () => {
         sector={sector}
         trustScore={trustBoard?.trust_score ?? 94.3}
         onOpenOnboard={() => setIsOnboardingOpen(true)}
-        onRefresh={loadData}
+        onRefresh={() => authSession && loadData()}
         i18n={i18n}
         currentRole={currentRole}
         onSelectRole={handleSelectRole}

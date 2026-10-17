@@ -41,7 +41,7 @@ if (-not (Test-Path "$root/.env")) {
         Write-Host "  Created .env from .env.example" -ForegroundColor Green
     } else {
         Write-Host "  Warning: .env.example not found. Creating minimal .env" -ForegroundColor Yellow
-        "ENVIRONMENT=local`nGCP_PROJECT_ID=genai-apac-2026-491004`nVERTEX_AI_LOCATION=asia-southeast1" | Out-File -FilePath "$root/.env" -Encoding utf8
+        "ENVIRONMENT=local`nGCP_PROJECT_ID=genai-apac-2026-491004`nVERTEX_AI_LOCATION=global`nVERTEX_AI_LIVE_LOCATION=us-central1" | Out-File -FilePath "$root/.env" -Encoding utf8
     }
 } else {
     Write-Host "  .env already exists. Preserving existing configuration." -ForegroundColor Green

@@ -25,46 +25,46 @@ T = TypeVar("T", bound=BaseModel)
 class ModelTier(str, Enum):
     """Google Gemini Model Tiers for Work Transformation Mesh."""
 
-    WORKHORSE = "workhorse"  # gemini-3.8-flash-001 / gemini-3.5-flash / gemini-2.5-flash
-    DEEP_REASONING = "deep_reasoning"  # gemini-3.8-pro-001 / gemini-3.5-pro / gemini-2.5-pro
-    HIGH_VOLUME_UTILITY = "high_volume_utility"  # gemini-3.8-flash-lite / gemini-2.5-flash-lite
-    FRONTIER_WORKSPACE = "frontier_workspace"  # gemini-4-argon-preview
-    GEMINI_LIVE = "gemini_live"  # models/gemini-3.8-live (General-purpose Gemini Live)
-    GEMINI_LIVE_EXTENDED_THINKING = "gemini_live_extended_thinking"  # models/gemini-3.8-live-extended-thinking
+    WORKHORSE = "workhorse"
+    DEEP_REASONING = "deep_reasoning"
+    HIGH_VOLUME_UTILITY = "high_volume_utility"
+    FRONTIER_WORKSPACE = "frontier_workspace"
+    GEMINI_LIVE = "gemini_live"
+    GEMINI_LIVE_EXTENDED_THINKING = "gemini_live_extended_thinking"
 
 
 MODEL_REGISTRY: Dict[ModelTier, Dict[str, Any]] = {
     ModelTier.WORKHORSE: {
-        "primary": "gemini-3.8-flash-001",
-        "alias": "gemini-3.5-flash",
-        "legacy_fallback": "gemini-2.5-flash",
+        "primary": "gemini-3.8-flash",
+        "alias": "gemini-3.8-flash-001",
+        "legacy_fallback": "gemini-3.5-flash",
         "latency_tier": "ultra_low",
         "cost_per_1k_input": 0.000075,
         "cost_per_1k_output": 0.0003,
         "use_case": "Real-time Q&A, voice synthesis scripts, low-latency triage",
     },
     ModelTier.DEEP_REASONING: {
-        "primary": "gemini-3.8-pro-001",
-        "alias": "gemini-3.5-pro",
-        "legacy_fallback": "gemini-2.5-pro",
+        "primary": "gemini-3.1-pro-preview",
+        "alias": "gemini-3.8-pro-001",
+        "legacy_fallback": "gemini-3.5-pro",
         "latency_tier": "standard",
         "cost_per_1k_input": 0.00125,
         "cost_per_1k_output": 0.005,
         "use_case": "Complex multi-hop synthesis, cross-document comparison, legal/financial analysis",
     },
     ModelTier.HIGH_VOLUME_UTILITY: {
-        "primary": "gemini-3.8-flash-lite",
-        "alias": "gemini-3.1-flash-lite",
-        "legacy_fallback": "gemini-2.5-flash-lite",
+        "primary": "gemini-3.5-flash-lite",
+        "alias": "gemini-3.8-flash-lite",
+        "legacy_fallback": "gemini-3.1-flash-lite",
         "latency_tier": "fastest",
         "cost_per_1k_input": 0.0000375,
         "cost_per_1k_output": 0.00015,
         "use_case": "Pre-retrieval routing, query reformulation, hyDE, and chunk summaries",
     },
     ModelTier.FRONTIER_WORKSPACE: {
-        "primary": "gemini-4-argon-preview",
-        "alias": "gemini-4-workspace",
-        "legacy_fallback": "gemini-3.8-pro-001",
+        "primary": "gemini-4-argon",
+        "alias": "gemini-4-argon-preview",
+        "legacy_fallback": "gemini-4-workspace",
         "latency_tier": "frontier",
         "cost_per_1k_input": 0.00200,
         "cost_per_1k_output": 0.008,
@@ -80,7 +80,7 @@ MODEL_REGISTRY: Dict[ModelTier, Dict[str, Any]] = {
         "use_case": "General-purpose Gemini Live bidirectional audio dialogue and conversational synthesis",
     },
     ModelTier.GEMINI_LIVE_EXTENDED_THINKING: {
-        "primary": "models/gemini-3.8-live-extended-thinking",
+        "primary": "models/gemini-2.5-pro",
         "alias": "gemini-3.8-live-extended-thinking",
         "legacy_fallback": "gemini-3.8-pro-001",
         "latency_tier": "live_reasoning",
@@ -151,7 +151,7 @@ class VertexAIAdapter:
             mock_mode: Optional boolean override for mock LLM mode.
         """
         self.project_id = project_id or settings.gcp_project_id
-        self.location = location or settings.gcp_region
+        self.location = location or settings.vertex_ai_location
         self.mock_mode = mock_mode if mock_mode is not None else settings.mock_llm_mode
         self.context_cache = VertexContextCache()
 
@@ -162,7 +162,7 @@ class VertexAIAdapter:
             tier_or_name: ModelTier enum, string identifier, or None.
 
         Returns:
-            str: Resolved model name (e.g. gemini-3.8-flash-001 or gemini-3.8-pro-001).
+            str: Resolved Vertex AI model name.
         """
         if not tier_or_name:
             return settings.model_workhorse
@@ -280,10 +280,21 @@ class VertexAIAdapter:
             import httpx
 
             url = (
-                f"https://{self.location}-aiplatform.googleapis.com/v1/projects/{self.project_id}/"
+                f"https://{'aiplatform.googleapis.com' if self.location == 'global' else f'{self.location}-aiplatform.googleapis.com'}/v1/projects/{self.project_id}/"
                 f"locations/{self.location}/publishers/google/models/{target_model}:generateContent"
             )
-            headers = {"Content-Type": "application/json"}
+            import google.auth
+            from google.auth.transport.requests import Request
+
+            credentials, _ = google.auth.default(
+                scopes=["https://www.googleapis.com/auth/cloud-platform"]
+            )
+            if not credentials.valid:
+                credentials.refresh(Request())
+            headers = {
+                "Authorization": f"Bearer {credentials.token}",
+                "Content-Type": "application/json",
+            }
             payload = {
                 "contents": [{"role": "user", "parts": [{"text": prompt}]}],
                 "generationConfig": {"temperature": temperature},
@@ -313,6 +324,12 @@ class VertexAIAdapter:
                         "fallback_applied": False,
                     }
 
+            logger.warning(
+                "Vertex AI request failed: status=%s model=%s response=%s",
+                resp.status_code,
+                target_model,
+                resp.text[:500],
+            )
             elapsed_ms = round((time.perf_counter() - start_t) * 1000.0, 2)
             return {
                 "content": f"[Live Gateway Fallback for {target_model}]: Transformation synthesis verified.",
@@ -355,7 +372,7 @@ class VertexAIAdapter:
 
         Args:
             prompt: User conversational input.
-            model: Live model ('models/gemini-3.8-live' or 'models/gemini-3.8-live-extended-thinking').
+            model: Live model identifier.
             voice_persona: Female Gemini Live voice ('kore' or 'aoede').
             reasoning_budget: Optional token budget for extended thinking.
             language: BCP-47 or ISO language identifier.
@@ -446,8 +463,8 @@ class VertexAIAdapter:
                 from google import genai
 
                 project_id = self.project_id or os.getenv("GOOGLE_CLOUD_PROJECT", "genai-apac-2026-491004")
-                client = genai.Client(vertexai=True, project=project_id, location="us-central1")
-                gemini_model = "gemini-2.5-pro" if is_extended else "gemini-2.5-flash"
+                client = genai.Client(vertexai=True, project=project_id, location=settings.vertex_ai_location)
+                gemini_model = settings.model_deep_reasoning if is_extended else settings.model_workhorse
                 system_prompt = (
                     f"You are Futura, an empathetic 3D Holographic AI Workforce Sanctuary Assistant speaking as female persona {voice_persona.title()} in {language}. "
                     "Under FuturaSculptAI Responsible AI red lines, provide inspiring, concise guidance on ethical AI transformation, 90-day wage protection, and human-in-the-loop task augmentation. Keep responses conversational, natural, and under 3 sentences."
@@ -459,7 +476,7 @@ class VertexAIAdapter:
                         contents=f"{system_prompt}\n\nUser: {prompt}",
                     )
 
-                res = await asyncio.wait_for(asyncio.to_thread(_call_gemini), timeout=5.0)
+                res = await asyncio.wait_for(asyncio.to_thread(_call_gemini), timeout=15.0)
                 if res and res.text:
                     reply = res.text.strip()
             except Exception as exc:
@@ -493,7 +510,7 @@ class VertexAIAdapter:
                 from google.genai import types
 
                 project_id = self.project_id or os.getenv("GOOGLE_CLOUD_PROJECT", "genai-apac-2026-491004")
-                client = genai.Client(vertexai=True, project=project_id, location="us-central1")
+                client = genai.Client(vertexai=True, project=project_id, location=settings.vertex_ai_live_location)
                 vname = "Aoede" if voice_persona.lower() == "aoede" else "Kore"
                 config = types.LiveConnectConfig(
                     response_modalities=["AUDIO"],
@@ -526,7 +543,7 @@ class VertexAIAdapter:
                                 break
                     return chunks
 
-                audio_chunks = await asyncio.wait_for(_stream_audio(), timeout=6.0)
+                audio_chunks = await asyncio.wait_for(_stream_audio(), timeout=20.0)
 
                 if audio_chunks:
                     all_pcm = b"".join(audio_chunks)
@@ -537,20 +554,12 @@ class VertexAIAdapter:
                         wf.setframerate(24000)
                         wf.writeframes(all_pcm)
                     return base64.b64encode(wav_buf.getvalue()).decode("utf-8")
+                raise RuntimeError("Gemini Live returned no audio chunks")
             except Exception as exc:
-                logger.warning("Gemini Live Native Audio generation fallback: %s", exc)
+                logger.warning("Gemini Live Native Audio generation failed: %s", exc)
+                raise RuntimeError("Gemini Live audio generation failed") from exc
 
-        sample_rate = 24000
-        n_samples = int(sample_rate * 0.05)
-        buf = io.BytesIO()
-
-        with wave.open(buf, "wb") as wf:
-            wf.setnchannels(1)
-            wf.setsampwidth(2)
-            wf.setframerate(sample_rate)
-            wf.writeframes(b"\x00\x00" * n_samples)
-
-        return base64.b64encode(buf.getvalue()).decode("utf-8")
+        return ""
 
     async def generate_structured(
         self,
@@ -600,7 +609,7 @@ class VertexAIAdapter:
 
         Args:
             prompt: Prompt instruction.
-            primary_model: Target model name (e.g. 'gemini-3.8-pro-001' or 'gemini-2.5-pro').
+            primary_model: Target Vertex AI model name.
             fallback_model: Secondary fallback model (defaults to Flash / Workhorse).
             schema: Optional Pydantic schema for structured output.
             temperature: Sampling temperature.

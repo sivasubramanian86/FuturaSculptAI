@@ -1,7 +1,25 @@
 /**
  * Firebase Client & Multi-Persona IAM Authentication Service
- * Integrates Firebase Auth with enterprise RBAC roles and offline fallback.
+ * Uses verified Firebase ID tokens in production and demo personas only in development.
  */
+
+import { initializeApp } from 'firebase/app';
+import {
+  getAuth,
+  GoogleAuthProvider,
+  onIdTokenChanged,
+  signInWithPopup,
+  signOut as firebaseSignOut,
+  User,
+} from 'firebase/auth';
+
+const app = initializeApp({
+  apiKey: 'AIzaSyDNrKv7J3mR0xZapRpnpTh4qgYBN3hV7_w',
+  authDomain: 'genai-apac-2026-491004.firebaseapp.com',
+  projectId: 'genai-apac-2026-491004',
+  appId: '1:967518492968:web:22067c374c6f0fd884981d',
+});
+const auth = getAuth(app);
 
 export type UserRole =
   | 'citizen_worker'
@@ -84,12 +102,17 @@ export const PERSONA_PROFILES: Record<UserRole, PersonaProfile> = {
 };
 
 class FirebaseAuthService {
-  private currentSession: UserSession;
-  private listeners: Array<(session: UserSession) => void> = [];
+  private currentSession: UserSession | null;
+  private tenantId = 'tenant-food-mfg-01';
+  private listeners: Array<(session: UserSession | null) => void> = [];
 
   constructor() {
-    // Default session: Citizen Worker
-    this.currentSession = this.createSessionFromRole('citizen_worker', 'tenant-food-mfg-01');
+    this.currentSession = import.meta.env.DEV
+      ? this.createSessionFromRole('citizen_worker', this.tenantId)
+      : null;
+    onIdTokenChanged(auth, (user) => {
+      void this.updateFirebaseSession(user);
+    });
   }
 
   private createSessionFromRole(role: UserRole, tenantId: string): UserSession {
@@ -105,7 +128,7 @@ class FirebaseAuthService {
     };
   }
 
-  public getCurrentSession(): UserSession {
+  public getCurrentSession(): UserSession | null {
     return this.currentSession;
   }
 
@@ -118,47 +141,43 @@ class FirebaseAuthService {
   }
 
   public async switchPersona(role: UserRole, tenantId?: string): Promise<UserSession> {
-    const tid = tenantId || this.currentSession.tenantId;
+    if (!import.meta.env.DEV) {
+      throw new Error('Production roles must come from verified Firebase custom claims.');
+    }
+    const tid = tenantId || this.currentSession?.tenantId || this.tenantId;
+    this.tenantId = tid;
     this.currentSession = this.createSessionFromRole(role, tid);
     this.notifyListeners();
     return this.currentSession;
   }
 
-  public async signInWithGoogle(
-    email: string = 'sivasubramanian86@gmail.com',
-    displayName: string = 'Google Cloud APAC Innovator',
-    avatar: string = 'https://www.gstatic.com/images/branding/product/2x/googleg_48dp.png'
-  ): Promise<UserSession> {
-    this.currentSession = {
-      userId: `google-${email.split('@')[0]}`,
-      email,
-      displayName,
-      role: 'enterprise_architect',
-      tenantId: this.currentSession.tenantId,
-      token: `google-oauth2-jwt-${Date.now()}`,
-      permissions: ['read:all', 'sculpt:tasks', 'simulate:scenarios', 'deploy:agents', 'google:authenticated'],
-      isGoogleAuthenticated: true,
-      avatar,
-    };
+  public async signInWithGoogle(): Promise<UserSession> {
+    const { user } = await signInWithPopup(auth, new GoogleAuthProvider());
+    this.currentSession = await this.createSessionFromFirebaseUser(user);
+    this.tenantId = this.currentSession.tenantId;
     this.notifyListeners();
     return this.currentSession;
   }
 
-  public async signOut(): Promise<UserSession> {
-    this.currentSession = this.createSessionFromRole('citizen_worker', this.currentSession.tenantId);
+  public async signOut(): Promise<UserSession | null> {
+    await firebaseSignOut(auth);
+    this.currentSession = import.meta.env.DEV
+      ? this.createSessionFromRole('citizen_worker', this.tenantId)
+      : null;
     this.notifyListeners();
     return this.currentSession;
   }
 
   public setTenant(tenantId: string): void {
-    this.currentSession = {
-      ...this.currentSession,
-      tenantId,
-    };
-    this.notifyListeners();
+    this.tenantId = tenantId;
+    if (this.currentSession && import.meta.env.DEV) {
+      this.currentSession = { ...this.currentSession, tenantId };
+      this.notifyListeners();
+    }
   }
 
   public getAuthHeaders(): Record<string, string> {
+    if (!this.currentSession) return {};
     return {
       'X-User-Role': this.currentSession.role,
       'X-User-Id': this.currentSession.userId,
@@ -168,7 +187,7 @@ class FirebaseAuthService {
     };
   }
 
-  public onAuthStateChanged(listener: (session: UserSession) => void): () => void {
+  public onAuthStateChanged(listener: (session: UserSession | null) => void): () => void {
     this.listeners.push(listener);
     listener(this.currentSession);
     return () => {
@@ -180,6 +199,34 @@ class FirebaseAuthService {
     for (const listener of this.listeners) {
       listener(this.currentSession);
     }
+  }
+
+  private async updateFirebaseSession(user: User | null): Promise<void> {
+    if (user) {
+      this.currentSession = await this.createSessionFromFirebaseUser(user);
+      this.tenantId = this.currentSession.tenantId;
+    } else if (!import.meta.env.DEV) {
+      this.currentSession = null;
+    }
+    this.notifyListeners();
+  }
+
+  private async createSessionFromFirebaseUser(user: User): Promise<UserSession> {
+    const { claims } = await user.getIdTokenResult();
+    const claimRole = String(claims.role || '').toLowerCase() as UserRole;
+    const role = PERSONA_PROFILES[claimRole] ? claimRole : 'citizen_worker';
+    const profile = PERSONA_PROFILES[role];
+    return {
+      userId: user.uid,
+      email: user.email || '',
+      displayName: user.displayName || user.email || 'Google user',
+      role,
+      tenantId: typeof claims.tenant_id === 'string' ? claims.tenant_id : this.tenantId,
+      token: await user.getIdToken(),
+      permissions: profile.permissions,
+      isGoogleAuthenticated: true,
+      avatar: user.photoURL || undefined,
+    };
   }
 }
 

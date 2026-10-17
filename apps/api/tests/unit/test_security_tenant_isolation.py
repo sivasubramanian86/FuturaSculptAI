@@ -25,13 +25,14 @@ client = TestClient(app)
 
 def test_verify_firebase_id_token_test_tokens():
     """Verify test-token parsing with embedded user_id, role, and tenant."""
-    claims = verify_firebase_id_token("test-token:alice:ENTERPRISE_ARCHITECT:tenant-alpha")
+    with patch("app.core.rbac.settings.auth_dev_mode", True):
+        claims = verify_firebase_id_token("test-token:alice:ENTERPRISE_ARCHITECT:tenant-alpha")
+        default_claims = verify_firebase_id_token("test-token")
     assert claims["user_id"] == "alice"
     assert claims["role"] == "ENTERPRISE_ARCHITECT"
     assert claims["tenant_id"] == "tenant-alpha"
 
     # Default fallback in test-token
-    default_claims = verify_firebase_id_token("test-token")
     assert default_claims["user_id"] == "usr-test-01"
     assert default_claims["role"] == "CITIZEN_WORKER"
 
@@ -88,22 +89,33 @@ def test_production_mode_auth_enforcement():
         assert exc_missing.value.status_code == 401
         assert "ERR_AUTH_REQUIRED" in exc_missing.value.detail
 
-        # In production, client headers X-User-Role and X-User-ID are strictly ignored
-        session = get_current_user(
-            authorization="Bearer test-token:bob:INVESTOR:tenant-beta",
-            x_user_role="ENTERPRISE_ARCHITECT",  # Forged header
-            x_user_id="evil-attacker",           # Forged header
-            x_tenant_id="tenant-forged-99",      # Forged header
-        )
+        with patch("google.oauth2.id_token.verify_firebase_token") as mock_verify:
+            mock_verify.return_value = {
+                "sub": "bob", "email": "bob@example.com", "role": "INVESTOR", "tenant_id": "tenant-beta"
+            }
+            # Production accepts verified claims and ignores forged client headers.
+            session = get_current_user(
+                authorization="Bearer real.jwt.token",
+                x_user_role="ENTERPRISE_ARCHITECT",
+                x_user_id="evil-attacker",
+                x_tenant_id="tenant-forged-99",
+            )
         assert session.user_id == "bob"                     # Derived from token, not forged header
         assert session.role == UserRole.INVESTOR            # Derived from token, not forged header
         assert session.tenant_id == "tenant-beta"           # Derived from token, not forged header
 
         # Token with invalid role falls back to CITIZEN_WORKER
-        session_invalid_role = get_current_user(
-            authorization="Bearer test-token:carol:UNKNOWN_SUPER_ROLE:tenant-gamma",
-        )
+        with patch("google.oauth2.id_token.verify_firebase_token") as mock_verify:
+            mock_verify.return_value = {
+                "sub": "carol", "email": "carol@example.com", "role": "UNKNOWN_SUPER_ROLE", "tenant_id": "tenant-gamma"
+            }
+            session_invalid_role = get_current_user(authorization="Bearer real.jwt.token")
         assert session_invalid_role.role == UserRole.CITIZEN_WORKER
+
+        with pytest.raises(HTTPException) as exc_mock:
+            get_current_user(authorization="Bearer fb-jwt-enterprise_architect-demo")
+        assert exc_mock.value.status_code == 401
+        assert "Synthetic tokens are disabled" in exc_mock.value.detail
 
     finally:
         settings.auth_dev_mode = orig_mode

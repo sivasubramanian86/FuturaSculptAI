@@ -61,13 +61,14 @@ def test_resolve_model_name():
     """Verify model resolution for aliases, tiers, and raw identifiers."""
     adapter = VertexAIAdapter()
 
-    assert adapter.resolve_model_name(None) == "gemini-3.8-flash-001"
-    assert adapter.resolve_model_name("workhorse") == "gemini-3.8-flash-001"
-    assert adapter.resolve_model_name("deep_reasoning") == "gemini-3.8-pro-001"
-    assert adapter.resolve_model_name("high_volume_utility") == "gemini-3.8-flash-lite"
-    assert adapter.resolve_model_name("frontier_workspace") == "gemini-4-argon-preview"
-    assert adapter.resolve_model_name("gemini-3.5-flash") == "gemini-3.8-flash-001"
-    assert adapter.resolve_model_name("gemini-2.5-flash") == "gemini-3.8-flash-001"  # auto-migrates from Jan 2027 EOL model
+    assert adapter.resolve_model_name(None) == "gemini-3.8-flash"
+    assert adapter.resolve_model_name("workhorse") == "gemini-3.8-flash"
+    assert adapter.resolve_model_name("deep_reasoning") == "gemini-3.1-pro-preview"
+    assert adapter.resolve_model_name("high_volume_utility") == "gemini-3.5-flash-lite"
+    assert adapter.resolve_model_name("frontier_workspace") == "gemini-4-argon"
+    assert adapter.resolve_model_name("gemini-3.8-flash-001") == "gemini-3.8-flash"
+    assert adapter.resolve_model_name("gemini-3.5-flash") == "gemini-3.8-flash"
+    assert adapter.resolve_model_name("gemini-2.5-flash") == "gemini-2.5-flash"
     assert adapter.resolve_model_name("custom-model-id") == "custom-model-id"
 
 
@@ -76,23 +77,23 @@ def test_calculate_cost():
     adapter = VertexAIAdapter()
 
     # Flash / workhorse
-    cost1 = adapter.calculate_cost("gemini-3.8-flash-001", 1000, 100, cached=False)
+    cost1 = adapter.calculate_cost("gemini-3.8-flash", 1000, 100, cached=False)
     assert cost1 > 0
 
     # Pro / deep reasoning
-    cost_pro = adapter.calculate_cost("gemini-3.8-pro-001", 1000, 100, cached=False)
+    cost_pro = adapter.calculate_cost("gemini-3.1-pro-preview", 1000, 100, cached=False)
     assert cost_pro > cost1
 
     # Frontier / Argon workspace
-    cost_argon = adapter.calculate_cost("gemini-4-argon-preview", 1000, 100, cached=False)
-    assert cost_argon > cost_pro
+    cost_frontier = adapter.calculate_cost("gemini-4-argon", 1000, 100, cached=False)
+    assert cost_frontier > cost_pro
 
     # Lite / high volume utility
-    cost_lite = adapter.calculate_cost("gemini-3.8-flash-lite", 1000, 100, cached=False)
+    cost_lite = adapter.calculate_cost("gemini-3.5-flash-lite", 1000, 100, cached=False)
     assert cost_lite < cost1
 
     # Cached discount
-    cost_cached = adapter.calculate_cost("gemini-3.8-flash-001", 1000, 100, cached=True)
+    cost_cached = adapter.calculate_cost("gemini-3.8-flash", 1000, 100, cached=True)
     assert cost_cached < cost1
 
 
@@ -103,8 +104,8 @@ async def test_generate_text_mock_mode():
     adapter.mock_mode = True
 
     # Without corpus
-    res1 = await adapter.generate_text("Test prompt", model_name="gemini-3.8-flash-001")
-    assert res1["model_used"] == "gemini-3.8-flash-001"
+    res1 = await adapter.generate_text("Test prompt", model_name="gemini-3.8-flash")
+    assert res1["model_used"] == "gemini-3.8-flash"
     assert not res1["cached_hit"]
 
     # With corpus
@@ -113,7 +114,7 @@ async def test_generate_text_mock_mode():
         model_tier=ModelTier.DEEP_REASONING,
         context_corpus="Company HR Policy 2026",
     )
-    assert res2["model_used"] == "gemini-3.8-pro-001"
+    assert res2["model_used"] == "gemini-3.1-pro-preview"
     assert "cache_id" in res2
 
 
@@ -133,10 +134,11 @@ async def test_generate_text_live_http_paths():
     mock_client = AsyncMock()
     mock_client.post.return_value = mock_response
 
-    with patch("httpx.AsyncClient") as mock_client_cls:
+    with patch("google.auth.default", return_value=(MagicMock(valid=True, token="test-token"), None)), patch("httpx.AsyncClient") as mock_client_cls:
         mock_client_cls.return_value.__aenter__.return_value = mock_client
         res = await adapter.generate_text("Generate plan", model_name="gemini-2.5-flash")
         assert res["content"] == "Synthetic response from live Vertex"
+        assert mock_client.post.call_args.kwargs["headers"]["Authorization"] == "Bearer test-token"
 
     # 2. HTTP 200 with empty candidates
     mock_response_empty = MagicMock()
@@ -144,7 +146,7 @@ async def test_generate_text_live_http_paths():
     mock_response_empty.json.return_value = {"candidates": []}
     mock_client.post.return_value = mock_response_empty
 
-    with patch("httpx.AsyncClient") as mock_client_cls:
+    with patch("google.auth.default", return_value=(MagicMock(valid=True, token="test-token"), None)), patch("httpx.AsyncClient") as mock_client_cls:
         mock_client_cls.return_value.__aenter__.return_value = mock_client
         res = await adapter.generate_text("Generate plan", model_name="gemini-2.5-flash")
         assert res["content"] == "Generated Vertex response."
@@ -154,13 +156,13 @@ async def test_generate_text_live_http_paths():
     mock_response_500.status_code = 500
     mock_client.post.return_value = mock_response_500
 
-    with patch("httpx.AsyncClient") as mock_client_cls:
+    with patch("google.auth.default", return_value=(MagicMock(valid=True, token="test-token"), None)), patch("httpx.AsyncClient") as mock_client_cls:
         mock_client_cls.return_value.__aenter__.return_value = mock_client
         res = await adapter.generate_text("Generate plan", model_name="gemini-2.5-flash")
         assert "[Live Gateway Fallback" in res["content"]
 
     # 4. Network exception fallback
-    with patch("httpx.AsyncClient", side_effect=RuntimeError("Network unreachable")):
+    with patch("google.auth.default", return_value=(MagicMock(valid=True, token="test-token"), None)), patch("httpx.AsyncClient", side_effect=RuntimeError("Network unreachable")):
         res_err = await adapter.generate_text("Generate plan", model_name="gemini-2.5-flash")
         assert "[Fallback mode]" in res_err["content"]
 

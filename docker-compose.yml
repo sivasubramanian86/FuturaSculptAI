@@ -10,7 +10,8 @@ services:
       - PORT=8080
       - ENVIRONMENT=production
       - GCP_PROJECT_ID=genai-apac-2026-491004
-      - VERTEX_AI_LOCATION=asia-southeast1
+      - VERTEX_AI_LOCATION=global
+      - VERTEX_AI_LIVE_LOCATION=us-central1
       - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080,http://localhost:5173
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health/live"]

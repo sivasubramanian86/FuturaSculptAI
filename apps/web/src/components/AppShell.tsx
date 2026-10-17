@@ -217,8 +217,8 @@ export const AppShell: React.FC<AppShellProps> = ({
             </select>
           </div>
 
-          {/* IAM Persona Selector */}
-          <div style={{ position: 'relative', display: 'inline-flex' }}>
+          {/* IAM Persona Selector (local demo only; production roles come from verified token claims) */}
+          {import.meta.env.DEV && <div style={{ position: 'relative', display: 'inline-flex' }}>
             <select
               aria-label="Select IAM Persona"
               value={currentRole}
@@ -243,7 +243,7 @@ export const AppShell: React.FC<AppShellProps> = ({
                 </option>
               ))}
             </select>
-          </div>
+          </div>}
 
           {/* Language Selector Dropdown */}
           <div style={{ position: 'relative', display: 'inline-flex' }}>

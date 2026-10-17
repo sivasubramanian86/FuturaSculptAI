@@ -51,7 +51,8 @@ if [ ! -f "${ROOT_DIR}/.env" ]; then
         cat <<EOF > "${ROOT_DIR}/.env"
 ENVIRONMENT=local
 GCP_PROJECT_ID=genai-apac-2026-491004
-VERTEX_AI_LOCATION=asia-southeast1
+VERTEX_AI_LOCATION=global
+VERTEX_AI_LIVE_LOCATION=us-central1
 EOF
         echo -e "  ${GREEN}Created minimal .env configuration${NC}"
     fi

@@ -115,8 +115,8 @@ def verify_firebase_id_token(token: str) -> dict:
     Raises:
         HTTPException: If token is expired, corrupted, or cryptographic signature fails.
     """
-    # Test token fixture support for offline unit & integration testing
-    if token == "test-token" or token.startswith("test-token:"):  # nosec B105  # noqa: S105
+    # Synthetic test tokens are accepted only in local development and test mode.
+    if settings.auth_dev_mode and (token == "test-token" or token.startswith("test-token:")):  # nosec B105  # noqa: S105
         parts = token.split(":")
         # Format: test-token:<user_id>:<role>:<tenant_id>
         uid = parts[1] if len(parts) > 1 else "usr-test-01"
@@ -143,6 +143,12 @@ def verify_firebase_id_token(token: str) -> dict:
             headers={"WWW-Authenticate": "Bearer"},
         )
     if token == "firebase-jwt-mock" or token.startswith("mock-") or token.startswith("fb-jwt-") or token.startswith("google-oauth2-jwt-"):  # nosec B105  # noqa: S105
+        if not settings.auth_dev_mode:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="UNAUTHENTICATED [ERR_INVALID_TOKEN]: Synthetic tokens are disabled in production.",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
         role_claim = "CITIZEN_WORKER"
         for candidate_role in ["citizen_worker", "enterprise_architect", "investor", "hr_executive", "customer_care", "governance_officer"]:
             if candidate_role in token:

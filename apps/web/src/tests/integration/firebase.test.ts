@@ -1,4 +1,33 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+const firebaseMocks = vi.hoisted(() => {
+  const listeners: Array<(user: any) => void> = [];
+  const user = {
+    uid: 'google-test-01',
+    email: 'test.innovator@gmail.com',
+    displayName: 'Test Innovator',
+    photoURL: null,
+    getIdToken: async () => 'verified-firebase-id-token',
+    getIdTokenResult: async () => ({ claims: { role: 'ENTERPRISE_ARCHITECT' } }),
+  };
+  return { listeners, user };
+});
+vi.mock('firebase/app', () => ({ initializeApp: vi.fn(() => ({ name: 'test' })) }));
+vi.mock('firebase/auth', () => ({
+  getAuth: vi.fn(() => ({})),
+  GoogleAuthProvider: class {},
+  onIdTokenChanged: vi.fn((_auth, listener) => {
+    firebaseMocks.listeners.push(listener);
+    listener(null);
+    return () => undefined;
+  }),
+  signInWithPopup: vi.fn(async () => {
+    firebaseMocks.listeners.forEach((listener) => listener(firebaseMocks.user));
+    return { user: firebaseMocks.user };
+  }),
+  signOut: vi.fn(async () => {
+    firebaseMocks.listeners.forEach((listener) => listener(null));
+  }),
+}));
 import { firebaseAuth, PERSONA_PROFILES, UserRole } from '../../services/firebase';
 
 describe('FirebaseAuthService', () => {
@@ -90,14 +119,14 @@ describe('FirebaseAuthService', () => {
     const listener = vi.fn();
     const unsubscribe = firebaseAuth.onAuthStateChanged(listener);
 
-    const googleSession = await firebaseAuth.signInWithGoogle('test.innovator@gmail.com', 'Test Innovator');
+    const googleSession = await firebaseAuth.signInWithGoogle();
     expect(googleSession.email).toBe('test.innovator@gmail.com');
     expect(googleSession.displayName).toBe('Test Innovator');
     expect(googleSession.isGoogleAuthenticated).toBe(true);
     expect(googleSession.role).toBe('enterprise_architect');
 
     const defaultSession = await firebaseAuth.signInWithGoogle();
-    expect(defaultSession.email).toBe('sivasubramanian86@gmail.com');
+    expect(defaultSession.token).toBe('verified-firebase-id-token');
 
     const signedOutSession = await firebaseAuth.signOut();
     expect(signedOutSession.role).toBe('citizen_worker');

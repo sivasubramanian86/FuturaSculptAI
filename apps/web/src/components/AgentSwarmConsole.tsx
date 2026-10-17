@@ -5,7 +5,7 @@
  * Conforms to WCAG 2.1 AA with role="region", role="log", role="alert", and accessible form labels.
  */
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { api } from '../services/api';
 import { SwarmRunRequest, SwarmRunResponse } from '../types';
 import { TranslationKeys } from '../i18n';
@@ -31,6 +31,13 @@ export const AgentSwarmConsole: React.FC<AgentSwarmConsoleProps> = ({
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [swarmResult, setSwarmResult] = useState<SwarmRunResponse | null>(null);
   const [swarmError, setSwarmError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const result = window.sessionStorage.getItem('futura-demo-swarm-result');
+    if (!result) return;
+    window.sessionStorage.removeItem('futura-demo-swarm-result');
+    setSwarmResult(JSON.parse(result));
+  }, []);
 
   const handleLaunchSwarm = async (): Promise<void> => {
     if (!prompt.trim()) return;

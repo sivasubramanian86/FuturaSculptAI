@@ -46,7 +46,7 @@ gcloud run deploy "${API_SERVICE}" \
     --project "${PROJECT_ID}" \
     --platform managed \
     --allow-unauthenticated \
-    --set-env-vars "GCP_PROJECT_ID=${PROJECT_ID},ENVIRONMENT=production,MOCK_LLM_MODE=false,VERTEX_AI_LOCATION=us-central1" \
+    --set-env-vars "GCP_PROJECT_ID=${PROJECT_ID},ENVIRONMENT=production,MOCK_LLM_MODE=false,VERTEX_AI_LOCATION=global,VERTEX_AI_LIVE_LOCATION=us-central1" \
     --memory 1Gi \
     --cpu 1 \
     --min-instances 0 \

@@ -1272,7 +1272,7 @@ async def synthesize_company_intelligence(
     agent_activity = [
         AgentGroundingStep(
             agent_name="Web & Domain Grounding Scout",
-            model="models/gemini-3.8-flash-lite",
+            model="models/gemini-3.5-flash-lite",
             phase="DISCOVERY",
             target=resolved_target,
             status="COMPLETED",
@@ -1287,7 +1287,7 @@ async def synthesize_company_intelligence(
         ),
         AgentGroundingStep(
             agent_name="Agentic RAG Filings Grounding Agent",
-            model="models/gemini-3.8-pro-001",
+            model="models/gemini-3.1-pro-preview",
             phase="GROUNDING",
             target="SEC EDGAR 10-K & Audited Filings",
             status="COMPLETED",
@@ -1302,7 +1302,7 @@ async def synthesize_company_intelligence(
         ),
         AgentGroundingStep(
             agent_name="Corporate Synthesizer & Moat Analyst",
-            model="models/gemini-3.8-pro-001",
+            model="models/gemini-3.1-pro-preview",
             phase="SYNTHESIS",
             target="Strategic Moat & Automation Baseline Mesh",
             status="COMPLETED",
@@ -1317,7 +1317,7 @@ async def synthesize_company_intelligence(
         ),
         AgentGroundingStep(
             agent_name="Futuristic Readiness Scoring Engine",
-            model="models/gemini-3.8-flash-001",
+            model="models/gemini-3.8-flash",
             phase="SCORING",
             target="5-Dimension Deterministic Evaluator",
             status="COMPLETED",
@@ -1332,7 +1332,7 @@ async def synthesize_company_intelligence(
         ),
         AgentGroundingStep(
             agent_name="Multi-Horizon Transformation Swarm",
-            model="models/gemini-3.8-pro-001",
+            model="models/gemini-3.1-pro-preview",
             phase="ROADMAP",
             target="1Y, 3Y, 5Y & 10Y Work Transformation Engine",
             status="COMPLETED",
