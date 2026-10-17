@@ -288,7 +288,7 @@ def test_calculate_cost_gemini_live():
 @pytest.mark.asyncio
 async def test_vertex_generate_live_dialogue_all_branches():
     """Verify live dialogue synthesis across personas, extended thinking, and domain queries."""
-    adapter = VertexAIAdapter()
+    adapter = VertexAIAdapter(mock_mode=True)
 
     # 1. Extended thinking with custom reasoning budget & Aoede voice
     res_thinking = await adapter.generate_live_dialogue(
@@ -411,12 +411,12 @@ async def test_vertex_generate_live_dialogue_all_branches():
 
     # Exception fallback branch
     with patch("google.genai.Client", side_effect=RuntimeError("Vertex API network timeout")):
-        res_err = await adapter_live.generate_live_dialogue(
-            prompt="Hello with network error",
-            model="models/gemini-3.8-live",
-            voice_persona="aoede",
-        )
-        assert "Responsible AI Workforce Sanctuary" in res_err["response_text"]
+        with pytest.raises(RuntimeError, match="Gemini Live audio generation failed"):
+            await adapter_live.generate_live_dialogue(
+                prompt="Hello with network error",
+                model="models/gemini-3.8-live",
+                voice_persona="aoede",
+            )
 
 
 def test_api_live_dialogue_endpoint():

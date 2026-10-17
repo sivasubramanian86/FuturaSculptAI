@@ -40,25 +40,25 @@ def test_dynamic_model_routing_across_tiers():
     adapter = VertexAIAdapter()
 
     # Flash / Workhorse Tier
-    assert adapter.resolve_model_name("flash") == "gemini-3.8-flash-001"
-    assert adapter.resolve_model_name("lightweight") == "gemini-3.8-flash-001"
-    assert adapter.resolve_model_name("workhorse") == "gemini-3.8-flash-001"
-    assert adapter.resolve_model_name("gemini-3.5-flash") == "gemini-3.8-flash-001"
-    assert adapter.resolve_model_name("gemini-2.5-flash") == "gemini-3.8-flash-001"
+    assert adapter.resolve_model_name("flash") == "gemini-3.8-flash"
+    assert adapter.resolve_model_name("lightweight") == "gemini-3.8-flash"
+    assert adapter.resolve_model_name("workhorse") == "gemini-3.8-flash"
+    assert adapter.resolve_model_name("gemini-3.5-flash") == "gemini-3.8-flash"
+    assert adapter.resolve_model_name("gemini-2.5-flash") == "gemini-2.5-flash"
 
     # Pro / Deep Reasoning Tier
-    assert adapter.resolve_model_name("pro") == "gemini-3.8-pro-001"
-    assert adapter.resolve_model_name("reasoning") == "gemini-3.8-pro-001"
-    assert adapter.resolve_model_name("deep_reasoning") == "gemini-3.8-pro-001"
+    assert adapter.resolve_model_name("pro") == "gemini-3.1-pro-preview"
+    assert adapter.resolve_model_name("reasoning") == "gemini-3.1-pro-preview"
+    assert adapter.resolve_model_name("deep_reasoning") == "gemini-3.1-pro-preview"
 
     # High-Volume Utility Tier
-    assert adapter.resolve_model_name("lite") == "gemini-3.8-flash-lite"
-    assert adapter.resolve_model_name("high_volume_utility") == "gemini-3.8-flash-lite"
+    assert adapter.resolve_model_name("lite") == "gemini-3.5-flash-lite"
+    assert adapter.resolve_model_name("high_volume_utility") == "gemini-3.5-flash-lite"
 
     # Frontier / Argon Workspace Tier
-    assert adapter.resolve_model_name("argon") == "gemini-4-argon-preview"
-    assert adapter.resolve_model_name("frontier") == "gemini-4-argon-preview"
-    assert adapter.resolve_model_name("frontier_workspace") == "gemini-4-argon-preview"
+    assert adapter.resolve_model_name("argon") == "gemini-4-argon"
+    assert adapter.resolve_model_name("frontier") == "gemini-4-argon"
+    assert adapter.resolve_model_name("frontier_workspace") == "gemini-4-argon"
 
     # Direct custom model preservation
     assert adapter.resolve_model_name("custom-tuned-gemini") == "custom-tuned-gemini"

@@ -230,59 +230,69 @@ def test_worktwin_router_lifecycle_endpoints():
 def test_production_mode_worktwin_security_gates():
     """Verify production security gates for RoleTwin creation and consent ownership."""
     orig_mode = settings.auth_dev_mode
+    verified_claims = {
+        "valid.citizen.token": {"sub": "citizen-01", "role": "CITIZEN_WORKER", "tenant_id": "tenant-food-mfg-01"},
+        "valid.architect.token": {"sub": "arch-01", "role": "ENTERPRISE_ARCHITECT", "tenant_id": "tenant-food-mfg-01"},
+        "valid.attacker.token": {"sub": "emp-attacker-01", "role": "CITIZEN_WORKER", "tenant_id": "tenant-food-mfg-01"},
+        "valid.employee.token": {"sub": "emp-valid-01", "role": "CITIZEN_WORKER", "tenant_id": "tenant-food-mfg-01"},
+    }
     try:
         settings.auth_dev_mode = False
+        with patch(
+            "google.oauth2.id_token.verify_firebase_token",
+            side_effect=lambda token, *args, **kwargs: verified_claims[token],
+        ):
 
-        # Citizen worker cannot create RoleTwin in production -> 403
-        bad_create = client.post(
-            "/api/worktwins/manifests",
-            json={"role_archetype": "Unauthorized Role", "declared_purpose": "Test", "skills": []},
-            headers={"Authorization": "Bearer test-token:citizen-01:CITIZEN_WORKER:tenant-food-mfg-01"},
-        )
-        assert bad_create.status_code == 403
-        assert "FORBIDDEN_INSUFFICIENT_ROLE" in bad_create.json()["detail"]
+            # Citizen worker cannot create RoleTwin in production -> 403
+            bad_create = client.post(
+                "/api/worktwins/manifests",
+                json={"role_archetype": "Unauthorized Role", "declared_purpose": "Test", "skills": []},
+                headers={"Authorization": "Bearer valid.citizen.token"},
+            )
+            assert bad_create.status_code == 403
+            assert "FORBIDDEN_INSUFFICIENT_ROLE" in bad_create.json()["detail"]
 
-        # Enterprise Architect can create RoleTwin in production
-        good_create = client.post(
-            "/api/worktwins/manifests",
-            json={"role_archetype": "Architect Approved Twin", "declared_purpose": "Approved role", "skills": ["Architecture"]},
-            headers={"Authorization": "Bearer test-token:arch-01:ENTERPRISE_ARCHITECT:tenant-food-mfg-01"},
-        )
-        assert good_create.status_code == 201
+            # Enterprise Architect can create RoleTwin in production
+            good_create = client.post(
+                "/api/worktwins/manifests",
+                json={"role_archetype": "Architect Approved Twin", "declared_purpose": "Approved role", "skills": ["Architecture"]},
+                headers={"Authorization": "Bearer valid.architect.token"},
+            )
+            assert good_create.status_code == 201
 
-        # Employee A cannot modify Employee B consent in production -> 403
-        bad_consent = client.post(
-            "/api/worktwins/personal/consent",
-            json={
-                "employee_id": "EMP-VICTIM-99",
-                "knowledge_consent": True,
-                "writing_style_consent": True,
-                "delegated_task_consent": True,
-                "voice_avatar_consent": False,
-                "revoked": False,
-                "consent_timestamp": "2026-10-16T12:00:00Z",
-            },
-            headers={"Authorization": "Bearer test-token:emp-attacker-01:CITIZEN_WORKER:tenant-food-mfg-01"},
-        )
-        assert bad_consent.status_code == 403
-        assert "FORBIDDEN_OWNERSHIP_MISMATCH" in bad_consent.json()["detail"]
+            # Employee A cannot modify Employee B consent in production -> 403
+            bad_consent = client.post(
+                "/api/worktwins/personal/consent",
+                json={
+                    "employee_id": "EMP-VICTIM-99",
+                    "knowledge_consent": True,
+                    "writing_style_consent": True,
+                    "delegated_task_consent": True,
+                    "voice_avatar_consent": False,
+                    "revoked": False,
+                    "consent_timestamp": "2026-10-16T12:00:00Z",
+                },
+                headers={"Authorization": "Bearer valid.attacker.token"},
+            )
+            assert bad_consent.status_code == 403
+            assert "FORBIDDEN_OWNERSHIP_MISMATCH" in bad_consent.json()["detail"]
 
-        # Attempting voice_avatar_consent=True in production -> 400
-        voice_consent = client.post(
-            "/api/worktwins/personal/consent",
-            json={
-                "employee_id": "emp-valid-01",
-                "knowledge_consent": True,
-                "writing_style_consent": True,
-                "delegated_task_consent": True,
-                "voice_avatar_consent": True,  # Prohibited
-                "revoked": False,
-                "consent_timestamp": "2026-10-16T12:00:00Z",
-            },
-            headers={"Authorization": "Bearer test-token:emp-valid-01:CITIZEN_WORKER:tenant-food-mfg-01"},
-        )
-        assert voice_consent.status_code == 400
-        assert "ERR_VOICE_AVATAR_PROHIBITED" in voice_consent.json()["detail"]
+            # Attempting voice_avatar_consent=True in production -> 400
+            voice_consent = client.post(
+                "/api/worktwins/personal/consent",
+                json={
+                    "employee_id": "emp-valid-01",
+                    "knowledge_consent": True,
+                    "writing_style_consent": True,
+                    "delegated_task_consent": True,
+                    "voice_avatar_consent": True,  # Prohibited
+                    "revoked": False,
+                    "consent_timestamp": "2026-10-16T12:00:00Z",
+                },
+                headers={"Authorization": "Bearer valid.employee.token"},
+            )
+            assert voice_consent.status_code == 400
+            assert "ERR_VOICE_AVATAR_PROHIBITED" in voice_consent.json()["detail"]
 
     finally:
         settings.auth_dev_mode = orig_mode
