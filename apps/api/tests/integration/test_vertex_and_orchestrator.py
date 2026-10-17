@@ -134,11 +134,13 @@ async def test_generate_text_live_http_paths():
     mock_client = AsyncMock()
     mock_client.post.return_value = mock_response
 
-    with patch("google.auth.default", return_value=(MagicMock(valid=True, token="test-token"), None)), patch("httpx.AsyncClient") as mock_client_cls:  # noqa: S106
+    credentials = MagicMock(valid=False, token="test-token")  # noqa: S106
+    with patch("google.auth.default", return_value=(credentials, None)), patch("google.auth.transport.requests.Request") as request_cls, patch("httpx.AsyncClient") as mock_client_cls:  # noqa: S106
         mock_client_cls.return_value.__aenter__.return_value = mock_client
         res = await adapter.generate_text("Generate plan", model_name="gemini-2.5-flash")
         assert res["content"] == "Synthetic response from live Vertex"
         assert mock_client.post.call_args.kwargs["headers"]["Authorization"] == "Bearer test-token"
+        credentials.refresh.assert_called_once_with(request_cls.return_value)
 
     # 2. HTTP 200 with empty candidates
     mock_response_empty = MagicMock()
@@ -408,6 +410,20 @@ async def test_vertex_generate_live_dialogue_all_branches():
         )
         assert res_live["response_text"] == "Dynamic live Gemini speech response."
         assert len(res_live["audio_base64"]) > 0
+
+    class EmptyAudioSession(MockSession):
+        async def receive(self):
+            mock_resp = MagicMock()
+            mock_resp.server_content.model_turn = None
+            mock_resp.server_content.turn_complete = True
+            yield mock_resp
+
+    with patch("google.genai.Client") as mock_client_cls:
+        mock_instance = MagicMock()
+        mock_instance.aio.live.connect.return_value = EmptyAudioSession()
+        mock_client_cls.return_value = mock_instance
+        with pytest.raises(RuntimeError, match="Gemini Live audio generation failed"):
+            await adapter_live.synthesize_live_audio_base64("No audio chunks")
 
     # Exception fallback branch
     with patch("google.genai.Client", side_effect=RuntimeError("Vertex API network timeout")):
