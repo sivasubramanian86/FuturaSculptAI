@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom/vitest';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { TrustBoardWorkbench } from '../../components/TrustBoardWorkbench';
+import { TrustBoardWorkbench, resetTrustBoardWorkbenchCache } from '../../components/TrustBoardWorkbench';
 import { api } from '../../services/api';
 import { GovernancePostureResponse, InvestorLensResponse } from '../../types';
 
@@ -141,6 +141,7 @@ describe('TrustBoardWorkbench Component', () => {
   };
 
   beforeEach(() => {
+    resetTrustBoardWorkbenchCache();
     vi.spyOn(api, 'getGovernancePosture').mockResolvedValue(mockPosture);
     vi.spyOn(api, 'getInvestorLens').mockResolvedValue(mockInvestorLens);
   });

@@ -19,7 +19,7 @@ import { AuraHologramAssistant } from './components/AuraHologramAssistant';
 import { AgentSwarmConsole } from './components/AgentSwarmConsole';
 import { TaskSculptor, prewarmTaskSculptorCache } from './components/TaskSculptor';
 import { OpportunityEngine, prewarmOpportunityEngineCache } from './components/OpportunityEngine';
-import { TrustBoardWorkbench } from './components/TrustBoardWorkbench';
+import { TrustBoardWorkbench, prewarmTrustBoardWorkbenchCache } from './components/TrustBoardWorkbench';
 import { MultiModalMediaStudio } from './components/MultiModalMediaStudio';
 import { FAQHelp } from './components/FAQHelp';
 import { AboutFuturaSculpt } from './components/AboutFuturaSculpt';
@@ -100,7 +100,7 @@ export const App: React.FC = () => {
   const loadData = async (): Promise<void> => {
     try {
       setLoading(true);
-      const [graphRes, scenariosRes, trustRes, rriRes, evidenceRes, taskMatrixRes, oppRes] = await Promise.all([
+      const [graphRes, scenariosRes, trustRes, rriRes, evidenceRes, taskMatrixRes, oppRes, govPostureRes, investorLensRes] = await Promise.all([
         api.getWorkGraph(),
         api.getScenarios(sector),
         api.getTrustBoard(),
@@ -108,6 +108,8 @@ export const App: React.FC = () => {
         api.getEvidenceLedger(),
         api.getTaskMatrix().catch(() => null),
         api.getOpportunityMetrics(25, 'ROL-001').catch(() => null),
+        api.getGovernancePosture().catch(() => null),
+        api.getInvestorLens().catch(() => null),
       ]);
 
       if (taskMatrixRes) {
@@ -115,6 +117,9 @@ export const App: React.FC = () => {
       }
       if (oppRes) {
         prewarmOpportunityEngineCache(oppRes);
+      }
+      if (govPostureRes && investorLensRes) {
+        prewarmTrustBoardWorkbenchCache(govPostureRes, investorLensRes);
       }
 
       setNodes(graphRes.nodes);

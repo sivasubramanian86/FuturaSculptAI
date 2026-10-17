@@ -19,6 +19,22 @@ import {
 import { TranslationKeys } from '../i18n';
 import { en } from '../i18n/locales/en';
 
+let cachedPosture: GovernancePostureResponse | null = null;
+let cachedInvestorLens: InvestorLensResponse | null = null;
+
+export const resetTrustBoardWorkbenchCache = (): void => {
+  cachedPosture = null;
+  cachedInvestorLens = null;
+};
+
+export const prewarmTrustBoardWorkbenchCache = (
+  posture: GovernancePostureResponse,
+  investorLens: InvestorLensResponse
+): void => {
+  cachedPosture = posture;
+  cachedInvestorLens = investorLens;
+};
+
 export interface TrustBoardWorkbenchProps {
   i18n?: TranslationKeys;
 }
@@ -27,9 +43,9 @@ export const TrustBoardWorkbench: React.FC<TrustBoardWorkbenchProps> = ({ i18n }
   const t = i18n || en;
   const [activeTab, setActiveTab] = useState<'trustboard' | 'investor_lens'>('trustboard');
 
-  const [posture, setPosture] = useState<GovernancePostureResponse | null>(null);
-  const [investorLens, setInvestorLens] = useState<InvestorLensResponse | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [posture, setPosture] = useState<GovernancePostureResponse | null>(cachedPosture);
+  const [investorLens, setInvestorLens] = useState<InvestorLensResponse | null>(cachedInvestorLens);
+  const [loading, setLoading] = useState<boolean>(!cachedPosture || !cachedInvestorLens);
   const [error, setError] = useState<string | null>(null);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [selectedDomain, setSelectedDomain] = useState<SAIFDomain | 'ALL'>('ALL');
@@ -52,7 +68,9 @@ export const TrustBoardWorkbench: React.FC<TrustBoardWorkbenchProps> = ({ i18n }
 
   const loadData = async (): Promise<void> => {
     try {
-      setLoading(true);
+      if (!cachedPosture || !cachedInvestorLens) {
+        setLoading(true);
+      }
       setError(null);
       const [postureRes, investorRes] = await Promise.all([
         api.getGovernancePosture(),
@@ -60,12 +78,16 @@ export const TrustBoardWorkbench: React.FC<TrustBoardWorkbenchProps> = ({ i18n }
       ]);
       setPosture(postureRes);
       setInvestorLens(investorRes);
+      cachedPosture = postureRes;
+      cachedInvestorLens = investorRes;
       /* v8 ignore next 3 */
       setWageUpliftMult(investorRes?.assumptions_applied?.wage_uplift_multiplier ?? 1.0);
       setAutomationYield(investorRes?.assumptions_applied?.automation_yield_factor ?? 1.0);
       setCapexBudget(investorRes?.assumptions_applied?.transition_capex_usd ?? 200000);
     } catch (err: any) {
-      setError(err.message || 'Failed to load governance posture');
+      if (!cachedPosture) {
+        setError(err.message || 'Failed to load governance posture');
+      }
     } finally {
       setLoading(false);
     }
