@@ -136,7 +136,7 @@ def test_firestore_client_initialization_mocked():
     mock_firestore = MagicMock()
     mock_firestore.Client.return_value = MagicMock()
 
-    with patch.dict(sys.modules, {"google.cloud.firestore": mock_firestore}):
+    with patch.dict(sys.modules, {"google.cloud.firestore": mock_firestore}), patch("google.cloud.firestore", mock_firestore, create=True):
         r1 = FirestoreWorkTwinRepository()
         assert r1._client is not None
 

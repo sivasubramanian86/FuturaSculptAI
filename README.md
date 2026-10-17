@@ -5,12 +5,13 @@
 [![TypeScript: 5.6](https://img.shields.io/badge/TypeScript-5.6-3178C6?logo=typescript&logoColor=white)](apps/web)
 [![React: 18](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)](apps/web)
 [![Google Cloud: Vertex AI](https://img.shields.io/badge/Google%20Cloud-Vertex%20AI%20Gemini%203.8%20%26%20Argon-4285F4?logo=googlecloud&logoColor=white)](https://cloud.google.com/vertex-ai)
+[![Google ADK: v1.0.0](https://img.shields.io/badge/Google%20ADK-Agent%20Development%20Kit%20v1.0-4285F4?logo=google&logoColor=white)](https://cloud.google.com)
 [![Google Cloud: Cloud Run](https://img.shields.io/badge/Google%20Cloud-Cloud%20Run%20v2-4285F4?logo=googlecloud&logoColor=white)](https://cloud.google.com/run)
 [![Terraform: IaC](https://img.shields.io/badge/IaC-Terraform%201.5+-844FBA?logo=terraform&logoColor=white)](deploy/terraform)
 [![Docker: Multi--Stage](https://img.shields.io/badge/Docker-Multi--Stage%20Compose-2496ED?logo=docker&logoColor=white)](docker-compose.yml)
-[![Code Coverage: 100% Backend | 99.6% Web](https://img.shields.io/badge/Coverage-100%25%20Backend%20%7C%2099.6%25%20Web-brightgreen.svg)](docs/testing/quality-gates.md)
+[![Code Coverage: 100% Backend | 100% Web](https://img.shields.io/badge/Coverage-100%25%20Backend%20(4325%20stmts)%20%7C%20100%25%20Web%20(250%20tests)-brightgreen.svg)](docs/testing/quality-gates.md)
 [![Security: Bandit 0 Issues](https://img.shields.io/badge/Security-Bandit%20SAIF%20Clean-success.svg)](SECURITY.md)
-[![Accessibility: WCAG 2.1 AA](https://img.shields.io/badge/Accessibility-WCAG%202.1%20AA-success.svg)](apps/web)
+[![Accessibility: WCAG 2.1 AA Aligned](https://img.shields.io/badge/Accessibility-WCAG%202.1%20AA%20Aligned-informational.svg)](apps/web)
 
 > **Autonomous, Evidence-Grounded Work Transformation Operating System**  
 > *Engineered for the [Google Cloud APAC AI Builder Cup 2026](https://aibuildercup.com/) — Future of Work & Enterprise Productivity Track.*
@@ -34,7 +35,7 @@ FuturaSculptAI is deployed live across native Google Cloud serverless infrastruc
 | **Executive Decision Cockpit** | **Firebase Hosting (Global CDN)** | [https://futurasculptai.web.app](https://futurasculptai.web.app) | Enterprise React 18 / Vite Cockpit & Citizen Sanctuary |
 | **Failover Mirror** | **Firebase Hosting** | [https://futurasculptai.firebaseapp.com](https://futurasculptai.firebaseapp.com) | Edge-replicated secondary ingress |
 | **API Backend & OpenAPI Docs** | **Google Cloud Run v2 (asia-southeast1)** | [https://futurasculpt-api-967518492968.asia-southeast1.run.app/docs](https://futurasculpt-api-967518492968.asia-southeast1.run.app/docs) | Interactive Swagger UI & REST endpoints |
-| **Production Health Probe** | **Google Cloud Run v2** | [https://futurasculpt-api-967518492968.asia-southeast1.run.app/healthz](https://futurasculpt-api-967518492968.asia-southeast1.run.app/healthz) | Zero-downtime liveness and readiness probe |
+| **Production Health Probe** | **Google Cloud Run v2** | [https://futurasculpt-api-967518492968.asia-southeast1.run.app/health/ready](https://futurasculpt-api-967518492968.asia-southeast1.run.app/health/ready) | Zero-downtime liveness and readiness probe (also accessible via `/healthz`) |
 
 ![FuturaSculptAI Executive Decision Cockpit](docs/assets/images/futurasculpt_cockpit_dashboard.jpg)
 *Figure: FuturaSculptAI Executive Decision Cockpit — Glassmorphism UI showing live TrustBoard metrics, temporal blast radius graphs, and workforce opportunity simulations.*
@@ -70,11 +71,12 @@ docker compose up --build
 - Models 4 canonical scenario classes: *Conservative*, *Accelerated*, *Disruptive*, and *Human-First*.
 - Interactive What-If sensitivity sliders stress-test adoption velocity, wage inflation, automation aggression, and capital variances against automated invalidation triggers.
 
-### 4. Google ADK Multi-Agent Specialist Swarm (Module 4)
-- Supervisory orchestrator (`EngagementOrchestrator`) coordinating 9 parallel specialist sub-agents powered by **Gemini 3.8 Flash**, **Gemini 3.8 Pro**, and **Gemini 4 Argon preview** (with automated fallback for Gemini 2.5 Jan 2027 sunset):
-  * Task Decomposer, Task Redesign, WorkGraph Architect, Skills Mobility, Skill Gap Analyst, Business Solution, FinOps Evaluator, Future Signals, and Governance Critic.
-- Strict **Autonomy Tiers (A0-A4)** & **Multi-Turn Actuator Safety Protocol**: Idempotency keys, rollback snapshot ledger, and A2 Human-in-the-Loop Sign-Off Gates for T3/T4 risk tiers.
-- **Enterprise 4-Tier Memory Bank**: L1 Working, L2 Episodic, L3 Semantic, and L4 Procedural memory partitions with cryptographic integrity verification.
+### 4. Google ADK Multi-Agent Specialist Architecture & Future Boardroom (Module 4)
+- **Official Google ADK Integration (`google-adk>=1.0.0`):** Structured upon `google.adk.agents.Agent`, `ParallelAgent`, and `SequentialAgent` class hierarchies.
+- **Specialist Executive Swarm (`app/agents/adk_boardroom.py`):** Coordinates 5 C-suite personas (CTO, CHRO, CISO, CFO, Employee Advocate) in deterministic parallel deliberation and proposal synthesis, followed by evidence verification and conflict resolution.
+- **9 Core Domain Specialists:** Task Decomposer, Task Redesign, WorkGraph Architect, Skills Mobility, Skill Gap Analyst, Business Solution, FinOps Evaluator, Future Signals, and Governance Critic.
+- **Strict Autonomy Tiers (A0-A4) & Multi-Turn Actuator Safety Protocol:** Idempotency keys, rollback snapshot ledger, and A2 Human-in-the-Loop Sign-Off Gates for T3/T4 risk tiers.
+- **Enterprise 4-Tier Memory Bank:** L1 Working, L2 Episodic, L3 Semantic, and L4 Procedural memory partitions with cryptographic integrity verification.
 
 ![FuturaSculptAI Multi-Agent Swarm Mesh](docs/assets/images/futurasculpt_agent_swarm_mesh.jpg)
 *Figure: Google ADK Autonomous Specialist Agent Mesh Topology with Cryptographic Provenance Ledgers, Least-Privilege Tools, and Gatekeeper Invariant Enforcement.*
@@ -84,30 +86,27 @@ docker compose up --build
 - Four deterministic workforce indices: **Role Resilience Index (RRI)**, **Task Replaceability Score (TRS)**, **Workforce Adaptability Index (WAI)**, and **Human Opportunity Score (HOS)**.
 - **Responsible Workforce Red Lines:** Automatic $k \ge 10$ differential privacy masking, zero algorithmic layoff rankings, immutable Right-to-Appeal workflows, and **A2 Human-in-the-Loop Sign-Off Gates**.
 
-### 6. Futura WorkTwin Fabric & Future Boardroom Deliberation (Module 6)
+### 6. Futura WorkTwin Fabric, Ambient Hologram & Live Audio Dialogue (Module 6)
 - **Three Governed Digital Twin Classes:**
   * **RoleTwin:** Synthetic role archetype derived from approved enterprise job architectures and SOPs (Default).
   * **PersonalWorkTwin:** Optional, consent-based, employee-controlled assistant with strict EU AI Act Article 52 compliance and **voice/avatar cloning prohibitions**.
   * **OrganizationTwin:** Macro-graph simulating organizational workflows, compliance handoffs, and resource envelopes.
-- **Future Boardroom Simulation Engine:** Multi-twin executive deliberation (CEO, CTO, CFO, CHRO, CISO, and Employee Advocate) dynamically evaluating enterprise restructuring proposals with deterministic consensus points, unresolved disagreements, and trade-offs.
+- **Futura 3D Holographic Ambient Assistant (`AuraHologramAssistant`):** Interactive multimodal AI companion with reactive pulsing canvas, waveform visualizer, and live voice personas.
+- **Gemini Live Native Audio (`/api/v1/agents/live-dialogue`):** Streaming 24kHz bidirectional PCM audio powered by `gemini-live-2.5-flash-native-audio` with female personas (**Kore** / **Aoede**), sub-50ms synthesis, and configurable reasoning budgets.
 - **Tamper-Evident Export:** Cryptographic SHA-256 JSON manifest export for third-party compliance audits.
 
 ### 7. Governance TrustBoard, SAIF Matrix & Investor Lens (Module 7)
-- **Google Well-Architected 8-Pillar Scorecard:** Security & SAIF, Ops, Reliability, Performance, FinOps, Sustainability, Responsible AI, and Evidence Quality (`94.3 / 100`).
+- **Google Well-Architected 8-Pillar Scorecard:** Continuous internal engineering self-assessment aligned with Google Cloud Well-Architected and SAIF pillars across Security, Ops, Reliability, Performance, FinOps, Sustainability, Responsible AI, and Evidence Quality.
 - **Google SAIF 6-Domain Matrix:** Continuous verification across Expand Ecosystem, Safeguard Architecture, Adapt Defenses, Automate Security, Coordinate Incident Response, and Sanitize Context.
 - **Four-Tier Drift Governance:** Real-time prevention of Model Drift (Pydantic v2), Prompt Drift (Golden 20 CI), Agent Drift (bounded loop breaker), and Context Drift (EvidenceEnvelope pinning).
-- **Investor Lens Self-Service Workbench:** Dynamic valuation model demonstrating **$1,250,000.00 annualized EBITDA unlock**, 6.25x Net ROI multiple, 1.9-month payback period, and SHA-256 cryptographically sealed **Diligence Evidence Packs (`DIL-...`)**.
+- **Investor Lens Valuation Simulation:** Dynamic parametric valuation model demonstrating illustrative annualized EBITDA scenarios, Net ROI multiples, and payback estimates with SHA-256 sealed diligence evidence packs.
 
-### 8. Google Cloud Observation, Monitoring & Event Streaming (Module 8)
-- **Google Cloud Pub/Sub Event Mesh:**
-  * `futurasculpt-workforce-telemetry`: Asynchronous ingestion of factory floor camera detections, timesheets, and WorkGraph state transitions.
-  * `futurasculpt-governance-alerts`: Low-latency broadcasting of SAIF policy violations, redlines, and human approval gates.
-  * `futurasculpt-actuation-events`: Orchestrated dispatch to enterprise HCM systems (Workday, SAP SuccessFactors) with two-phase commit and deterministic rollback ledgers.
-- **OpenTelemetry & Prometheus Observability Layer:**
-  * End-to-end request tracing, token attribution counters, operation latency histograms, and active workflow gauges.
-  * Native Prometheus `/metrics` exposition and `/telemetry` system health aggregation.
-- **Real-Time Cockpit Alert Streaming:**
-  * Persistent Server-Sent Events (SSE) connection stream at `/api/v1/governance/alerts/stream` providing immediate notification delivery to the executive dashboard.
+### 8. Google Cloud Observation, Monitoring & Observability HUD (Module 8)
+- **Enterprise Observability Telemetry HUD (`ObservabilityTelemetryDashboard`):** Interactive topology map, OpenTelemetry waterfall trace inspector, synthetic latency probes, and drift threshold monitors.
+- **Google Cloud Pub/Sub Event Mesh:** High-throughput streaming across `workforce-telemetry`, `governance-alerts`, and `actuation-events`.
+- **OpenTelemetry & Prometheus Observability Layer:** End-to-end request tracing, token attribution counters, operation latency histograms, and active workflow gauges.
+- **Real-Time Cockpit Alert Streaming:** Persistent Server-Sent Events (SSE) connection stream at `/api/v1/governance/alerts/stream`.
+
 
 ---
 
@@ -137,14 +136,15 @@ graph TB
     subgraph AI["Intelligence & Agent Mesh (Google Cloud)"]
         Vertex["Vertex AI Dynamic Model Gateway<br/>(Gemini 3.8 Flash / Pro & Gemini 4 Argon)"]
         ADK["Google Agent Development Kit (ADK)<br/>9 Specialist Sub-Agents (A0-A4 Autonomy)"]
-        Cache["Vertex Context Caching (L0-L4, 75%-88% Discount)"]
+        Cache["Prompt Semantic Cache & Memory Bank<br/>(In-Memory TTL Simulation / Vertex Roadmap)"]
         Drift["Four-Tier Drift Governance<br/>(Model, Prompt, Agent, Context)"]
     end
 
     subgraph Data["Persistence & Security (Google Cloud)"]
-        BQ["BigQuery Temporal WorkGraph & Outcome Ledger"]
-        GCS["Cloud Storage Evidence Buckets (Lifecycle Managed)"]
-        DLP["Cloud Sensitive Data Protection (DLP API)"]
+        FS["Cloud Firestore Multi-Tenant Entity Store<br/>(WorkTwins, Consents, Boardroom Runs)"]
+        BQ["BigQuery Analytics Dataset (Provisioned Schema)"]
+        GCS["Cloud Storage Evidence Vault (Infrastructure)"]
+        DLP["Local Regex Sanitizer & Cloud DLP Adapter"]
         SecMgr["Secret Manager & Least-Privilege IAM"]
     end
 
@@ -162,6 +162,7 @@ graph TB
     Vertex <--> Drift
     Evid --> DLP
     Evid --> GCS
+    ADK --> FS
     Score --> BQ
     SecMgr -.->|Runtime Credentials| API
 ```

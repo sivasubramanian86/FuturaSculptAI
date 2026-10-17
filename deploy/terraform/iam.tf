@@ -48,7 +48,21 @@ resource "google_bigquery_dataset_access" "sa_data_editor" {
   user_by_email = google_service_account.cloudrun_sa.email
 }
 
-# 6. Least-Privilege Custom IAM Roles for Enterprise Personas
+# 6. Cloud Firestore Multi-Tenant Access Role
+resource "google_project_iam_member" "firestore_user" {
+  project = var.project_id
+  role    = "roles/datastore.user"
+  member  = "serviceAccount:${google_service_account.cloudrun_sa.email}"
+}
+
+# 7. Cloud Pub/Sub Publisher Role
+resource "google_project_iam_member" "pubsub_publisher" {
+  project = var.project_id
+  role    = "roles/pubsub.publisher"
+  member  = "serviceAccount:${google_service_account.cloudrun_sa.email}"
+}
+
+# 8. Least-Privilege Custom IAM Roles for Enterprise Personas
 resource "google_project_iam_custom_role" "citizen_worker_role" {
   role_id     = "futurasculpt_citizen_worker"
   title       = "FuturaSculptAI Citizen Worker"

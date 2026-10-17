@@ -1,5 +1,6 @@
 """Vertex AI Gemini adapter with dynamic model selection, context caching, and structured output."""
 
+import asyncio
 import base64
 from enum import Enum
 import hashlib
@@ -451,10 +452,14 @@ class VertexAIAdapter:
                     f"You are Futura, an empathetic 3D Holographic AI Workforce Sanctuary Assistant speaking as female persona {voice_persona.title()} in {language}. "
                     "Under FuturaSculptAI Responsible AI red lines, provide inspiring, concise guidance on ethical AI transformation, 90-day wage protection, and human-in-the-loop task augmentation. Keep responses conversational, natural, and under 3 sentences."
                 )
-                res = client.models.generate_content(
-                    model=gemini_model,
-                    contents=f"{system_prompt}\n\nUser: {prompt}",
-                )
+
+                def _call_gemini():
+                    return client.models.generate_content(
+                        model=gemini_model,
+                        contents=f"{system_prompt}\n\nUser: {prompt}",
+                    )
+
+                res = await asyncio.wait_for(asyncio.to_thread(_call_gemini), timeout=5.0)
                 if res and res.text:
                     reply = res.text.strip()
             except Exception as exc:
@@ -507,15 +512,21 @@ class VertexAIAdapter:
                 )
                 audio_chunks: list[bytes] = []
                 live_model = "gemini-live-2.5-flash-native-audio"
-                async with client.aio.live.connect(model=live_model, config=config) as session:
-                    await session.send(input=prompt, end_of_turn=True)
-                    async for response in session.receive():
-                        if response.server_content and response.server_content.model_turn:
-                            for part in response.server_content.model_turn.parts:
-                                if hasattr(part, "inline_data") and part.inline_data and part.inline_data.data:
-                                    audio_chunks.append(part.inline_data.data)
-                        if response.server_content and response.server_content.turn_complete:
-                            break
+
+                async def _stream_audio() -> list[bytes]:
+                    chunks: list[bytes] = []
+                    async with client.aio.live.connect(model=live_model, config=config) as session:
+                        await session.send(input=prompt, end_of_turn=True)
+                        async for response in session.receive():
+                            if response.server_content and response.server_content.model_turn:
+                                for part in response.server_content.model_turn.parts:
+                                    if hasattr(part, "inline_data") and part.inline_data and part.inline_data.data:
+                                        chunks.append(part.inline_data.data)
+                            if response.server_content and response.server_content.turn_complete:
+                                break
+                    return chunks
+
+                audio_chunks = await asyncio.wait_for(_stream_audio(), timeout=6.0)
 
                 if audio_chunks:
                     all_pcm = b"".join(audio_chunks)

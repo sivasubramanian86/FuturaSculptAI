@@ -37,15 +37,25 @@ const CATEGORIES: ('ALL' | TaskClassificationCategory)[] = [
   'RETIRE',
 ];
 
+let cachedMatrix: TaskMatrixResponse | null = null;
+
+export const resetTaskSculptorCache = (): void => {
+  cachedMatrix = null;
+};
+
+export const prewarmTaskSculptorCache = (data: TaskMatrixResponse): void => {
+  cachedMatrix = data;
+};
+
 export interface TaskSculptorProps {
   i18n?: TranslationKeys;
 }
 
 export const TaskSculptor: React.FC<TaskSculptorProps> = ({ i18n }) => {
   const t = i18n || en;
-  const [matrix, setMatrix] = useState<TaskMatrixResponse | null>(null);
+  const [matrix, setMatrix] = useState<TaskMatrixResponse | null>(cachedMatrix);
 
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(!cachedMatrix);
   const [error, setError] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState<'ALL' | TaskClassificationCategory>('ALL');
   const [editingTask, setEditingTask] = useState<TaskRedesignItem | null>(null);
@@ -68,9 +78,12 @@ export const TaskSculptor: React.FC<TaskSculptorProps> = ({ i18n }) => {
 
   const loadMatrix = async (): Promise<void> => {
     try {
-      setLoading(true);
+      if (!cachedMatrix) {
+        setLoading(true);
+      }
       setError(null);
       const res = await api.getTaskMatrix();
+      cachedMatrix = res;
       setMatrix(res);
     } catch (err: any) {
       setError(err.message || 'Failed to load task redesign matrix');

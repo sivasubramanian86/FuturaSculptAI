@@ -449,6 +449,7 @@ export const AppShell: React.FC<AppShellProps> = ({
                 <button
                   key={item.id}
                   type="button"
+                  data-tab-id={item.id}
                   onClick={() => onTabChange(item.id)}
                   className={`nav-item-btn ${activeTab === item.id ? 'active' : ''}`}
                   title={item.label}
@@ -466,6 +467,7 @@ export const AppShell: React.FC<AppShellProps> = ({
                 <button
                   key={item.id}
                   type="button"
+                  data-tab-id={item.id}
                   onClick={() => onTabChange(item.id)}
                   className={`nav-item-btn ${activeTab === item.id ? 'active' : ''}`}
                   title={item.label}
@@ -483,6 +485,7 @@ export const AppShell: React.FC<AppShellProps> = ({
                 <button
                   key={item.id}
                   type="button"
+                  data-tab-id={item.id}
                   onClick={() => onTabChange(item.id)}
                   className={`nav-item-btn ${activeTab === item.id ? 'active' : ''}`}
                   title={item.label}
@@ -500,6 +503,7 @@ export const AppShell: React.FC<AppShellProps> = ({
                 <button
                   key={item.id}
                   type="button"
+                  data-tab-id={item.id}
                   onClick={() => onTabChange(item.id)}
                   className={`nav-item-btn ${activeTab === item.id ? 'active' : ''}`}
                   title={item.label}

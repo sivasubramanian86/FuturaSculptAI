@@ -89,3 +89,17 @@ scripts/*template*
 scripts/*cybernauts*
 scripts/*screenshot*
 *.pptx
+
+# Demo video, audio, media recordings & generation scripts
+scripts/*demo*
+scripts/*video*
+scripts/*audio*
+*.webm
+*.mp4
+*.wav
+*.mp3
+*.ogg
+# Local Production Readiness & Verification Audit (Strictly Local)
+docs/production-readiness/
+docs/adr/
+production-readiness.yaml

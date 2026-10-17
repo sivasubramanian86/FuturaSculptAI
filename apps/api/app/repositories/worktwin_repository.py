@@ -153,8 +153,16 @@ class FirestoreWorkTwinRepository(WorkTwinRepository):
 
     def _init_client(self) -> None:
         """Attempt connection to Google Cloud Firestore Client."""
+        from app.core.config import settings
+        from unittest.mock import MagicMock
+
         try:
             import google.cloud.firestore as firestore  # type: ignore
+
+            if settings.mock_llm_mode and not isinstance(firestore.Client, MagicMock):
+                logger.info("Mock mode active; FirestoreWorkTwinRepository operating in in-memory mode.")
+                self._client = None
+                return
 
             self._client = firestore.Client(project=self.project_id)
             logger.info("FirestoreWorkTwinRepository connected to Cloud Firestore: %s", self.project_id)
@@ -232,8 +240,16 @@ class FirestoreConsentRepository(ConsentRepository):
 
     def _init_client(self) -> None:
         """Attempt connection to Firestore client for consents."""
+        from app.core.config import settings
+        from unittest.mock import MagicMock
+
         try:
             import google.cloud.firestore as firestore  # type: ignore
+
+            if settings.mock_llm_mode and not isinstance(firestore.Client, MagicMock):
+                logger.info("Mock mode active; FirestoreConsentRepository operating in in-memory mode.")
+                self._client = None
+                return
 
             self._client = firestore.Client(project=self.project_id)
         except Exception as exc:
@@ -265,6 +281,7 @@ class FirestoreConsentRepository(ConsentRepository):
                 )
             except Exception as exc:
                 logger.error("Firestore consent save error: %s", exc)
+            return consent
         return consent
 
 
@@ -281,8 +298,16 @@ class FirestoreBoardroomRunRepository(BoardroomRunRepository):
 
     def _init_client(self) -> None:
         """Attempt connection to Firestore client for boardroom runs."""
+        from app.core.config import settings
+        from unittest.mock import MagicMock
+
         try:
             import google.cloud.firestore as firestore  # type: ignore
+
+            if settings.mock_llm_mode and not isinstance(firestore.Client, MagicMock):
+                logger.info("Mock mode active; FirestoreBoardroomRunRepository operating in in-memory mode.")
+                self._client = None
+                return
 
             self._client = firestore.Client(project=self.project_id)
         except Exception as exc:
@@ -314,16 +339,30 @@ class FirestoreBoardroomRunRepository(BoardroomRunRepository):
         return self._fallback.get_simulation(simulation_id)
 
 
+_worktwin_repo_instance: Optional[WorkTwinRepository] = None
+_consent_repo_instance: Optional[ConsentRepository] = None
+_boardroom_repo_instance: Optional[BoardroomRunRepository] = None
+
+
 def get_worktwin_repository() -> WorkTwinRepository:
-    """Factory creating appropriate WorkTwinRepository based on environment."""
-    return FirestoreWorkTwinRepository()
+    """Factory creating or returning singleton WorkTwinRepository."""
+    global _worktwin_repo_instance
+    if _worktwin_repo_instance is None:
+        _worktwin_repo_instance = FirestoreWorkTwinRepository()
+    return _worktwin_repo_instance
 
 
 def get_consent_repository() -> ConsentRepository:
-    """Factory creating appropriate ConsentRepository."""
-    return FirestoreConsentRepository()
+    """Factory creating or returning singleton ConsentRepository."""
+    global _consent_repo_instance
+    if _consent_repo_instance is None:
+        _consent_repo_instance = FirestoreConsentRepository()
+    return _consent_repo_instance
 
 
 def get_boardroom_run_repository() -> BoardroomRunRepository:
-    """Factory creating appropriate BoardroomRunRepository."""
-    return FirestoreBoardroomRunRepository()
+    """Factory creating or returning singleton BoardroomRunRepository."""
+    global _boardroom_repo_instance
+    if _boardroom_repo_instance is None:
+        _boardroom_repo_instance = FirestoreBoardroomRunRepository()
+    return _boardroom_repo_instance

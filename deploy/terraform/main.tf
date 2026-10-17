@@ -32,6 +32,9 @@ locals {
     "secretmanager.googleapis.com",
     "storage.googleapis.com",
     "bigquery.googleapis.com",
+    "pubsub.googleapis.com",
+    "firestore.googleapis.com",
+    "cloudkms.googleapis.com",
     "cloudresourcemanager.googleapis.com",
   ]
 }

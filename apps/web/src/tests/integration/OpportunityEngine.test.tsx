@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom/vitest';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { OpportunityEngine } from '../../components/OpportunityEngine';
+import { OpportunityEngine, resetOpportunityEngineCache } from '../../components/OpportunityEngine';
 import { api } from '../../services/api';
 import { OpportunityMetricsResponse } from '../../types';
 
@@ -114,10 +114,12 @@ describe('OpportunityEngine Component', () => {
   };
 
   beforeEach(() => {
+    resetOpportunityEngineCache();
     vi.spyOn(api, 'getOpportunityMetrics').mockResolvedValue(mockOpportunityMetrics);
   });
 
   afterEach(() => {
+    resetOpportunityEngineCache();
     vi.restoreAllMocks();
   });
 

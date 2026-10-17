@@ -314,23 +314,7 @@ export const ObservabilityTelemetryDashboard: React.FC<ObservabilityTelemetryDas
             color: activeTab === 'kpi' ? '#fff' : '#94a3b8',
           }}
         >
-          📊 Real-time Telemetry & KPIs
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab('architecture')}
-          style={{
-            padding: '10px 20px',
-            borderRadius: '10px',
-            fontSize: '14px',
-            fontWeight: 700,
-            cursor: 'pointer',
-            border: 'none',
-            background: activeTab === 'architecture' ? 'linear-gradient(135deg, #0284c7 0%, #2563eb 100%)' : 'rgba(255, 255, 255, 0.05)',
-            color: activeTab === 'architecture' ? '#fff' : '#94a3b8',
-          }}
-        >
-          🏗️ Google Cloud vs Open-Source System Design
+          ⚡ Enterprise Reliability & FinOps SLA (Real-Time Telemetry & KPIs)
         </button>
         <button
           type="button"
@@ -347,6 +331,22 @@ export const ObservabilityTelemetryDashboard: React.FC<ObservabilityTelemetryDas
           }}
         >
           🔍 Live Trace Inspector ({filteredTraces.length})
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('architecture')}
+          style={{
+            padding: '10px 20px',
+            borderRadius: '10px',
+            fontSize: '14px',
+            fontWeight: 700,
+            cursor: 'pointer',
+            border: 'none',
+            background: activeTab === 'architecture' ? 'linear-gradient(135deg, #0284c7 0%, #2563eb 100%)' : 'rgba(255, 255, 255, 0.05)',
+            color: activeTab === 'architecture' ? '#fff' : '#94a3b8',
+          }}
+        >
+          🛡️ Technical Diligence: Google Cloud vs Open-Source (Auditor Lens)
         </button>
       </div>
 
@@ -513,6 +513,16 @@ export const ObservabilityTelemetryDashboard: React.FC<ObservabilityTelemetryDas
             overflowX: 'auto',
           }}
         >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '14px 18px', borderRadius: '10px', background: 'rgba(99, 102, 241, 0.12)', border: '1px solid rgba(99, 102, 241, 0.35)', marginBottom: '20px' }}>
+            <span style={{ fontSize: '22px' }}>🛡️</span>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: '13px', color: '#c7d2fe' }}>Technical Auditor & Enterprise Due Diligence Lens</div>
+              <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>
+                Dedicated technical appendix for compliance officers, enterprise architects, and Google Cloud APAC judges auditing production defense-in-depth, zero-trust perimeters, and open-source duality.
+              </div>
+            </div>
+          </div>
+
           <h3 style={{ margin: '0 0 16px', fontSize: '18px', color: '#f8fafc' }}>
             Production AI System Design: Open Source Video Concepts vs Google Cloud Implementations
           </h3>

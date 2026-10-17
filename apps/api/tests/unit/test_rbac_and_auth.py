@@ -124,3 +124,14 @@ def test_api_evidence_inspect_dlp():
     assert "[REDACTED_COMPENSATION]" in data["sanitized_text"]
     assert data["redacted_items_count"] == 4
     assert "EMAIL_ADDRESS" in data["detected_info_types"]
+
+
+def test_simulated_fb_jwt_token_claims():
+    """Verify verify_firebase_id_token resolves roles from simulated fb-jwt tokens."""
+    from app.core.rbac import verify_firebase_id_token
+
+    claims_ea = verify_firebase_id_token("fb-jwt-enterprise_architect-17921988")
+    assert claims_ea["role"] == "ENTERPRISE_ARCHITECT"
+
+    claims_default = verify_firebase_id_token("mock-token-xyz")
+    assert claims_default["role"] == "CITIZEN_WORKER"

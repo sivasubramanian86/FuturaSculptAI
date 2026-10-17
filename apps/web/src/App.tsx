@@ -17,8 +17,8 @@ import { GuidedTourModal } from './components/GuidedTourModal';
 import { GoogleLoginModal } from './components/GoogleLoginModal';
 import { AuraHologramAssistant } from './components/AuraHologramAssistant';
 import { AgentSwarmConsole } from './components/AgentSwarmConsole';
-import { TaskSculptor } from './components/TaskSculptor';
-import { OpportunityEngine } from './components/OpportunityEngine';
+import { TaskSculptor, prewarmTaskSculptorCache } from './components/TaskSculptor';
+import { OpportunityEngine, prewarmOpportunityEngineCache } from './components/OpportunityEngine';
 import { TrustBoardWorkbench } from './components/TrustBoardWorkbench';
 import { MultiModalMediaStudio } from './components/MultiModalMediaStudio';
 import { FAQHelp } from './components/FAQHelp';
@@ -100,13 +100,22 @@ export const App: React.FC = () => {
   const loadData = async (): Promise<void> => {
     try {
       setLoading(true);
-      const [graphRes, scenariosRes, trustRes, rriRes, evidenceRes] = await Promise.all([
+      const [graphRes, scenariosRes, trustRes, rriRes, evidenceRes, taskMatrixRes, oppRes] = await Promise.all([
         api.getWorkGraph(),
         api.getScenarios(sector),
         api.getTrustBoard(),
         api.getRoleResilience('ROL-001'),
         api.getEvidenceLedger(),
+        api.getTaskMatrix().catch(() => null),
+        api.getOpportunityMetrics(25, 'ROL-001').catch(() => null),
       ]);
+
+      if (taskMatrixRes) {
+        prewarmTaskSculptorCache(taskMatrixRes);
+      }
+      if (oppRes) {
+        prewarmOpportunityEngineCache(oppRes);
+      }
 
       setNodes(graphRes.nodes);
       setEdges(graphRes.edges);

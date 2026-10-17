@@ -17,18 +17,30 @@ import {
 import { TranslationKeys } from '../i18n';
 import { en } from '../i18n/locales/en';
 
+let cachedOpportunityMetrics: OpportunityMetricsResponse | null = null;
+
+export const resetOpportunityEngineCache = (): void => {
+  cachedOpportunityMetrics = null;
+};
+
+export const prewarmOpportunityEngineCache = (data: OpportunityMetricsResponse): void => {
+  cachedOpportunityMetrics = data;
+};
+
 export interface OpportunityEngineProps {
   i18n?: TranslationKeys;
 }
 
 export const OpportunityEngine: React.FC<OpportunityEngineProps> = ({ i18n }) => {
   const t = i18n || en;
-  const [metrics, setMetrics] = useState<OpportunityMetricsResponse | null>(null);
+  const [metrics, setMetrics] = useState<OpportunityMetricsResponse | null>(cachedOpportunityMetrics);
 
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(!cachedOpportunityMetrics);
   const [error, setError] = useState<string | null>(null);
   const [cohortSize, setCohortSize] = useState<number>(25);
-  const [selectedPathway, setSelectedPathway] = useState<RoleTransitionPathway | null>(null);
+  const [selectedPathway, setSelectedPathway] = useState<RoleTransitionPathway | null>(
+    cachedOpportunityMetrics?.pathways?.[0] || null
+  );
   const [expandedCurriculumId, setExpandedCurriculumId] = useState<string | null>(null);
 
   // Appeal Modal State
@@ -41,9 +53,12 @@ export const OpportunityEngine: React.FC<OpportunityEngineProps> = ({ i18n }) =>
 
   const loadData = async (size: number): Promise<void> => {
     try {
-      setLoading(true);
+      if (!cachedOpportunityMetrics) {
+        setLoading(true);
+      }
       setError(null);
       const res = await api.getOpportunityMetrics(size, 'ROL-001');
+      cachedOpportunityMetrics = res;
       setMetrics(res);
       if (res.pathways.length > 0 && !selectedPathway) {
         setSelectedPathway(res.pathways[0]);

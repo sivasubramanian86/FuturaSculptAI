@@ -7,7 +7,7 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { TaskSculptor } from '../../components/TaskSculptor';
+import { TaskSculptor, resetTaskSculptorCache } from '../../components/TaskSculptor';
 import { api } from '../../services/api';
 import { TaskMatrixResponse, TaskRedesignItem } from '../../types';
 
@@ -179,10 +179,12 @@ const mockMatrixResponse: TaskMatrixResponse = {
 
 describe('TaskSculptor Component', () => {
   beforeEach(() => {
+    resetTaskSculptorCache();
     vi.spyOn(api, 'getTaskMatrix').mockResolvedValue(mockMatrixResponse);
   });
 
   afterEach(() => {
+    resetTaskSculptorCache();
     vi.restoreAllMocks();
   });
 
