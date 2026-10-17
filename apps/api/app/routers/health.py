@@ -38,41 +38,29 @@ def readiness_probe() -> Dict[str, Any]:
     }
 
     # Verify Firestore Client
-    try:
-        from app.repositories.worktwin_repository import get_worktwin_repository
-        repo = get_worktwin_repository()
-        has_client = getattr(repo, "_client", None) is not None
-        subsystems["firestore"] = "READY" if (has_client or settings.environment != "production") else "DEGRADED"
-    except Exception:
-        subsystems["firestore"] = "UNAVAILABLE"
+    from app.repositories.worktwin_repository import get_worktwin_repository
+    repo = get_worktwin_repository()
+    has_firestore = getattr(repo, "_client", None) is not None
+    subsystems["firestore"] = "READY" if (has_firestore or settings.environment != "production") else "DEGRADED"
 
     # Verify Pub/Sub Publisher Client
-    try:
-        from app.adapters.pubsub_adapter import pubsub_adapter
-        has_pubsub = getattr(pubsub_adapter, "_publisher_client", None) is not None
-        subsystems["pubsub"] = "READY" if (has_pubsub or settings.environment != "production") else "DEGRADED"
-    except Exception:
-        subsystems["pubsub"] = "UNAVAILABLE"
+    from app.adapters.pubsub_adapter import pubsub_adapter
+    has_pubsub = getattr(pubsub_adapter, "_publisher_client", None) is not None
+    subsystems["pubsub"] = "READY" if (has_pubsub or settings.environment != "production") else "DEGRADED"
 
     # Verify Vertex AI Model Gateway
-    try:
-        from app.adapters.vertex_adapter import vertex_adapter
-        subsystems["vertex_ai"] = "READY" if vertex_adapter else "UNAVAILABLE"
-    except Exception:
-        subsystems["vertex_ai"] = "UNAVAILABLE"
+    from app.adapters.vertex_adapter import vertex_adapter
+    subsystems["vertex_ai"] = "READY" if (vertex_adapter or settings.environment != "production") else "DEGRADED"
 
-    is_healthy = True
-    if settings.environment == "production":
-        if any(v == "UNAVAILABLE" for v in subsystems.values()):
-            is_healthy = False
-            from fastapi import HTTPException, status
-            raise HTTPException(
-                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail={"status": "UNHEALTHY", "subsystems": subsystems},
-            )
+    if settings.environment == "production" and any(v in ("DEGRADED", "UNHEALTHY") for v in subsystems.values()):
+        from fastapi import HTTPException, status
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail={"status": "UNHEALTHY", "subsystems": subsystems},
+        )
 
     return {
-        "status": "READY" if is_healthy else "UNHEALTHY",
+        "status": "READY",
         "environment": settings.environment,
         "gcp_project": settings.gcp_project_id,
         "default_tenant": settings.default_tenant_id,

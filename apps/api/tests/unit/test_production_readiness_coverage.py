@@ -1,0 +1,105 @@
+"""Unit tests to reach 100% statement and branch coverage across tenant, health, and repository modules."""
+
+import sys
+from unittest.mock import MagicMock, patch
+import pytest
+from fastapi import HTTPException
+
+from app.core.config import settings
+from app.core.rbac import UserRole, UserSession
+from app.core.tenant import get_current_tenant_id
+from app.repositories.worktwin_repository import (
+    FirestoreBoardroomRunRepository,
+    FirestoreConsentRepository,
+    FirestoreWorkTwinRepository,
+)
+from app.routers.health import readiness_probe
+
+
+def test_tenant_prod_mode_missing_token_tenant():
+    """Verify HTTP 403 is raised in production mode when token lacks tenant claim."""
+    user = UserSession(user_id="u1", email="u1@test.com", display_name="U1", role=UserRole.ENTERPRISE_ARCHITECT, tenant_id="")
+    with patch.object(settings, "auth_dev_mode", False):
+        with pytest.raises(HTTPException) as exc_info:
+            get_current_tenant_id(x_tenant_id=None, current_user=user)
+        assert exc_info.value.status_code == 403
+        assert "ERR_MISSING_TENANT_CLAIM" in exc_info.value.detail
+
+
+def test_tenant_prod_mode_tenant_mismatch():
+    """Verify HTTP 403 is raised in production mode when header differs from token."""
+    user = UserSession(user_id="u1", email="u1@test.com", display_name="U1", role=UserRole.ENTERPRISE_ARCHITECT, tenant_id="tenant-prod-a")
+    with patch.object(settings, "auth_dev_mode", False):
+        with pytest.raises(HTTPException) as exc_info:
+            get_current_tenant_id(x_tenant_id="tenant-prod-b", current_user=user)
+        assert exc_info.value.status_code == 403
+        assert "ERR_TENANT_MISMATCH" in exc_info.value.detail
+
+
+def test_tenant_prod_mode_success():
+    """Verify valid token tenant is returned in production mode."""
+    user = UserSession(user_id="u1", email="u1@test.com", display_name="U1", role=UserRole.ENTERPRISE_ARCHITECT, tenant_id="tenant-prod-a")
+    with patch.object(settings, "auth_dev_mode", False):
+        resolved = get_current_tenant_id(x_tenant_id="tenant-prod-a", current_user=user)
+        assert resolved == "tenant-prod-a"
+
+
+def test_tenant_dev_mode_mismatch_non_default():
+    """Verify HTTP 403 in dev mode when header and token conflict on non-default tenant."""
+    user = UserSession(user_id="u1", email="u1@test.com", display_name="U1", role=UserRole.ENTERPRISE_ARCHITECT, tenant_id="tenant-a")
+    with patch.object(settings, "auth_dev_mode", True):
+        with patch.object(settings, "default_tenant_id", "tenant-default"):
+            with pytest.raises(HTTPException) as exc_info:
+                get_current_tenant_id(x_tenant_id="tenant-b", current_user=user)
+            assert exc_info.value.status_code == 403
+            assert "ERR_TENANT_MISMATCH" in exc_info.value.detail
+
+
+def test_tenant_empty_fallback():
+    """Verify HTTP 400 when resolved tenant is completely empty."""
+    user = UserSession(user_id="u1", email="u1@test.com", display_name="U1", role=UserRole.ENTERPRISE_ARCHITECT, tenant_id="   ")
+    with patch.object(settings, "auth_dev_mode", True):
+        with patch.object(settings, "default_tenant_id", "   "):
+            with pytest.raises(HTTPException) as exc_info:
+                get_current_tenant_id(x_tenant_id=None, current_user=user)
+            assert exc_info.value.status_code == 400
+
+
+def test_health_readiness_exceptions_and_production_fail_closed():
+    """Verify readiness probe fails closed with HTTP 503 in production when dependencies are degraded."""
+    with patch.object(settings, "environment", "production"):
+        with pytest.raises(HTTPException) as exc_info:
+            readiness_probe()
+        assert exc_info.value.status_code == 503
+        assert exc_info.value.detail["status"] == "UNHEALTHY"
+        assert exc_info.value.detail["subsystems"]["firestore"] == "DEGRADED"
+
+
+def test_firestore_worktwin_repo_init_exception():
+    """Verify FirestoreWorkTwinRepository gracefully falls back when Client constructor raises."""
+    mock_firestore = MagicMock()
+    mock_firestore.Client.side_effect = RuntimeError("GCP connection timeout")
+
+    with patch.dict(sys.modules, {"google.cloud.firestore": mock_firestore}), patch("google.cloud.firestore", mock_firestore, create=True):
+        repo = FirestoreWorkTwinRepository()
+        assert repo._client is None
+
+
+def test_firestore_consent_repo_init_exception():
+    """Verify FirestoreConsentRepository gracefully falls back when Client constructor raises."""
+    mock_firestore = MagicMock()
+    mock_firestore.Client.side_effect = RuntimeError("Consent connection failure")
+
+    with patch.dict(sys.modules, {"google.cloud.firestore": mock_firestore}), patch("google.cloud.firestore", mock_firestore, create=True):
+        repo = FirestoreConsentRepository()
+        assert repo._client is None
+
+
+def test_firestore_boardroom_repo_init_exception():
+    """Verify FirestoreBoardroomRunRepository gracefully falls back when Client constructor raises."""
+    mock_firestore = MagicMock()
+    mock_firestore.Client.side_effect = RuntimeError("Boardroom connection failure")
+
+    with patch.dict(sys.modules, {"google.cloud.firestore": mock_firestore}), patch("google.cloud.firestore", mock_firestore, create=True):
+        repo = FirestoreBoardroomRunRepository()
+        assert repo._client is None
