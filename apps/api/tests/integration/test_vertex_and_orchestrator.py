@@ -134,7 +134,7 @@ async def test_generate_text_live_http_paths():
     mock_client = AsyncMock()
     mock_client.post.return_value = mock_response
 
-    with patch("google.auth.default", return_value=(MagicMock(valid=True, token="test-token"), None)), patch("httpx.AsyncClient") as mock_client_cls:
+    with patch("google.auth.default", return_value=(MagicMock(valid=True, token="test-token"), None)), patch("httpx.AsyncClient") as mock_client_cls:  # noqa: S106
         mock_client_cls.return_value.__aenter__.return_value = mock_client
         res = await adapter.generate_text("Generate plan", model_name="gemini-2.5-flash")
         assert res["content"] == "Synthetic response from live Vertex"
@@ -146,7 +146,7 @@ async def test_generate_text_live_http_paths():
     mock_response_empty.json.return_value = {"candidates": []}
     mock_client.post.return_value = mock_response_empty
 
-    with patch("google.auth.default", return_value=(MagicMock(valid=True, token="test-token"), None)), patch("httpx.AsyncClient") as mock_client_cls:
+    with patch("google.auth.default", return_value=(MagicMock(valid=True, token="test-token"), None)), patch("httpx.AsyncClient") as mock_client_cls:  # noqa: S106
         mock_client_cls.return_value.__aenter__.return_value = mock_client
         res = await adapter.generate_text("Generate plan", model_name="gemini-2.5-flash")
         assert res["content"] == "Generated Vertex response."
@@ -156,13 +156,13 @@ async def test_generate_text_live_http_paths():
     mock_response_500.status_code = 500
     mock_client.post.return_value = mock_response_500
 
-    with patch("google.auth.default", return_value=(MagicMock(valid=True, token="test-token"), None)), patch("httpx.AsyncClient") as mock_client_cls:
+    with patch("google.auth.default", return_value=(MagicMock(valid=True, token="test-token"), None)), patch("httpx.AsyncClient") as mock_client_cls:  # noqa: S106
         mock_client_cls.return_value.__aenter__.return_value = mock_client
         res = await adapter.generate_text("Generate plan", model_name="gemini-2.5-flash")
         assert "[Live Gateway Fallback" in res["content"]
 
     # 4. Network exception fallback
-    with patch("google.auth.default", return_value=(MagicMock(valid=True, token="test-token"), None)), patch("httpx.AsyncClient", side_effect=RuntimeError("Network unreachable")):
+    with patch("google.auth.default", return_value=(MagicMock(valid=True, token="test-token"), None)), patch("httpx.AsyncClient", side_effect=RuntimeError("Network unreachable")):  # noqa: S106
         res_err = await adapter.generate_text("Generate plan", model_name="gemini-2.5-flash")
         assert "[Fallback mode]" in res_err["content"]
 

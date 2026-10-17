@@ -14,7 +14,7 @@ import {
 } from 'firebase/auth';
 
 const app = initializeApp({
-  apiKey: 'AIzaSyDNrKv7J3mR0xZapRpnpTh4qgYBN3hV7_w',
+  apiKey: 'AIzaSyDNrKv7J3mR0xZapRpnpTh4qgYBN3hV7_w', // gitleaks:allow — public Firebase web configuration key.
   authDomain: 'genai-apac-2026-491004.firebaseapp.com',
   projectId: 'genai-apac-2026-491004',
   appId: '1:967518492968:web:22067c374c6f0fd884981d',
