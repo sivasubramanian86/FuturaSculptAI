@@ -1299,6 +1299,62 @@ describe('AuraHologramAssistant Component', () => {
 
     vi.unstubAllGlobals();
   });
+
+  it('handles user tapping mic to stop listening and interrupts active live audio on send', async () => {
+    let mockRecognitionInstance: any = null;
+    class MockSpeechRecognition {
+      continuous = false;
+      interimResults = false;
+      lang = '';
+      onstart: (() => void) | null = null;
+      onresult: ((event: any) => void) | null = null;
+      onerror: ((event: any) => void) | null = null;
+      onend: (() => void) | null = null;
+      start = vi.fn(() => {
+        if (this.onstart) this.onstart();
+      });
+      stop = vi.fn(() => {
+        if (this.onend) this.onend();
+      });
+      constructor() {
+        mockRecognitionInstance = this;
+      }
+    }
+    (window as any).SpeechRecognition = MockSpeechRecognition;
+
+    render(
+      <AuraHologramAssistant
+        currentLanguage="en"
+        onNavigateTab={vi.fn()}
+      />
+    );
+
+    // Open modal
+    fireEvent.click(screen.getByRole('button', { name: /Launch Futura 3D Virtual Live Assistant/i }));
+
+    // Tap mic to start listening
+    const micBtn = screen.getByRole('button', { name: /Start speaking with microphone/i });
+    fireEvent.click(micBtn);
+
+    // Feed a voice result into recognition
+    mockRecognitionInstance.onresult({
+      resultIndex: 0,
+      results: [
+        [{ transcript: 'How do we protect warehouse workers?' }],
+      ],
+    });
+
+    // Tap mic again while listening to stop and dispatch immediately (lines 928-940)
+    const stopMicBtn = screen.getByRole('button', { name: /Stop recording voice/i });
+    fireEvent.click(stopMicBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText(/How do we protect warehouse workers\?/i)).toBeInTheDocument();
+    });
+  });
 });
+
+
+
 
 

@@ -1,5 +1,6 @@
 """Unit tests for Dynamic Enterprise Profiles and Agentic RAG Domain Resolution."""
 
+import pytest
 from app.agents.enterprise_profiles import (
     ENTERPRISE_ARCHETYPES,
     EnterpriseProfile,
@@ -167,3 +168,129 @@ def test_conflict_resolution_bidirectional_property_sync():
     assert res2.required_human_approvers == ["Plant Director", "Union Representative"]
     assert res2.trade_offs == ["Well-being vs SLA"]
     assert res2.value_risk_tradeoffs == ["Well-being vs SLA"]
+
+
+@pytest.mark.asyncio
+async def test_resolve_enterprise_profile_async_mock_and_live_paths(monkeypatch):
+    """Verify resolve_enterprise_profile_async across mock mode, live Vertex AI, and fallback."""
+    from unittest.mock import MagicMock
+    from app.agents.enterprise_profiles import resolve_enterprise_profile_async
+    from app.core.config import settings
+    import json
+
+    req = SwarmRunRequest(
+        scenario_prompt="Tesla Gigafactory structural casting cell.",
+        sector="automotive_robotics",
+        horizon_years=3,
+    )
+
+    # 1. Mock mode active
+    monkeypatch.setattr(settings, "mock_llm_mode", True)
+    prof_mock = await resolve_enterprise_profile_async(req)
+    assert "Tesla" in prof_mock.company_name
+
+    # 2. Live mode with successful Vertex AI synthesis
+    monkeypatch.setattr(settings, "mock_llm_mode", False)
+    mock_client = MagicMock()
+    mock_resp = MagicMock()
+    mock_resp.text = json.dumps({
+        "company_name": "Tesla, Inc.",
+        "sector": "automotive_robotics",
+        "sector_display_name": "Automotive Robotics & Autonomous Gigafactory Assembly",
+        "target_role_id": "ROL-TSLA-01",
+        "target_role_name": "Gigafactory Robotics Assembly Operator",
+        "target_capability_id": "CAP-TSLA-01",
+        "target_capability_name": "Autonomous Giga-Casting & Battery Cell Insertion",
+        "regulations": ["ISO 26262 Road Vehicles", "OSHA Safety Standard"],
+        "tasks": [
+            {
+                "task_id": "TSK-001",
+                "task_name": "Routine screening",
+                "classification": "AUTOMATE",
+                "human_share_pct": 0.0,
+                "agent_share_pct": 100.0,
+                "justification": "Edge-TPU inference",
+            }
+        ],
+        "blueprint_agent_name": "TeslaGigaVisionAgent",
+        "blueprint_id": "ADK-TSLA-001",
+        "blueprint_tools": ["camera", "classifier"],
+        "reskilling_pathway": "Operator -> Robotics Specialist",
+        "current_state_assessment": "Bottleneck",
+        "target_state_architecture": "Edge-TPU",
+        "source_skills": ["Manual"],
+        "target_skills": ["Robotics"],
+        "transition_difficulty": "Moderate",
+        "default_scenario_prompt": "Tesla Gigafactory",
+    })
+    mock_client.models.generate_content.return_value = mock_resp
+    import google.genai
+    monkeypatch.setattr(google.genai, "Client", MagicMock(return_value=mock_client))
+
+    prof_live = await resolve_enterprise_profile_async(req)
+    assert "Tesla" in prof_live.company_name
+    assert prof_live.blueprint_agent_name == "TeslaGigaVisionAgent"
+
+    # 3. Live mode with Vertex AI exception fallback
+    mock_client.models.generate_content.side_effect = RuntimeError("Vertex AI rate limit")
+    prof_fallback = await resolve_enterprise_profile_async(req)
+    assert "Tesla" in prof_fallback.company_name
+
+
+def test_multimodal_analyze_live_vertex_and_exception_paths(monkeypatch):
+    """Verify analyze_multimodal_asset in evidence router when mock_llm_mode is False."""
+    from unittest.mock import MagicMock
+    from fastapi.testclient import TestClient
+    from app.main import app
+    from app.core.config import settings
+    import json
+    import google.genai
+
+    client = TestClient(app)
+    payload = {
+        "asset_id": "SMP-IMG-01",
+        "category": "image",
+        "title": "Packaging Line 4 Optical Sorter Feed",
+        "source": "Edge-TPU Camera 04",
+        "snippet": "High-speed conveyor surface with 12 food package seal defects detected per minute.",
+        "company_context": "food_manufacturing",
+        "prompt_directive": "Assess visual defect rate and operator ergonomics.",
+    }
+
+    # 1. Live mode with successful Vertex AI multimodal perception
+    monkeypatch.setattr(settings, "mock_llm_mode", False)
+    mock_client = MagicMock()
+    mock_resp = MagicMock()
+    mock_resp.text = json.dumps({
+        "detected_tasks": ["Conveyor Optical Inspection", "Package Seal Alignment"],
+        "ergonomic_risk": "LOW (14/100) — Autonomous edge camera screening",
+        "automation_potential": 90,
+        "recommended_pathway": "Packaging Inspector -> Machine Vision Quality Auditor",
+        "ai_reasoning_trace": "1. Telemetry parsing. 2. WorkGraph biomechanical mapping. 3. Reskilling opportunity.",
+    })
+    mock_client.models.generate_content.return_value = mock_resp
+    monkeypatch.setattr(google.genai, "Client", MagicMock(return_value=mock_client))
+
+    resp = client.post(
+        "/api/v1/evidence/multimodal-analyze",
+        json=payload,
+        headers={"X-Tenant-ID": "tenant-test-01"},
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["automation_potential"] == 90
+    assert "Machine Vision Quality Auditor" in data["recommended_pathway"]
+    assert "Vertex AI Gemini 2.5 Flash (Multimodal)" in data["model_used"]
+
+    # 2. Live mode with Vertex AI exception fallback
+    mock_client.models.generate_content.side_effect = RuntimeError("Multimodal pipeline timeout")
+    resp_fallback = client.post(
+        "/api/v1/evidence/multimodal-analyze",
+        json=payload,
+        headers={"X-Tenant-ID": "tenant-test-01"},
+    )
+    assert resp_fallback.status_code == 200
+    data_fb = resp_fallback.json()
+    assert data_fb["asset_id"] == "SMP-IMG-01"
+    assert len(data_fb["detected_tasks"]) >= 1
+

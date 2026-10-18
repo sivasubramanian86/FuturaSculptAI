@@ -142,5 +142,20 @@ describe('MultiModalMediaStudio Component', () => {
     if (capturedUtterance?.onend) capturedUtterance.onend();
     if (capturedUtterance?.onerror) capturedUtterance.onerror();
   });
+
+  it('falls back gracefully to offline reasoning when multimodal analysis fails', async () => {
+    const mockFailingAnalyze = vi.fn().mockRejectedValue(new Error('Cloud Multimodal Quota Exceeded'));
+    render(<MultiModalMediaStudio i18n={i18n} onAnalyze={mockFailingAnalyze} />);
+
+    const analyzeBtn = screen.getByRole('button', { name: /Run Gemini Multimodal Analysis/i });
+    fireEvent.click(analyzeBtn);
+
+    await waitFor(() => {
+      expect(screen.getAllByText(/Google Vertex AI Gemini 2.5 Flash Multimodal/i).length).toBeGreaterThanOrEqual(1);
+      expect(screen.getByText(/Operational inspection executed for/i)).toBeInTheDocument();
+    });
+  });
 });
+
+
 

@@ -614,15 +614,20 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
       ctx.globalAlpha = 1;
       ctx.shadowBlur = 0;
 
-      animId = requestAnimationFrame(render);
+      if (typeof requestAnimationFrame !== 'undefined') {
+        animId = requestAnimationFrame(render);
+      }
     };
 
     render();
 
     return () => {
-      cancelAnimationFrame(animId);
+      if (typeof cancelAnimationFrame !== 'undefined') {
+        cancelAnimationFrame(animId);
+      }
     };
   }, [isOpen, isSpeaking, isListening]);
+
 
   const playAudioBase64 = (base64Data: string) => {
     try {

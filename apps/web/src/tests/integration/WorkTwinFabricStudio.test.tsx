@@ -347,5 +347,95 @@ describe('WorkTwinFabricStudio Component', () => {
     const cooTwin = screen.getByText(/COO Twin/i);
     fireEvent.click(cooTwin);
   });
+
+  it('updates proposal title and description inputs directly via change events', () => {
+    render(<WorkTwinFabricStudio />);
+    const titleInput = screen.getByDisplayValue('Line 3 Packaging Computer Vision & Cobotics Deployment');
+    const descInput = screen.getByDisplayValue(/Deploy high-speed edge TPU cameras/i);
+
+    fireEvent.change(titleInput, { target: { value: 'Global Quantum Supply Chain Optimization' } });
+    fireEvent.change(descInput, { target: { value: 'Detailed quantum algorithmic routing for multi-echelon inventory.' } });
+
+    expect(titleInput).toHaveValue('Global Quantum Supply Chain Optimization');
+    expect(descInput).toHaveValue('Detailed quantum algorithmic routing for multi-echelon inventory.');
+  });
+
+  it('enforces minimum of 2 participating executive twins when unselecting', () => {
+    render(<WorkTwinFabricStudio />);
+    // Initial selected: CEO, CTO, CFO, CHRO, CISO, EMPLOYEE_ADVOCATE (6 twins)
+    fireEvent.click(screen.getByText('CEO Twin'));
+    fireEvent.click(screen.getByText('CTO Twin'));
+    fireEvent.click(screen.getByText('CFO Twin'));
+    fireEvent.click(screen.getByText('CHRO Twin'));
+    // Now only CISO and EMPLOYEE_ADVOCATE remain (2 twins)
+    // Attempt to remove CISO
+    const cisoTwin = screen.getByText('CISO Twin');
+    fireEvent.click(cisoTwin);
+    // Button should still have checkmark and remain selected
+    expect(cisoTwin.closest('button')?.textContent).toContain('✓');
+  });
+
+  it('registers custom RoleTwin with empty skills using default process skills', async () => {
+    render(<WorkTwinFabricStudio />);
+    fireEvent.click(screen.getByText(/RoleTwin Archetype Catalog/));
+    fireEvent.click(screen.getByText('+ Register Custom Role Archetype'));
+
+    fireEvent.change(screen.getByPlaceholderText(/e\.g\. Cobotics Calibration Specialist/i), {
+      target: { value: 'Process Automation Sentinel' },
+    });
+    fireEvent.change(screen.getByPlaceholderText(/Purpose & boundary of role simulation/i), {
+      target: { value: 'Continuous sensor health check and telemetry audit.' },
+    });
+    // Leave skills input empty
+    fireEvent.click(screen.getByRole('button', { name: /Register Archetype/i }));
+
+    await waitFor(() => {
+      expect(api.createRoleTwin).toHaveBeenCalledWith({
+        role_archetype: 'Process Automation Sentinel',
+        declared_purpose: 'Continuous sensor health check and telemetry audit.',
+        skills: ['Operational Standard Process'],
+      });
+    });
+  });
+
+  it('renders simulation results with fallback field names: blocking_risks, approval_conditions, cited_evidence_ids', async () => {
+    const fallbackResult: any = {
+      ...mockBoardroomResult,
+      perspectives: [
+        {
+          role: 'COO',
+          role_title: 'Chief Operating Officer',
+          stance: 'FAVORABLE',
+          assessment: 'Streamlines operational cadence with near-zero downtime.',
+          key_arguments: ['Line efficiency boosted'],
+          blocking_risks: ['Sensor drift over time'],
+          approval_conditions: ['Monthly calibration audit mandatory'],
+          cited_evidence_ids: ['EVD-OPS-001'],
+          autonomy_limit: 'WT2_SIMULATE',
+        },
+      ],
+      conflict_resolution: {
+        ...mockBoardroomResult.conflict_resolution,
+        required_human_approvers: undefined,
+        unresolved_disagreements: undefined,
+        disagreements: ['Minor maintenance window cadence shift'],
+        recommended_human_decision_makers: ['VP of Global Operations'],
+      },
+    };
+    vi.spyOn(api, 'simulateFutureBoardroom').mockResolvedValueOnce(fallbackResult);
+    render(<WorkTwinFabricStudio />);
+
+    fireEvent.click(screen.getByText(/Run Governed Boardroom Simulation/));
+    await waitFor(() => {
+      expect(screen.getByText(/Chief Operating Officer Twin/i)).toBeInTheDocument();
+      expect(screen.getByText(/Sensor drift over time/i)).toBeInTheDocument();
+      expect(screen.getByText(/Monthly calibration audit mandatory/i)).toBeInTheDocument();
+      expect(screen.getByText(/EVD-OPS-001/i)).toBeInTheDocument();
+      expect(screen.getByText(/VP of Global Operations/i)).toBeInTheDocument();
+      expect(screen.getByText(/Minor maintenance window cadence shift/i)).toBeInTheDocument();
+    });
+  });
 });
+
+
 
