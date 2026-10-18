@@ -359,6 +359,11 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const recognitionRef = useRef<any>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const transcriptRef = useRef<string>('');
+  const isListeningRef = useRef<boolean>(false);
+  const lastDispatchedTextRef = useRef<string>('');
+  const silenceTimerRef = useRef<any>(null);
+  const handleSendMessageRef = useRef<(textToSend?: string) => Promise<void>>(async () => {});
 
   // Initialize Speech Recognition & Synthesis Voices
   useEffect(() => {
@@ -366,27 +371,89 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
       const SpeechRec = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
       if (SpeechRec) {
         const recognition = new SpeechRec();
-        recognition.continuous = false;
+        recognition.continuous = true;
         recognition.interimResults = true;
         recognition.lang = BCP47_MAP[currentLanguage] || 'en-US';
 
         recognition.onresult = (event: any) => {
-          let transcript = '';
-          for (let i = event.resultIndex; i < event.results.length; i++) {
-            transcript += event.results[i][0].transcript;
+          let interimTranscript = '';
+          let finalTranscript = '';
+          let hasFinalChunk = false;
+
+          for (let i = 0; i < event.results.length; i++) {
+            const item = event.results[i];
+            const textChunk = item[0]?.transcript || '';
+            if (item.isFinal) {
+              finalTranscript += (finalTranscript ? ' ' : '') + textChunk;
+              hasFinalChunk = true;
+            } else {
+              interimTranscript += (interimTranscript ? ' ' : '') + textChunk;
+            }
           }
-          setInputText(transcript);
-          if (event.results[0].isFinal) {
-            handleSendMessage(transcript);
+
+          const currentSpeech = (finalTranscript || interimTranscript).trim();
+          if (currentSpeech) {
+            setInputText(currentSpeech);
+            transcriptRef.current = currentSpeech;
+          }
+
+          if (silenceTimerRef.current) {
+            clearTimeout(silenceTimerRef.current);
+          }
+
+          // If a final phrase chunk was produced, dispatch it immediately
+          if (hasFinalChunk && finalTranscript.trim()) {
+            const textToDispatch = finalTranscript.trim();
+            if (textToDispatch !== lastDispatchedTextRef.current) {
+              lastDispatchedTextRef.current = textToDispatch;
+              transcriptRef.current = '';
+              try {
+                recognition.stop();
+              } catch {}
+              setIsListening(false);
+              isListeningRef.current = false;
+              handleSendMessageRef.current(textToDispatch);
+            }
+          } else if (currentSpeech) {
+            // Auto-send on natural pause (1.8s silence)
+            silenceTimerRef.current = setTimeout(() => {
+              if (isListeningRef.current && transcriptRef.current.trim()) {
+                const pending = transcriptRef.current.trim();
+                if (pending !== lastDispatchedTextRef.current) {
+                  lastDispatchedTextRef.current = pending;
+                  transcriptRef.current = '';
+                  try {
+                    recognition.stop();
+                  } catch {}
+                  setIsListening(false);
+                  isListeningRef.current = false;
+                  handleSendMessageRef.current(pending);
+                }
+              }
+            }, 1800);
           }
         };
 
         recognition.onerror = () => {
           setIsListening(false);
+          isListeningRef.current = false;
+          if (silenceTimerRef.current) {
+            clearTimeout(silenceTimerRef.current);
+          }
         };
 
         recognition.onend = () => {
           setIsListening(false);
+          isListeningRef.current = false;
+          if (silenceTimerRef.current) {
+            clearTimeout(silenceTimerRef.current);
+          }
+          const pending = transcriptRef.current.trim();
+          if (pending && pending !== lastDispatchedTextRef.current) {
+            lastDispatchedTextRef.current = pending;
+            transcriptRef.current = '';
+            handleSendMessageRef.current(pending);
+          }
         };
 
         recognitionRef.current = recognition;
@@ -844,15 +911,45 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
       return;
     }
 
+    // Immediately stop any assistant audio so user can speak clearly
+    if (liveAudioRef.current) {
+      liveAudioRef.current.pause();
+      liveAudioRef.current = null;
+    }
+    setIsSpeaking(false);
+    if (typeof window !== 'undefined' && (window as any).speechSynthesis) {
+      (window as any).speechSynthesis.cancel?.();
+    }
+
+    if (silenceTimerRef.current) {
+      clearTimeout(silenceTimerRef.current);
+    }
+
     if (isListening) {
-      recognitionRef.current.stop();
+      // User tapped stop: finalize and send immediately
+      try {
+        recognitionRef.current.stop();
+      } catch {}
       setIsListening(false);
+      isListeningRef.current = false;
+      const textToSend = transcriptRef.current.trim() || inputText.trim();
+      if (textToSend && textToSend !== lastDispatchedTextRef.current) {
+        lastDispatchedTextRef.current = textToSend;
+        transcriptRef.current = '';
+        handleSendMessage(textToSend);
+      }
     } else {
+      // User tapped start: reset transcript accumulator and begin listening
+      setInputText('');
+      transcriptRef.current = '';
+      lastDispatchedTextRef.current = '';
       try {
         recognitionRef.current.start();
         setIsListening(true);
+        isListeningRef.current = true;
       } catch {
         setIsListening(false);
+        isListeningRef.current = false;
       }
     }
   };
@@ -942,18 +1039,38 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
     const text = (textToSend || inputText).trim();
     if (!text) return;
 
+    // Immediately stop any existing assistant speech/audio so conversation continues cleanly
+    if (liveAudioRef.current) {
+      liveAudioRef.current.pause();
+      liveAudioRef.current = null;
+    }
+    setIsSpeaking(false);
+    if (typeof window !== 'undefined' && (window as any).speechSynthesis) {
+      (window as any).speechSynthesis.cancel?.();
+    }
+
     const userMsg: ChatMessage = {
       id: `user-${Date.now()}`,
       sender: 'user',
       text,
     };
 
-    setMessages((prev) => [...prev, userMsg]);
-    setInputText('');
-
     const auraMsgId = `aura-${Date.now() + 1}`;
+    const auraPlaceholder: ChatMessage = {
+      id: auraMsgId,
+      sender: 'aura',
+      text: '🔮 Gemini Live is thinking...',
+      modelUsed: selectedModel,
+      voicePersona: selectedVoicePersona,
+    };
+
+    setMessages((prev) => [...prev, userMsg, auraPlaceholder]);
+    setInputText('');
+    transcriptRef.current = '';
+
     await executeLiveDialogueWithFallback(auraMsgId, text);
   };
+  handleSendMessageRef.current = handleSendMessage;
 
   const handleClose = () => {
     setIsOpen(false);
@@ -2081,7 +2198,11 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') handleSendMessage();
                 }}
-                placeholder="Ask Futura anything (e.g. 5yo kid, 60+ senior, UPI QR safety, Uber drivers, movies)..."
+                placeholder={
+                  isListening
+                    ? '🎤 Listening... Speak now (auto-sends on pause or tap 🔴)...'
+                    : 'Ask Futura anything (e.g. 5yo kid, 60+ senior, UPI QR safety, Uber drivers, movies)...'
+                }
                 style={{
                   flex: 1,
                   padding: '12px 18px',

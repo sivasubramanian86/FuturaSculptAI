@@ -479,6 +479,13 @@ class VertexAIAdapter:
                 "For Business Owners & Industrialists: FuturaSculptAI delivers a 6.25x net ROI multiple, "
                 "reduces retraining costs by 48%, avoids costly union strikes, and satisfies all 16 Google SAIF security controls."
             )
+        if "hello" in q or "hi" in q or "hey" in q:
+            return (
+                "Hello, I am Futura, your 3D Holographic AI Workforce Sanctuary Assistant. "
+                "Welcome to FuturaSculptAI! How can I guide your transformation journey today?"
+            )
+        if "hear me" in q or "microphone" in q or "mic" in q:
+            return "Yes, I hear you loud and clear! What question or workforce challenge would you like to explore together?"
         return (
             f"Hello, I am Futura speaking with Gemini Live ({target_model}). Under our Responsible AI Workforce Sanctuary, "
             f"we transform work through human augmentation rather than displacement. How can I guide your transformation journey today?"
@@ -497,19 +504,31 @@ class VertexAIAdapter:
         if not self.mock_mode:
             try:
                 from google import genai
+                from google.genai import types
 
                 project_id = self.project_id or os.getenv("GOOGLE_CLOUD_PROJECT", "genai-apac-2026-491004")
-                client = genai.Client(vertexai=True, project=project_id, location=settings.vertex_ai_location)
-                gemini_model = settings.model_deep_reasoning if is_extended else settings.model_workhorse
+                # us-central1 provides gemini-2.5-pro; asia-southeast1 provides gemini-2.5-flash
+                location = "us-central1" if is_extended else (settings.vertex_ai_location or "asia-southeast1")
+                gemini_model = "gemini-2.5-pro" if is_extended else "gemini-2.5-flash"
+                client = genai.Client(vertexai=True, project=project_id, location=location)
+
                 system_prompt = (
-                    f"You are Futura, an empathetic 3D Holographic AI Workforce Sanctuary Assistant speaking as female persona {voice_persona.title()} in {language}. "
-                    "Under FuturaSculptAI Responsible AI red lines, provide inspiring, concise guidance on ethical AI transformation, 90-day wage protection, and human-in-the-loop task augmentation. Keep responses conversational, natural, and under 3 sentences."
+                    f"You are Futura, the empathetic, highly articulate 3D Holographic AI Workforce Sanctuary Assistant speaking as female persona {voice_persona.title()} in {language}. "
+                    "Directly, conversationally, and empathetically answer the user's specific question or statement in 2 to 3 natural sentences. "
+                    "Relate your answer to ethical workforce transformation, 90-day wage protection, or human-in-the-loop task augmentation where relevant. "
+                    "Never repeat generic canned greeting disclaimers unless explicitly asked."
+                )
+
+                config = types.GenerateContentConfig(
+                    system_instruction=system_prompt,
+                    temperature=0.7,
                 )
 
                 def _call_gemini():
                     return client.models.generate_content(
                         model=gemini_model,
-                        contents=f"{system_prompt}\n\nUser: {prompt}",
+                        contents=prompt,
+                        config=config,
                     )
 
                 res = await asyncio.wait_for(asyncio.to_thread(_call_gemini), timeout=15.0)
