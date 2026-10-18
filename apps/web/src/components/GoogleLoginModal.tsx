@@ -60,15 +60,27 @@ export const GoogleLoginModal: React.FC<GoogleLoginModalProps> = ({ isOpen, onCl
             Firebase Authentication will verify your Google account before granting API access.
           </p>
         </div>
-        {errorMessage && <div role="alert" style={{ color: '#fca5a5', marginBottom: 16 }}>{errorMessage}</div>}
+        {errorMessage && (
+          <div role="alert" style={{ color: '#fca5a5', marginBottom: 16, fontSize: 13, background: 'rgba(239, 68, 68, 0.12)', padding: '10px 14px', borderRadius: 8, border: '1px solid rgba(239, 68, 68, 0.3)' }}>
+            ⚠️ {errorMessage}
+          </div>
+        )}
         <button
           type="button"
           onClick={() => void handleSignIn()}
           disabled={isSubmitting}
           className="btn btn-primary"
-          style={{ width: '100%', justifyContent: 'center' }}
+          style={{ width: '100%', justifyContent: 'center', marginBottom: 10 }}
         >
           {isSubmitting ? 'Signing in…' : 'Continue with Google'}
+        </button>
+        <button
+          type="button"
+          onClick={onClose}
+          className="btn-subtle"
+          style={{ width: '100%', justifyContent: 'center', padding: '10px 0', fontSize: 12, borderRadius: 8 }}
+        >
+          Explore as Guest (Public Sanctuary Mode)
         </button>
         <div style={{ marginTop: 20, textAlign: 'center', fontSize: 11, color: 'var(--text-muted)' }}>
           🔒 Verified by Firebase Authentication

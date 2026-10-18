@@ -62,7 +62,7 @@ export const App: React.FC = () => {
   const [googleUser, setGoogleUser] = useState<{ email: string; displayName: string; avatar?: string } | null>(null);
   const [authSession, setAuthSession] = useState<UserSession | null>(() => firebaseAuth.getCurrentSession());
   const [authReady, setAuthReady] = useState<boolean>(false);
-  const [isGoogleLoginOpen, setIsGoogleLoginOpen] = useState<boolean>(import.meta.env.PROD);
+  const [isGoogleLoginOpen, setIsGoogleLoginOpen] = useState<boolean>(false);
 
   const i18n = getTranslations(currentLanguage);
 
