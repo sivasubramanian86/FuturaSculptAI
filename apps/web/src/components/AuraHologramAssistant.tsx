@@ -1935,21 +1935,74 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
                 ))}
                 {isLoadingLive && (
                   <div
+                    role="status"
+                    aria-live="polite"
                     style={{
                       alignSelf: 'flex-start',
-                      padding: '10px 14px',
+                      maxWidth: '90%',
+                      padding: '12px 18px',
                       borderRadius: '20px 20px 20px 4px',
-                      background: 'rgba(255, 255, 255, 0.05)',
-                      border: '1px solid rgba(56, 189, 248, 0.3)',
-                      color: '#38bdf8',
+                      background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 27, 75, 0.8) 100%)',
+                      border: '1px solid rgba(56, 189, 248, 0.4)',
+                      boxShadow: '0 4px 20px rgba(6, 182, 212, 0.2)',
+                      color: '#fff',
                       fontSize: '12px',
                       display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
+                      flexDirection: 'column',
+                      gap: '10px',
                     }}
                   >
-                    <span style={{ animation: 'hologram-spin 2s linear infinite', display: 'inline-block' }}>🔮</span>
-                    <span>Gemini Live ({selectedModel.replace('models/', '')}) is thinking...</span>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ animation: 'hologram-spin 2s linear infinite', display: 'inline-block' }}>🔮</span>
+                        <span style={{ fontWeight: 700, color: '#38bdf8' }}>
+                          Gemini Live Native Audio ({selectedModel.replace('models/', '')})
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                        {[4, 10, 16, 8, 14, 6].map((h, i) => (
+                          <div
+                            key={i}
+                            style={{
+                              width: '3px',
+                              height: `${h}px`,
+                              background: 'linear-gradient(180deg, #38bdf8, #a855f7)',
+                              borderRadius: '2px',
+                              animation: `pulse 0.8s ease-in-out infinite alternate ${i * 0.12}s`,
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    <div style={{ fontSize: '11px', color: '#cbd5e1' }}>
+                      Synthesizing 24kHz acoustic waveform & streaming tokens via Google Cloud...
+                    </div>
+
+                    {/* Streaming Progress Bar */}
+                    <div
+                      style={{
+                        width: '100%',
+                        height: '6px',
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        borderRadius: '9999px',
+                        overflow: 'hidden',
+                        position: 'relative',
+                      }}
+                    >
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          bottom: 0,
+                          width: '84%',
+                          background: 'linear-gradient(90deg, #06b6d4, #8b5cf6, #ec4899)',
+                          borderRadius: '9999px',
+                          animation: 'pulse 1.4s ease-in-out infinite',
+                        }}
+                      />
+                    </div>
                   </div>
                 )}
                 <div ref={messagesEndRef} />

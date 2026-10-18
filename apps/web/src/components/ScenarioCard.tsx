@@ -45,8 +45,79 @@ export const ScenarioCard: React.FC<ScenarioCardProps> = ({ scenarios, onSimulat
 
   if (!activeScenario) {
     return (
-      <div className="glass-panel panel-card" role="status" aria-live="polite">
-        Loading scenario simulations...
+      <div
+        className="glass-panel panel-card"
+        role="status"
+        aria-live="polite"
+        style={{
+          padding: '36px 24px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '16px',
+          textAlign: 'center',
+          minHeight: '260px',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div
+            style={{
+              width: '26px',
+              height: '26px',
+              borderRadius: '50%',
+              border: '3px solid rgba(6, 182, 212, 0.25)',
+              borderTopColor: '#06b6d4',
+              animation: 'spin 1s linear infinite',
+            }}
+          />
+          <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#f8fafc' }}>
+            Loading scenario simulations...
+          </h3>
+        </div>
+
+        <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)', maxWidth: '520px', lineHeight: 1.5 }}>
+          Synthesizing multi-horizon predictive workforce models (Conservative, Accelerated, Disruptive, Human-First) via Gemini 2.5 and Vertex AI predictive pipelines.
+        </p>
+
+        {/* Dynamic Progress Bar */}
+        <div
+          style={{
+            width: '100%',
+            maxWidth: '380px',
+            height: '8px',
+            background: 'rgba(255, 255, 255, 0.08)',
+            borderRadius: '9999px',
+            overflow: 'hidden',
+            position: 'relative',
+            marginTop: '8px',
+          }}
+        >
+          <div
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              bottom: 0,
+              width: '82%',
+              background: 'linear-gradient(90deg, #06b6d4, #6366f1, #a855f7)',
+              borderRadius: '9999px',
+              animation: 'pulse 1.8s ease-in-out infinite',
+            }}
+          />
+        </div>
+
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center', marginTop: '4px' }}>
+          <span className="badge" style={{ fontSize: '11px', background: 'rgba(6, 182, 212, 0.15)', color: '#38bdf8' }}>
+            Vertex Model Garden
+          </span>
+          <span className="badge" style={{ fontSize: '11px', background: 'rgba(99, 102, 241, 0.15)', color: '#a5b4fc' }}>
+            EBITDA & CapEx Projections
+          </span>
+          <span className="badge" style={{ fontSize: '11px', background: 'rgba(16, 185, 129, 0.15)', color: '#6ee7b7' }}>
+            Role Resilience Impact
+          </span>
+        </div>
       </div>
     );
   }

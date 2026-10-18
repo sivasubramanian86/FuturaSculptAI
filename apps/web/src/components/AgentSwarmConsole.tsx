@@ -172,6 +172,113 @@ export const AgentSwarmConsole: React.FC<AgentSwarmConsoleProps> = ({
         </div>
       )}
 
+      {/* Active Swarm Deliberation Pipeline & Progress */}
+      {isRunning && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="drawer-panel"
+          style={{
+            marginTop: '16px',
+            marginBottom: '16px',
+            padding: '20px',
+            background: 'linear-gradient(135deg, rgba(15,23,42,0.85) 0%, rgba(30,27,75,0.7) 100%)',
+            border: '1px solid rgba(99,102,241,0.4)',
+            borderRadius: '12px',
+            boxShadow: '0 8px 32px rgba(99,102,241,0.2)',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div
+                style={{
+                  width: '20px',
+                  height: '20px',
+                  borderRadius: '50%',
+                  border: '2px solid rgba(99,102,241,0.3)',
+                  borderTopColor: '#a5b4fc',
+                  animation: 'spin 1s linear infinite',
+                }}
+              />
+              <span style={{ fontSize: '14px', fontWeight: 700, color: '#f8fafc' }}>
+                Google ADK Multi-Agent Swarm Deliberating...
+              </span>
+            </div>
+            <span
+              className="badge"
+              style={{
+                background: 'rgba(6,182,212,0.2)',
+                color: '#38bdf8',
+                border: '1px solid rgba(6,182,212,0.4)',
+                fontSize: '11px',
+              }}
+            >
+              5 SPECIALIST AGENTS ACTIVE
+            </span>
+          </div>
+
+          <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: '0 0 14px 0' }}>
+            Orchestrating neuro-symbolic multi-agent consensus across WorkGraph Architect, Task Decomposer, Skill Gap Analyst, Governance Critic, and FinOps Evaluator.
+          </p>
+
+          {/* Animated Deliberation Progress Bar */}
+          <div
+            style={{
+              width: '100%',
+              height: '8px',
+              background: 'rgba(255, 255, 255, 0.08)',
+              borderRadius: '9999px',
+              overflow: 'hidden',
+              position: 'relative',
+              marginBottom: '16px',
+            }}
+          >
+            <div
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                bottom: 0,
+                width: '78%',
+                background: 'linear-gradient(90deg, #6366f1, #06b6d4, #10b981)',
+                borderRadius: '9999px',
+                animation: 'pulse 1.6s ease-in-out infinite',
+              }}
+            />
+          </div>
+
+          {/* 5 Agent Pipeline Status Chips */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+              gap: '8px',
+            }}
+          >
+            <div style={{ padding: '8px 10px', borderRadius: '8px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#38bdf8' }}>1. WorkGraph Architect</div>
+              <div style={{ fontSize: '10px', color: '#94a3b8', marginTop: '2px' }}>Mapping ontology graph</div>
+            </div>
+            <div style={{ padding: '8px 10px', borderRadius: '8px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#a5b4fc' }}>2. Task Decomposer</div>
+              <div style={{ fontSize: '10px', color: '#94a3b8', marginTop: '2px' }}>6-part taxonomy split</div>
+            </div>
+            <div style={{ padding: '8px 10px', borderRadius: '8px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#fcd34d' }}>3. Skill Gap Analyst</div>
+              <div style={{ fontSize: '10px', color: '#94a3b8', marginTop: '2px' }}>Deterministic RRI math</div>
+            </div>
+            <div style={{ padding: '8px 10px', borderRadius: '8px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#6ee7b7' }}>4. Governance Critic</div>
+              <div style={{ fontSize: '10px', color: '#94a3b8', marginTop: '2px' }}>A0-A4 autonomy tiers</div>
+            </div>
+            <div style={{ padding: '8px 10px', borderRadius: '8px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#f472b6' }}>5. FinOps Evaluator</div>
+              <div style={{ fontSize: '10px', color: '#94a3b8', marginTop: '2px' }}>Token budget clearance</div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Swarm Result and Trajectory Inspector */}
       {swarmResult && (
         <div
