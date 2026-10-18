@@ -7,7 +7,7 @@ from fastapi import HTTPException
 
 from app.core.config import settings
 from app.core.rbac import UserRole, UserSession
-from app.core.tenant import get_current_tenant_id
+from app.core.tenant import get_current_tenant_id, get_optional_tenant_id
 from app.repositories.worktwin_repository import (
     FirestoreBoardroomRunRepository,
     FirestoreConsentRepository,
@@ -159,5 +159,46 @@ def test_firestore_repos_mock_mode_active():
             assert repo3._client is None
 
 
+def test_optional_tenant_empty_header():
+    """Verify get_optional_tenant_id raises 400 when x_tenant_id is whitespace."""
+    with pytest.raises(HTTPException) as exc_info:
+        get_optional_tenant_id(authorization=None, x_tenant_id="   ")
+    assert exc_info.value.status_code == 400
 
 
+def test_optional_tenant_with_matching_auth():
+    """Verify get_optional_tenant_id returns token tenant when matching."""
+    with patch("app.core.tenant.get_current_user") as mock_user:
+        mock_user.return_value = UserSession(user_id="u1", email="u1@test.com", display_name="U1", role=UserRole.CITIZEN_WORKER, tenant_id="tenant-auth-1")
+        res = get_optional_tenant_id(authorization="Bearer valid-token", x_tenant_id="tenant-auth-1")
+        assert res == "tenant-auth-1"
+
+
+def test_optional_tenant_with_mismatched_auth():
+    """Verify get_optional_tenant_id raises 403 when header differs from token."""
+    with patch("app.core.tenant.get_current_user") as mock_user:
+        mock_user.return_value = UserSession(user_id="u1", email="u1@test.com", display_name="U1", role=UserRole.CITIZEN_WORKER, tenant_id="tenant-auth-1")
+        with pytest.raises(HTTPException) as exc_info:
+            get_optional_tenant_id(authorization="Bearer valid-token", x_tenant_id="tenant-other")
+        assert exc_info.value.status_code == 403
+        assert "ERR_TENANT_MISMATCH" in exc_info.value.detail
+
+
+def test_optional_tenant_without_auth_uses_header():
+    """Verify get_optional_tenant_id returns header tenant when no auth header is provided."""
+    res = get_optional_tenant_id(authorization=None, x_tenant_id="tenant-guest-1")
+    assert res == "tenant-guest-1"
+
+
+def test_optional_tenant_without_auth_uses_default():
+    """Verify get_optional_tenant_id falls back to default tenant when no auth or header."""
+    res = get_optional_tenant_id(authorization=None, x_tenant_id=None)
+    assert res == settings.default_tenant_id
+
+
+def test_optional_tenant_empty_default_raises_400():
+    """Verify get_optional_tenant_id raises 400 when resolved tenant is empty."""
+    with patch.object(settings, "default_tenant_id", "   "):
+        with pytest.raises(HTTPException) as exc_info:
+            get_optional_tenant_id(authorization=None, x_tenant_id=None)
+        assert exc_info.value.status_code == 400

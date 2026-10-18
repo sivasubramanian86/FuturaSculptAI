@@ -58,3 +58,40 @@ def get_current_tenant_id(
             detail="Header X-Tenant-ID must not be empty.",
         )
     return resolved_tenant.strip()
+
+
+def get_optional_tenant_id(
+    authorization: Optional[str] = Header(None),
+    x_tenant_id: Optional[str] = Header(None),
+) -> str:
+    """Extract tenant identifier for open ambassador endpoints, verifying token if supplied.
+
+    Allows unauthenticated visitors and hackathon evaluators to interact with the
+    Aura Hologram Assistant and Gemini Live Native Audio while binding authenticated
+    sessions strictly to verified tenant claims.
+    """
+    if x_tenant_id is not None and not x_tenant_id.strip():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Header X-Tenant-ID must not be empty.",
+        )
+
+    header_tenant = x_tenant_id.strip() if x_tenant_id else ""
+    if authorization:
+        current_user = get_current_user(authorization=authorization, x_tenant_id=x_tenant_id)
+        if current_user.tenant_id:
+            if header_tenant and header_tenant != current_user.tenant_id:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail=f"FORBIDDEN [ERR_TENANT_MISMATCH]: Header X-Tenant-ID '{header_tenant}' does not match authenticated token tenant '{current_user.tenant_id}'.",
+                )
+            return current_user.tenant_id
+
+    resolved_tenant = header_tenant or settings.default_tenant_id
+    if not resolved_tenant.strip():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Header X-Tenant-ID must not be empty.",
+        )
+    return resolved_tenant.strip()
+

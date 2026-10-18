@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from app.adapters.pubsub_adapter import pubsub_adapter
 from app.adapters.vertex_adapter import vertex_adapter
 from app.agents import swarm_orchestrator
-from app.core.tenant import get_current_tenant_id
+from app.core.tenant import get_current_tenant_id, get_optional_tenant_id
 from app.models.agent_swarm import (
     GeminiLiveDialogueRequest,
     GeminiLiveDialogueResponse,
@@ -55,7 +55,7 @@ def get_swarm_run(
 @router.post("/live-dialogue", response_model=GeminiLiveDialogueResponse)
 async def live_audio_dialogue(
     request: GeminiLiveDialogueRequest,
-    tenant_id: str = Depends(get_current_tenant_id),
+    tenant_id: str = Depends(get_optional_tenant_id),
 ) -> GeminiLiveDialogueResponse:
     """Generate conversational response using Gemini Live models.
 

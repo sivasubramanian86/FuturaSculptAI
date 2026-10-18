@@ -513,7 +513,10 @@ class VertexAIAdapter:
                 from google.genai import types
 
                 project_id = self.project_id or os.getenv("GOOGLE_CLOUD_PROJECT", "genai-apac-2026-491004")
-                client = genai.Client(vertexai=True, project=project_id, location=settings.vertex_ai_live_location)
+                live_location = settings.vertex_ai_live_location or "us-central1"
+                if live_location == "global":  # pragma: no cover
+                    live_location = "us-central1"
+                client = genai.Client(vertexai=True, project=project_id, location=live_location)
                 vname = "Aoede" if voice_persona.lower() == "aoede" else "Kore"
                 config = types.LiveConnectConfig(
                     response_modalities=["AUDIO"],
