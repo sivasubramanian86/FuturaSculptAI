@@ -1,7 +1,5 @@
 """Unit tests for Dynamic Enterprise Profiles and Agentic RAG Domain Resolution."""
 
-import pytest
-
 from app.agents.enterprise_profiles import (
     ENTERPRISE_ARCHETYPES,
     EnterpriseProfile,
@@ -17,7 +15,7 @@ from app.models.worktwin import (
 
 def test_enterprise_archetypes_curated_profiles():
     """Verify curated profiles have valid schema and task allocations."""
-    for key, profile in ENTERPRISE_ARCHETYPES.items():
+    for _key, profile in ENTERPRISE_ARCHETYPES.items():
         assert isinstance(profile, EnterpriseProfile)
         assert len(profile.company_name) > 0
         assert len(profile.tasks) >= 3

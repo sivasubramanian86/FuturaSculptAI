@@ -179,5 +179,38 @@ describe('AgentSwarmConsole Component', () => {
       expect(screen.getByText('Swarm execution failed')).toBeInTheDocument();
     });
   });
+
+  it('restores cached result from sessionStorage and switches enterprise options via quick chips', async () => {
+    window.sessionStorage.setItem('futura-demo-swarm-result', JSON.stringify(mockSwarmSuccess));
+    render(<AgentSwarmConsole />);
+
+    // Expect cached result loaded from session storage
+    expect(screen.getByText('RUN-AA11BB22CC')).toBeInTheDocument();
+
+    // Click on Tesla chip
+    const teslaBtn = screen.getByRole('button', { name: /Tesla Inc/i });
+    fireEvent.click(teslaBtn);
+    expect(screen.getByDisplayValue(/giga-casting defect detection/i)).toBeInTheDocument();
+
+    // Click on Apple chip
+    const appleBtn = screen.getByRole('button', { name: /Apple Inc/i });
+    fireEvent.click(appleBtn);
+    expect(screen.getByDisplayValue(/solder joint acoustic inspection/i)).toBeInTheDocument();
+
+    // Click on Coca-Cola chip
+    const cokeBtn = screen.getByRole('button', { name: /The Coca-Cola Company/i });
+    fireEvent.click(cokeBtn);
+    expect(screen.getByDisplayValue(/automated beverage filling line/i)).toBeInTheDocument();
+
+    // Click on Berkshire chip
+    const berkshireBtn = screen.getByRole('button', { name: /Berkshire Hathaway/i });
+    fireEvent.click(berkshireBtn);
+    expect(screen.getByDisplayValue(/BNSF freight trains/i)).toBeInTheDocument();
+
+    // Click on Custom chip
+    const customBtn = screen.getByRole('button', { name: /Custom Enterprise/i });
+    fireEvent.click(customBtn);
+    expect(screen.getByDisplayValue(/organizational workforce transformation/i)).toBeInTheDocument();
+  });
 });
 

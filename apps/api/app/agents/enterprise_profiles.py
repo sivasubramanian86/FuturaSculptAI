@@ -4,13 +4,12 @@ Provides specialized multi-industry operational profiles (Food Manufacturing, Te
 The Coca-Cola Company, Berkshire Hathaway / BNSF) and dynamic LLM inference for generic enterprises.
 """
 
+import logging
 import re
 from typing import Dict, List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from app.models.agent_swarm import (
-    AgentBlueprintSpec,
-    AutonomyTier,
     SwarmRunRequest,
     TaskAllocationItem,
     TaskClassificationType,
@@ -511,8 +510,8 @@ Generate a valid JSON object matching this structure:
             import json
             data = json.loads(resp.text)
             return EnterpriseProfile.model_validate(data)
-    except Exception:
-        pass
+    except Exception as exc:
+        logging.getLogger(__name__).debug("Agentic RAG profile synthesis fallback: %s", exc)
 
     # Fallback to local archetype resolver if Vertex AI call times out
     return resolve_enterprise_profile(request)

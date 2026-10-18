@@ -145,6 +145,7 @@ class MultimodalAnalysisRequest(BaseModel):
     @model_validator(mode="before")
     @classmethod
     def sync_request_fields(cls, data: Any) -> Any:
+        """Synchronize title, category, source, snippet, and company context fields."""
         if isinstance(data, dict):
             t = data.get("title") or data.get("media_title") or "Workplace Evidence Asset"
             data["title"] = t
@@ -192,6 +193,7 @@ class MultimodalAnalysisResult(BaseModel):
     @model_validator(mode="before")
     @classmethod
     def sync_result_fields(cls, data: Any) -> Any:
+        """Synchronize sample_id, model, and reasoning trace result fields."""
         if isinstance(data, dict):
             sid = data.get("sample_id") or data.get("asset_id") or "SMP-ASSET-01"
             data["sample_id"] = sid

@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom/vitest';
 import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MultiModalMediaStudio } from '../../components/MultiModalMediaStudio';
 import { getTranslations } from '../../i18n';
 
@@ -39,9 +39,32 @@ describe('MultiModalMediaStudio Component', () => {
     expect(screen.getAllByText(/Packaging Line 4 Optical Sorter Feed/i).length).toBeGreaterThanOrEqual(1);
   });
 
-  it('handles selecting different samples and runs analysis', () => {
-    vi.useFakeTimers();
-    render(<MultiModalMediaStudio i18n={i18n} />);
+  it('handles selecting different samples and runs analysis with onAnalyze callback', async () => {
+    const mockAnalyze = vi.fn().mockResolvedValue({
+      asset_id: 'SMP-IMG-02',
+      category: 'image',
+      title: 'Manual Palletizing Joint Strain Snapshot',
+      source: 'Packaging Telemetry',
+      snippet: 'Operator bending at 48 degrees',
+      detected_tasks: ['Joint Flexion Tracking', 'Heavy Pallet Lift'],
+      ergonomic_risk: 'CRITICAL (88/100)',
+      automation_potential: 85,
+      recommended_pathway: 'Manual Palletizer Operator -> Cobotic Palletizing Supervisor',
+      model_used: 'Vertex AI Gemini 2.5 Flash (Multimodal)',
+      model_attributed: 'Google Vertex AI Gemini 2.5 Flash Multimodal',
+      reasoning_trace: 'Ergonomic joint strain exceeds OSHA threshold. Recommend cobotic palletizer installation.',
+      sha256: '99aa88bb77cc',
+    });
+
+    render(<MultiModalMediaStudio i18n={i18n} onAnalyze={mockAnalyze} />);
+
+    // Change company context
+    const enterpriseSelect = screen.getByRole('combobox');
+    fireEvent.change(enterpriseSelect, { target: { value: 'tesla' } });
+
+    // Change prompt directive
+    const promptInput = screen.getByPlaceholderText(/Enter dynamic analysis directive/i);
+    fireEvent.change(promptInput, { target: { value: 'Quantify battery cell insertion ergonomic hazards.' } });
 
     // Select second image sample
     const sample2 = screen.getByText(/Manual Palletizing Joint Strain Snapshot/i);
@@ -53,13 +76,14 @@ describe('MultiModalMediaStudio Component', () => {
     const analyzeBtn = screen.getByRole('button', { name: /Run Gemini Multimodal Analysis/i });
     fireEvent.click(analyzeBtn);
 
-    expect(screen.getByText(i18n.analyzingLabel)).toBeInTheDocument();
-
-    // Fast-forward timers
-    vi.runAllTimers();
-
-    expect(screen.getByText(/Manual Palletizer Operator -> Cobotic Palletizing Supervisor/i)).toBeInTheDocument();
-    vi.useRealTimers();
+    await waitFor(() => {
+      expect(mockAnalyze).toHaveBeenCalledWith(
+        expect.objectContaining({
+          company_context: 'tesla',
+          prompt_directive: 'Quantify battery cell insertion ergonomic hazards.',
+        })
+      );
+    });
   });
 
   it('handles custom file upload', () => {

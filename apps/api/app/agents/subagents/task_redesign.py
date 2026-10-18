@@ -9,7 +9,6 @@ from app.models.agent_swarm import (
     AgentStep,
     AutonomyTier,
     TaskAllocationItem,
-    TaskClassificationType,
 )
 
 

@@ -26,7 +26,6 @@ class FutureSignalsAgent(BaseSwarmAgent):
             AgentStep: Ingested signals and horizon readiness observation.
         """
         req = context.request
-        sector = req.sector or "food_manufacturing"
         horizon = req.horizon_years
 
         # Execute dynamic Gemini LLM reasoning via Prompt Orchestrator

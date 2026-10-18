@@ -97,6 +97,7 @@ class BoardroomPerspective(BaseModel):
     @model_validator(mode="before")
     @classmethod
     def sync_perspective_fields(cls, data: Any) -> Any:
+        """Synchronize dual perspective risk, condition, and evidence citations."""
         if isinstance(data, dict):
             if "blocking_risks" in data and "identified_risks" not in data:
                 data["identified_risks"] = data["blocking_risks"]
@@ -132,6 +133,7 @@ class ConflictResolution(BaseModel):
     @model_validator(mode="before")
     @classmethod
     def sync_resolution_fields(cls, data: Any) -> Any:
+        """Synchronize dual conflict resolution decision makers, approvers, and trade-offs."""
         if isinstance(data, dict):
             if "recommended_human_decision_makers" in data and "required_human_approvers" not in data:
                 data["required_human_approvers"] = data["recommended_human_decision_makers"]

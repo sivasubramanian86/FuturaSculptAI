@@ -123,12 +123,17 @@ describe('WorkTwinFabricStudio Component', () => {
     const ctoPill = screen.getByText('CTO Twin');
     fireEvent.click(ctoPill);
 
-    // Apply preset
-    const presetBtn = screen.getByText('Preset 2: Agent Swarm');
-    fireEvent.click(presetBtn);
+    // Apply preset 2
+    const presetBtn2 = screen.getByText('Preset 2: Agent Swarm');
+    fireEvent.click(presetBtn2);
 
     const titleInput = screen.getByDisplayValue('Autonomous Quality Micro-Defect Agent Swarm');
     expect(titleInput).toBeInTheDocument();
+
+    // Apply preset 1
+    const presetBtn1 = screen.getByText('Preset 1: Line 3 CV & Cobotics');
+    fireEvent.click(presetBtn1);
+    expect(screen.getByDisplayValue('Line 3 Packaging Computer Vision & Cobotics Deployment')).toBeInTheDocument();
   });
 
   it('runs boardroom simulation and renders synthesis and perspective cards', async () => {

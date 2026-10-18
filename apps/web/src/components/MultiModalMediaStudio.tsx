@@ -260,7 +260,6 @@ export const MultiModalMediaStudio: React.FC<MultiModalMediaStudioProps> = ({ i1
   const handleRunAnalysis = async () => {
     setIsAnalyzing(true);
     try {
-      await new Promise((r) => setTimeout(r, 100));
       const runner = onAnalyze || ((req: MultimodalAnalysisRequest) => api.analyzeMultimodalAsset(req));
       const res = await runner({
         asset_id: selectedSample.id,
