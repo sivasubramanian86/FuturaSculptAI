@@ -308,13 +308,29 @@ async def test_vertex_generate_live_dialogue_all_branches():
 
     # 2. Extended thinking with default reasoning budget (None)
     res_thinking_default = await adapter.generate_live_dialogue(
-        prompt="Hello generic greeting",
+        prompt="Generic inquiry without greeting words",
         model="models/gemini-3.8-live-extended-thinking",
         voice_persona="kore",
         reasoning_budget=None,
     )
     assert "2048 token budget" in res_thinking_default["reasoning_trace"]
-    assert "Hello, I am Futura" in res_thinking_default["response_text"]
+    assert "Hello, I am Futura speaking with Gemini Live" in res_thinking_default["response_text"]
+
+    # 2b. Greeting check
+    res_greeting = await adapter.generate_live_dialogue(
+        prompt="Hello there",
+        model="models/gemini-3.8-live",
+        voice_persona="kore",
+    )
+    assert "Hello, I am Futura, your 3D Holographic" in res_greeting["response_text"]
+
+    # 2c. Microphone and audio check
+    res_mic = await adapter.generate_live_dialogue(
+        prompt="Can you hear me through my microphone?",
+        model="models/gemini-3.8-live",
+        voice_persona="kore",
+    )
+    assert "hear you loud and clear" in res_mic["response_text"]
 
     # 3. 5-year-old kid explanation
     res_kid = await adapter.generate_live_dialogue(
