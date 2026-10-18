@@ -5,6 +5,7 @@ from typing import Any, Dict
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from app.adapters.bigquery_adapter import bigquery_adapter
+from app.agents.tools.bigquery_mcp_tool import bigquery_mcp_tool
 from app.core.tenant import get_current_tenant_id
 from app.models.temporal_workgraph import BlastRadiusResponse
 from app.models.workgraph import WorkGraphResponse
@@ -87,4 +88,27 @@ def get_vault_ledger(
         Dict[str, Any]: Nodes and outcomes recorded in BigQuery.
     """
     return bigquery_adapter.query_workgraph_ledger(tenant_id=tenant_id, horizon_year=horizon_year)
+
+
+@router.post("/vault/mcp")
+async def execute_bigquery_mcp(
+    tool_name: str = Query(default="query_temporal_workgraph"),
+    horizon_year: int = Query(default=0, ge=0, le=5),
+    tenant_id: str = Depends(get_current_tenant_id),
+) -> Dict[str, Any]:
+    """Execute governed BigQuery MCP (Model Context Protocol) tool call.
+
+    Args:
+        tool_name: Permitted BigQuery MCP tool (query_temporal_workgraph, inspect_schema_catalog, query_outcome_metrics).
+        horizon_year: Horizon year (0, 1, 3, 5).
+        tenant_id: Scoped tenant identifier.
+
+    Returns:
+        Dict[str, Any]: Governed MCP response envelope.
+    """
+    return await bigquery_mcp_tool.execute_governed_query(
+        tool_name=tool_name,
+        tenant_id=tenant_id,
+        parameters={"horizon_year": horizon_year},
+    )
 

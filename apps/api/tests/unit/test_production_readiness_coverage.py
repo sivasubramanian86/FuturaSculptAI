@@ -114,6 +114,21 @@ def test_workgraph_vault_ledger_route():
     assert "source" in res
 
 
+@pytest.mark.asyncio
+async def test_workgraph_vault_mcp_route():
+    """Verify /api/v1/workgraph/vault/mcp endpoint executes governed BigQuery MCP query."""
+    from app.routers.workgraph import execute_bigquery_mcp
+
+    res = await execute_bigquery_mcp(
+        tool_name="query_temporal_workgraph",
+        horizon_year=0,
+        tenant_id="tenant-food-mfg-01",
+    )
+    assert res["tool"] == "query_temporal_workgraph"
+    assert "mcp_endpoint" in res
+    assert res["status"] in ["success", "fallback"]
+
+
 def test_bigquery_adapter_outcome_query_failure():
     """Verify BigQuery adapter graceful degradation when outcome query fails."""
     from app.adapters.bigquery_adapter import BigQueryAdapter
