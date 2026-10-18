@@ -37,9 +37,19 @@ class Settings(BaseSettings):
     cors_origins: List[str] = [
         "http://localhost:5173",
         "http://localhost:3000",
+        "http://localhost:8080",
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:8080",
         "https://futurasculptai.web.app",
         "https://genai-apac-2026-491004.web.app",
+        "https://genai-apac-2026-491004.firebaseapp.com",
+        "https://futurasculpt-web-967518492968.asia-southeast1.run.app",
+        "https://futurasculpt-web-eah62ip3iq-as.a.run.app",
+        "https://futurasculpt-api-967518492968.asia-southeast1.run.app",
+        "https://futurasculpt-api-eah62ip3iq-as.a.run.app",
     ]
+    cors_origin_regex: str = r"https://.*-(uc|as)\.a\.run\.app|https://.*\.run\.app|https://.*\.web\.app|https://.*\.firebaseapp\.com"
 
     # Vertex AI / Model Gateway
     default_model_fast: str = "gemini-3.8-flash"
