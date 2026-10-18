@@ -10,7 +10,7 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 COPY . .
-RUN npm run build
+RUN chmod -R +x node_modules/.bin && npm run build
 
 # Stage 2: Serve static bundle via unprivileged Alpine NGINX
 FROM nginxinc/nginx-unprivileged:alpine AS runner

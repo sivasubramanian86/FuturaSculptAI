@@ -1,8 +1,10 @@
+import '@testing-library/jest-dom/vitest';
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ObservabilityTelemetryDashboard } from '../../components/ObservabilityTelemetryDashboard';
 import { en } from '../../i18n/locales/en';
+import { api } from '../../services/api';
 
 describe('ObservabilityTelemetryDashboard Component', () => {
   beforeEach(() => {
@@ -117,4 +119,87 @@ describe('ObservabilityTelemetryDashboard Component', () => {
     fireEvent.change(searchInput, { target: { value: '' } });
     expect(screen.getByText(/trace-aud-7712b/i)).toBeInTheDocument();
   });
+
+  it('renders BigQuery Vault tab, displays FinOps byte cap and queries ledger', async () => {
+    const mockBigQueryData = {
+      dataset: 'genai-apac-2026-491004.futurasculpt_vault',
+      nodes: [
+        {
+          node_id: 'OUT-001',
+          node_type: 'outcome',
+          name: 'Zero Defect Product Recalls',
+          properties: '{"criticality":"critical"}',
+          horizon_year: 0,
+        },
+      ],
+      outcomes: [
+        {
+          scenario_id: 'SCN-AUGMENTED-Y1',
+          horizon_year: 1,
+          productivity_gain: 22.5,
+          human_allocation_pct: 60.0,
+          agent_allocation_pct: 40.0,
+          active_agents: 1,
+          active_roles: 2,
+          wage_bond_escrow_usd: 50000.0,
+          recorded_at: '2026-10-18T00:00:00Z',
+        },
+      ],
+      total: 1,
+      source: 'bigquery' as const,
+    };
+
+    const spy = vi.spyOn(api, 'getBigQueryVaultLedger').mockResolvedValue(mockBigQueryData);
+
+    render(<ObservabilityTelemetryDashboard i18n={en} />);
+
+    // Click BigQuery Vault tab
+    const bqTabBtn = screen.getByRole('button', { name: /BigQuery WorkGraph Vault/i });
+    fireEvent.click(bqTabBtn);
+
+    expect(screen.getByText(/Google Cloud BigQuery Temporal Vault Ledger/i)).toBeInTheDocument();
+    expect(screen.getByText(/MAXIMUM BYTES BILLED CAP/i)).toBeInTheDocument();
+    expect(screen.getByText(/GB \(1,073,741,824 B\)/i)).toBeInTheDocument();
+    expect(screen.getByText(/FinOps Safety Gate Enforced/i)).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(spy).toHaveBeenCalledWith(0);
+      expect(screen.getByText(/LIVE GCP BIGQUERY/i)).toBeInTheDocument();
+      expect(screen.getByText(/OUT-001/i)).toBeInTheDocument();
+      expect(screen.getByText(/Zero Defect Product Recalls/i)).toBeInTheDocument();
+      expect(screen.getByText(/SCN-AUGMENTED-Y1/i)).toBeInTheDocument();
+      expect(screen.getByText(/\+22.5%/i)).toBeInTheDocument();
+      expect(screen.getByText(/\$50,000/i)).toBeInTheDocument();
+    });
+
+    // Switch horizon to Yr 1
+    const yr1Btn = screen.getByRole('button', { name: /Yr 1: Augmented/i });
+    fireEvent.click(yr1Btn);
+
+    await waitFor(() => {
+      expect(spy).toHaveBeenCalledWith(1);
+    });
+
+    // Click explicit execute query button
+    const executeBtn = screen.getByRole('button', { name: /Execute BigQuery Vault Query/i });
+    fireEvent.click(executeBtn);
+
+    await waitFor(() => {
+      expect(spy).toHaveBeenCalledTimes(3);
+    });
+  });
+
+  it('displays BigQuery query error when API call fails', async () => {
+    vi.spyOn(api, 'getBigQueryVaultLedger').mockRejectedValue(new Error('BigQuery quota exceeded'));
+
+    render(<ObservabilityTelemetryDashboard i18n={en} />);
+
+    const bqTabBtn = screen.getByRole('button', { name: /BigQuery WorkGraph Vault/i });
+    fireEvent.click(bqTabBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText(/BigQuery Error: BigQuery quota exceeded/i)).toBeInTheDocument();
+    });
+  });
 });
+

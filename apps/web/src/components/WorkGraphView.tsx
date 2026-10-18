@@ -174,6 +174,25 @@ export const WorkGraphView: React.FC<WorkGraphViewProps> = ({
             <option value="agent">Agents</option>
             <option value="control">Controls</option>
           </select>
+
+          <span
+            className="vault-badge"
+            title="Backed by Google Cloud BigQuery dataset futurasculpt_vault"
+            style={{
+              fontSize: '11px',
+              background: 'rgba(56, 189, 248, 0.12)',
+              color: '#38bdf8',
+              padding: '4px 8px',
+              borderRadius: '4px',
+              border: '1px solid rgba(56, 189, 248, 0.25)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              fontWeight: 600,
+            }}
+          >
+            📊 BigQuery Vault: <code style={{ fontSize: '10px', color: '#93c5fd' }}>futurasculpt_vault</code>
+          </span>
         </div>
       </div>
 

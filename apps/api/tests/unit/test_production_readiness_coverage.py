@@ -103,3 +103,39 @@ def test_firestore_boardroom_repo_init_exception():
     with patch.dict(sys.modules, {"google.cloud.firestore": mock_firestore}), patch("google.cloud.firestore", mock_firestore, create=True):
         repo = FirestoreBoardroomRunRepository()
         assert repo._client is None
+
+
+def test_workgraph_vault_ledger_route():
+    """Verify /api/v1/workgraph/vault/ledger endpoint returns BigQuery ledger."""
+    from app.routers.workgraph import get_vault_ledger
+
+    res = get_vault_ledger(horizon_year=0, tenant_id="tenant-food-mfg-01")
+    assert "nodes" in res
+    assert "source" in res
+
+
+def test_bigquery_adapter_outcome_query_failure():
+    """Verify BigQuery adapter graceful degradation when outcome query fails."""
+    from app.adapters.bigquery_adapter import BigQueryAdapter
+
+    adapter = BigQueryAdapter(project_id="test-proj", dataset_id="test_vault")
+    adapter.mock_mode = False
+
+    mock_client = MagicMock()
+    mock_nodes_job = MagicMock()
+    mock_nodes_job.result.return_value = [{"node_id": "TSK-001"}]
+
+    def mock_query(q, job_config=None):
+        if "outcome_ledger" in q:
+            raise RuntimeError("Outcome table unavailable")
+        return mock_nodes_job
+
+    mock_client.query.side_effect = mock_query
+    adapter._client = mock_client
+
+    res = adapter.query_workgraph_ledger("tenant-x", horizon_year=0)
+    assert res["source"] == "bigquery"
+    assert res["outcomes"] == []
+    assert len(res["nodes"]) == 1
+
+

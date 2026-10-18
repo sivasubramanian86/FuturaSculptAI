@@ -697,4 +697,33 @@ export interface PersonalWorkTwinConsent {
   consent_timestamp: string;
 }
 
+export interface BigQueryVaultRecord {
+  node_id: string;
+  node_type: string;
+  name: string;
+  properties?: string | Record<string, any>;
+  horizon_year: number;
+}
+
+export interface BigQueryOutcomeRecord {
+  scenario_id: string;
+  horizon_year: number;
+  productivity_gain: number;
+  human_allocation_pct: number;
+  agent_allocation_pct: number;
+  active_agents: number;
+  active_roles: number;
+  wage_bond_escrow_usd: number;
+  recorded_at: string;
+}
+
+export interface BigQueryVaultLedgerResponse {
+  dataset?: string;
+  nodes: BigQueryVaultRecord[];
+  outcomes?: BigQueryOutcomeRecord[];
+  total: number;
+  source: 'bigquery' | 'local_fallback';
+}
+
+
 

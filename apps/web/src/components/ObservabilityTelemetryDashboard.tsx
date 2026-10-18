@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { TranslationKeys } from '../i18n';
+import { api } from '../services/api';
+import { BigQueryVaultLedgerResponse } from '../types';
 
 export interface ObservabilityTelemetryDashboardProps {
   i18n?: TranslationKeys;
@@ -22,8 +24,16 @@ export interface TraceEntry {
 export const ObservabilityTelemetryDashboard: React.FC<ObservabilityTelemetryDashboardProps> = () => {
   const [timeWindow, setTimeWindow] = useState<'5m' | '1h' | '24h' | '7d'>('1h');
   const [searchTerm, setSearchTerm] = useState<string>('');
-  const [activeTab, setActiveTab] = useState<'kpi' | 'architecture' | 'traces'>('kpi');
+  const [activeTab, setActiveTab] = useState<'kpi' | 'architecture' | 'traces' | 'bigquery'>('kpi');
   const [syntheticStatus, setSyntheticStatus] = useState<string | null>(null);
+
+  // BigQuery Vault Ledger query state
+  const [bqHorizon, setBqHorizon] = useState<number>(0);
+  const [bqLoading, setBqLoading] = useState<boolean>(false);
+  const [bqData, setBqData] = useState<BigQueryVaultLedgerResponse | null>(null);
+  const [bqError, setBqError] = useState<string | null>(null);
+  const [bqLatencyMs, setBqLatencyMs] = useState<number | null>(null);
+
 
   const initialTraces: TraceEntry[] = [
     {
@@ -146,6 +156,21 @@ export const ObservabilityTelemetryDashboard: React.FC<ObservabilityTelemetryDas
     a.download = `futurasculpt-telemetry-audit-${Date.now()}.json`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handleQueryBigQueryVault = async (horizon: number = bqHorizon) => {
+    try {
+      setBqLoading(true);
+      setBqError(null);
+      const start = performance.now();
+      const res = await api.getBigQueryVaultLedger(horizon);
+      setBqLatencyMs(Math.round(performance.now() - start));
+      setBqData(res);
+    } catch (err: any) {
+      setBqError(err.message || 'Failed to query BigQuery Vault Ledger');
+    } finally {
+      setBqLoading(false);
+    }
   };
 
   return (
@@ -347,6 +372,27 @@ export const ObservabilityTelemetryDashboard: React.FC<ObservabilityTelemetryDas
           }}
         >
           🛡️ Technical Diligence: Google Cloud vs Open-Source (Auditor Lens)
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setActiveTab('bigquery');
+            if (!bqData && !bqLoading) {
+              handleQueryBigQueryVault(bqHorizon);
+            }
+          }}
+          style={{
+            padding: '10px 20px',
+            borderRadius: '10px',
+            fontSize: '14px',
+            fontWeight: 700,
+            cursor: 'pointer',
+            border: 'none',
+            background: activeTab === 'bigquery' ? 'linear-gradient(135deg, #0284c7 0%, #2563eb 100%)' : 'rgba(255, 255, 255, 0.05)',
+            color: activeTab === 'bigquery' ? '#fff' : '#94a3b8',
+          }}
+        >
+          📊 BigQuery WorkGraph Vault (Live Dataset)
         </button>
       </div>
 
@@ -703,6 +749,311 @@ export const ObservabilityTelemetryDashboard: React.FC<ObservabilityTelemetryDas
               </tbody>
             </table>
           </div>
+        </div>
+      )}
+
+      {/* Tab 4: BigQuery WorkGraph Vault (Live Cloud Analytics) */}
+      {activeTab === 'bigquery' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          {/* BigQuery Architectural Invariant Card */}
+          <div
+            className="glass-panel"
+            style={{
+              padding: '24px',
+              borderRadius: '14px',
+              background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.85) 100%)',
+              border: '1px solid rgba(56, 189, 248, 0.3)',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <span style={{ fontSize: '24px' }}>📊</span>
+                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: '#f8fafc' }}>
+                    Google Cloud BigQuery Temporal Vault Ledger
+                  </h3>
+                  <span
+                    style={{
+                      background: bqData?.source === 'bigquery' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(245, 158, 11, 0.2)',
+                      color: bqData?.source === 'bigquery' ? '#34d399' : '#fbbf24',
+                      padding: '3px 10px',
+                      borderRadius: '12px',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      border: `1px solid ${bqData?.source === 'bigquery' ? 'rgba(16, 185, 129, 0.4)' : 'rgba(245, 158, 11, 0.4)'}`,
+                    }}
+                  >
+                    ● {bqData?.source === 'bigquery' ? 'LIVE GCP BIGQUERY' : 'LOCAL FALLBACK'}
+                  </span>
+                </div>
+                <p style={{ margin: '8px 0 0', color: '#94a3b8', fontSize: '13px', maxWidth: '800px' }}>
+                  Auditable temporal WorkGraph projection repository and financial transformation outcome ledger. Direct SQL queries via Google Cloud BigQuery API with parameterized tenant isolation and strict FinOps query byte caps.
+                </p>
+              </div>
+
+              {/* FinOps Byte Cap Metric */}
+              <div
+                style={{
+                  background: 'rgba(15, 23, 42, 0.6)',
+                  border: '1px solid rgba(56, 189, 248, 0.25)',
+                  borderRadius: '10px',
+                  padding: '12px 18px',
+                  textAlign: 'right',
+                }}
+              >
+                <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 600 }}>MAXIMUM BYTES BILLED CAP</div>
+                <div style={{ fontSize: '20px', fontWeight: 800, color: '#38bdf8', marginTop: '2px' }}>
+                  1.0 <span style={{ fontSize: '12px', color: '#94a3b8' }}>GB (1,073,741,824 B)</span>
+                </div>
+                <div style={{ fontSize: '11px', color: '#10b981', marginTop: '2px' }}>🛡️ FinOps Safety Gate Enforced</div>
+              </div>
+            </div>
+
+            {/* Architecture Metadata Badges */}
+            <div style={{ display: 'flex', gap: '12px', marginTop: '16px', flexWrap: 'wrap', fontSize: '12px' }}>
+              <div style={{ background: 'rgba(255, 255, 255, 0.05)', padding: '6px 12px', borderRadius: '8px', color: '#cbd5e1' }}>
+                <strong>GCP Project:</strong> genai-apac-2026-491004
+              </div>
+              <div style={{ background: 'rgba(255, 255, 255, 0.05)', padding: '6px 12px', borderRadius: '8px', color: '#cbd5e1' }}>
+                <strong>Dataset:</strong> {bqData?.dataset || 'genai-apac-2026-491004.futurasculpt_vault'}
+              </div>
+              <div style={{ background: 'rgba(255, 255, 255, 0.05)', padding: '6px 12px', borderRadius: '8px', color: '#cbd5e1' }}>
+                <strong>Region:</strong> asia-southeast1
+              </div>
+              <div style={{ background: 'rgba(255, 255, 255, 0.05)', padding: '6px 12px', borderRadius: '8px', color: '#cbd5e1' }}>
+                <strong>Runtime Identity:</strong> futurasculpt-runner (Least Privilege)
+              </div>
+              {bqLatencyMs !== null && (
+                <div style={{ background: 'rgba(16, 185, 129, 0.15)', padding: '6px 12px', borderRadius: '8px', color: '#34d399' }}>
+                  <strong>Query Latency:</strong> {bqLatencyMs}ms
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Interactive Query Toolbar */}
+          <div
+            className="glass-panel"
+            style={{
+              padding: '16px 20px',
+              borderRadius: '12px',
+              background: 'rgba(30, 41, 59, 0.6)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '12px',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <span style={{ fontSize: '13px', fontWeight: 600, color: '#94a3b8' }}>Simulation Horizon:</span>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                {[
+                  { year: 0, label: 'Yr 0: Baseline' },
+                  { year: 1, label: 'Yr 1: Augmented' },
+                  { year: 3, label: 'Yr 3: Autonomous' },
+                  { year: 5, label: 'Yr 5: Cognitive' },
+                ].map((item) => (
+                  <button
+                    key={item.year}
+                    type="button"
+                    onClick={() => {
+                      setBqHorizon(item.year);
+                      handleQueryBigQueryVault(item.year);
+                    }}
+                    style={{
+                      padding: '6px 14px',
+                      borderRadius: '8px',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      border: 'none',
+                      background: bqHorizon === item.year ? '#0284c7' : 'rgba(255, 255, 255, 0.05)',
+                      color: bqHorizon === item.year ? '#fff' : '#94a3b8',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => handleQueryBigQueryVault(bqHorizon)}
+              disabled={bqLoading}
+              aria-label="Execute BigQuery Vault Query"
+              style={{
+                padding: '8px 18px',
+                borderRadius: '8px',
+                background: bqLoading ? 'rgba(56, 189, 248, 0.2)' : 'linear-gradient(135deg, #0284c7 0%, #2563eb 100%)',
+                color: '#fff',
+                border: 'none',
+                fontWeight: 700,
+                fontSize: '13px',
+                cursor: bqLoading ? 'not-allowed' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                boxShadow: '0 2px 10px rgba(2, 132, 199, 0.3)',
+              }}
+            >
+              {bqLoading ? '⏳ Querying BigQuery...' : '🔍 Execute BigQuery Query'}
+            </button>
+          </div>
+
+          {/* Error Message if any */}
+          {bqError && (
+            <div
+              style={{
+                padding: '12px 16px',
+                borderRadius: '8px',
+                background: 'rgba(244, 63, 94, 0.15)',
+                border: '1px solid rgba(244, 63, 94, 0.3)',
+                color: '#fda4af',
+                fontSize: '13px',
+              }}
+            >
+              ⚠️ BigQuery Error: {bqError}
+            </div>
+          )}
+
+          {/* WorkGraph Nodes Table */}
+          <div
+            className="glass-panel"
+            style={{
+              padding: '20px',
+              borderRadius: '12px',
+              background: 'rgba(30, 41, 59, 0.5)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+              <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#f8fafc' }}>
+                Table: `wtg_nodes` (Horizon {bqHorizon} Projection) — {bqData?.nodes?.length || 0} Records
+              </h4>
+              <span style={{ fontSize: '12px', color: '#64748b' }}>
+                Target Dataset: futurasculpt_vault.wtg_nodes
+              </span>
+            </div>
+
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+                <thead>
+                  <tr style={{ borderBottom: '2px solid rgba(255, 255, 255, 0.1)', color: '#94a3b8' }}>
+                    <th style={{ padding: '10px' }}>Node ID</th>
+                    <th style={{ padding: '10px' }}>Type</th>
+                    <th style={{ padding: '10px' }}>Name</th>
+                    <th style={{ padding: '10px' }}>Horizon Year</th>
+                    <th style={{ padding: '10px' }}>Properties</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {bqData?.nodes && bqData.nodes.length > 0 ? (
+                    bqData.nodes.map((node) => (
+                      <tr key={node.node_id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.06)' }}>
+                        <td style={{ padding: '10px', fontFamily: 'monospace', color: '#38bdf8', fontWeight: 600 }}>
+                          {node.node_id}
+                        </td>
+                        <td style={{ padding: '10px' }}>
+                          <span
+                            style={{
+                              background: 'rgba(56, 189, 248, 0.15)',
+                              color: '#38bdf8',
+                              padding: '2px 8px',
+                              borderRadius: '6px',
+                              fontSize: '11px',
+                              fontWeight: 700,
+                              textTransform: 'uppercase',
+                            }}
+                          >
+                            {node.node_type}
+                          </span>
+                        </td>
+                        <td style={{ padding: '10px', color: '#f8fafc', fontWeight: 600 }}>{node.name}</td>
+                        <td style={{ padding: '10px', color: '#fbbf24', fontWeight: 600 }}>Year {node.horizon_year}</td>
+                        <td style={{ padding: '10px', color: '#94a3b8', fontSize: '12px', maxWidth: '350px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {typeof node.properties === 'string' ? node.properties : JSON.stringify(node.properties)}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={5} style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>
+                        {bqLoading ? 'Executing BigQuery query...' : `No records found in BigQuery for Horizon ${bqHorizon}. Click "Execute BigQuery Query" to query.`}
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Outcomes Ledger Table */}
+          {bqData?.outcomes && bqData.outcomes.length > 0 && (
+            <div
+              className="glass-panel"
+              style={{
+                padding: '20px',
+                borderRadius: '12px',
+                background: 'rgba(30, 41, 59, 0.5)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#f8fafc' }}>
+                  Table: `outcome_ledger` (Financial & Escrow Governance)
+                </h4>
+                <span style={{ fontSize: '12px', color: '#64748b' }}>
+                  Target Dataset: futurasculpt_vault.outcome_ledger
+                </span>
+              </div>
+
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '2px solid rgba(255, 255, 255, 0.1)', color: '#94a3b8' }}>
+                      <th style={{ padding: '10px' }}>Scenario ID</th>
+                      <th style={{ padding: '10px' }}>Horizon</th>
+                      <th style={{ padding: '10px' }}>Productivity Gain</th>
+                      <th style={{ padding: '10px' }}>Human / Agent Allocation</th>
+                      <th style={{ padding: '10px' }}>Active Agents</th>
+                      <th style={{ padding: '10px' }}>Wage Escrow (USD)</th>
+                      <th style={{ padding: '10px' }}>Recorded At</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {bqData.outcomes.map((outcome, idx) => (
+                      <tr key={outcome.scenario_id || idx} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.06)' }}>
+                        <td style={{ padding: '10px', fontFamily: 'monospace', color: '#a78bfa', fontWeight: 600 }}>
+                          {outcome.scenario_id}
+                        </td>
+                        <td style={{ padding: '10px', color: '#fbbf24', fontWeight: 600 }}>
+                          Year {outcome.horizon_year}
+                        </td>
+                        <td style={{ padding: '10px', color: '#34d399', fontWeight: 700 }}>
+                          +{outcome.productivity_gain}%
+                        </td>
+                        <td style={{ padding: '10px', color: '#cbd5e1' }}>
+                          {outcome.human_allocation_pct}% Human / {outcome.agent_allocation_pct}% Agent
+                        </td>
+                        <td style={{ padding: '10px', color: '#38bdf8' }}>{outcome.active_agents} Agents</td>
+                        <td style={{ padding: '10px', color: '#10b981', fontWeight: 700 }}>
+                          ${outcome.wage_bond_escrow_usd?.toLocaleString()}
+                        </td>
+                        <td style={{ padding: '10px', color: '#64748b', fontSize: '12px' }}>
+                          {outcome.recorded_at}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -4,6 +4,7 @@ from typing import Any, Dict
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
+from app.adapters.bigquery_adapter import bigquery_adapter
 from app.core.tenant import get_current_tenant_id
 from app.models.temporal_workgraph import BlastRadiusResponse
 from app.models.workgraph import WorkGraphResponse
@@ -69,3 +70,21 @@ def get_blast_radius(
     if not result:
         raise HTTPException(status_code=404, detail=f"Node '{node_id}' not found in WorkGraph.")
     return result
+
+
+@router.get("/vault/ledger")
+def get_vault_ledger(
+    horizon_year: int = Query(default=0, ge=0, le=5),
+    tenant_id: str = Depends(get_current_tenant_id),
+) -> Dict[str, Any]:
+    """Query temporal WorkGraph ledger directly from BigQuery dataset 'futurasculpt_vault'.
+
+    Args:
+        horizon_year: Horizon year (0, 1, 3, 5).
+        tenant_id: Scoped tenant identifier.
+
+    Returns:
+        Dict[str, Any]: Nodes and outcomes recorded in BigQuery.
+    """
+    return bigquery_adapter.query_workgraph_ledger(tenant_id=tenant_id, horizon_year=horizon_year)
+

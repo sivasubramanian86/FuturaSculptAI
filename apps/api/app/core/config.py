@@ -61,6 +61,14 @@ class Settings(BaseSettings):
     pubsub_topic_alerts: str = "futurasculpt-governance-alerts"
     pubsub_topic_actuation: str = "futurasculpt-actuation-events"
 
+    # Storage & Persistence
+    evidence_bucket: str = Field(default="futurasculpt-evidence-genai-apac-2026-491004", validation_alias="EVIDENCE_BUCKET")
+    bigquery_dataset: str = Field(default="futurasculpt_vault", validation_alias="BIGQUERY_DATASET")
+
+    # Security & Guardrails
+    model_armor_enabled: bool = Field(default=True, validation_alias="MODEL_ARMOR_ENABLED")
+    secret_manager_enabled: bool = Field(default=True, validation_alias="SECRET_MANAGER_ENABLED")
+
     # Observation & Telemetry Monitoring
     metrics_enabled: bool = True
 

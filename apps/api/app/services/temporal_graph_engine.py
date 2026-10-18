@@ -17,6 +17,7 @@ from app.models.workgraph import (
     WorkGraphNode,
     WorkGraphResponse,
 )
+from app.adapters.bigquery_adapter import bigquery_adapter
 from app.services.workgraph_service import get_food_manufacturing_seed_graph
 
 
@@ -194,6 +195,12 @@ class TemporalGraphEngine:
             edges=edges,
             total_nodes=len(nodes),
             total_edges=len(edges),
+        )
+        # Record temporal simulation outcome in BigQuery ledger
+        bigquery_adapter.record_temporal_outcome(
+            tenant_id=tenant_id,
+            scenario_id=f"SIM-HORIZON-Y{horizon_year}",
+            payload=summary.model_dump(),
         )
         return response, summary
 

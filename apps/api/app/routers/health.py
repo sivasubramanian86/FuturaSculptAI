@@ -122,7 +122,7 @@ def build_manifest() -> Dict[str, Any]:
             "worktwin": "live",
             "vertex_gemini": "live",
             "google_adk": "live",
-            "model_armor": "fallback",
+            "model_armor": "live",
             "cloud_persistence": "live",
             "ambient_copilot": "live",
         },

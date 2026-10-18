@@ -41,6 +41,7 @@ import {
   BoardroomSimulationRequest,
   BoardroomSimulationResult,
   PersonalWorkTwinConsent,
+  BigQueryVaultLedgerResponse,
 } from '../types';
 import { firebaseAuth } from './firebase';
 
@@ -566,7 +567,18 @@ export class ApiClient {
     }
     return res.json();
   }
+
+  async getBigQueryVaultLedger(horizonYear: number = 0): Promise<BigQueryVaultLedgerResponse> {
+    const res = await fetch(`${API_BASE}/workgraph/vault/ledger?horizon_year=${horizonYear}`, {
+      headers: this.getHeaders(),
+    });
+    if (!res.ok) {
+      throw new Error(`Failed to query BigQuery Vault Ledger: ${res.statusText}`);
+    }
+    return res.json();
+  }
 }
 
 export const api = new ApiClient();
+
 

@@ -5,7 +5,8 @@ param (
     [string]$ProjectId = "genai-apac-2026-491004",
     [string]$Region = "asia-southeast1",
     [string]$ApiService = "futurasculpt-api",
-    [string]$WebService = "futurasculpt-web"
+    [string]$WebService = "futurasculpt-web",
+    [string]$ServiceAccount = "futurasculpt-runner@genai-apac-2026-491004.iam.gserviceaccount.com"
 )
 
 $ErrorActionPreference = "Stop"
@@ -54,6 +55,7 @@ try {
         --set-env-vars "GCP_PROJECT_ID=$ProjectId,ENVIRONMENT=production,VERTEX_AI_LOCATION=global,VERTEX_AI_LIVE_LOCATION=us-central1,GIT_SHA=$GitSha,BUILD_TIMESTAMP=$BuildTimestamp,AUTH_DEV_MODE=false" `
         --memory 1Gi `
         --cpu 1 `
+        --service-account $ServiceAccount `
         --min-instances 0 `
         --max-instances 10 `
         --timeout 300
@@ -96,6 +98,7 @@ try {
         --project $ProjectId `
         --platform managed `
         --allow-unauthenticated `
+        --service-account $ServiceAccount `
         --memory 512Mi `
         --cpu 1
     

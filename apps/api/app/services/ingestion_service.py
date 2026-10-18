@@ -15,6 +15,7 @@ from app.models.evidence import (
     SensitivityTier,
     SourceType,
 )
+from app.adapters.storage_adapter import storage_adapter
 from app.services.evidence_verifier import evidence_verifier
 from app.services.multimodal_parser import multimodal_parser
 
@@ -62,11 +63,18 @@ def process_raw_evidence_upload(
 
     evidence_id = f"EVD-{uuid.uuid4().hex[:8].upper()}"
 
+    # 4. Store raw evidence blob in GCS
+    source_uri = storage_adapter.upload_evidence_blob(
+        tenant_id=tenant_id,
+        file_name=file_name,
+        file_bytes=file_bytes,
+    )
+
     envelope = EvidenceEnvelope(
         evidence_id=evidence_id,
         tenant_id=tenant_id,
         source_type=source_type,
-        source_uri=f"gs://futurasculpt-evidence/{tenant_id}/{file_name}",
+        source_uri=source_uri,
         sha256_hash=sha256_hash,
         ingested_at=datetime.now(timezone.utc),
         content=content,

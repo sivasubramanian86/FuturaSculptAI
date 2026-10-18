@@ -40,3 +40,9 @@ variable "access_policy_id" {
   default     = ""
 }
 
+variable "enable_cloud_armor" {
+  description = "Whether to provision Cloud Armor security policy and HTTPS Load Balancer (requires explicit operator approval due to billable LB/NEG resources)."
+  type        = bool
+  default     = false
+}
+

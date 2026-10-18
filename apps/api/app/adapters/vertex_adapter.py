@@ -15,6 +15,7 @@ import wave
 from pydantic import BaseModel
 from tenacity import retry, stop_after_attempt, wait_exponential
 
+from app.adapters.model_armor_adapter import sanitize_model_response, sanitize_user_prompt
 from app.core.config import settings
 
 logger = logging.getLogger("futurasculpt.vertex_adapter")
@@ -244,6 +245,7 @@ class VertexAIAdapter:
             Dict[str, Any]: Response content, model used, and estimated tokens/cost.
         """
         start_t = time.perf_counter()
+        prompt = sanitize_user_prompt(prompt)
         target_model = model_name or (
             self.resolve_model_name(model_tier.value) if model_tier else settings.model_workhorse
         )
@@ -311,6 +313,7 @@ class VertexAIAdapter:
                         if candidates
                         else "Generated Vertex response."
                     )
+                    extracted_text = sanitize_model_response(extracted_text)
                     return {
                         "content": extracted_text,
                         "model_used": target_model,
