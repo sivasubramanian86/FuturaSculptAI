@@ -42,6 +42,8 @@ import {
   BoardroomSimulationResult,
   PersonalWorkTwinConsent,
   BigQueryVaultLedgerResponse,
+  MultimodalAnalysisRequest,
+  MultimodalAnalysisResult,
 } from '../types';
 import { firebaseAuth } from './firebase';
 
@@ -119,6 +121,18 @@ export class ApiClient {
     });
     if (!res.ok) {
       throw new Error(`Failed to load evidence ledger: ${res.statusText}`);
+    }
+    return res.json();
+  }
+
+  async analyzeMultimodalAsset(payload: MultimodalAnalysisRequest): Promise<MultimodalAnalysisResult> {
+    const res = await fetch(`${API_BASE}/evidence/multimodal-analyze`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      throw new Error(`Failed to analyze multimodal asset: ${res.statusText}`);
     }
     return res.json();
   }

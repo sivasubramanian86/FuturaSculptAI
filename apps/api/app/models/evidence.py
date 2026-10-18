@@ -2,9 +2,9 @@
 
 from datetime import datetime, timezone
 from enum import Enum
-from typing import List, Optional
+from typing import Any, List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class SourceType(str, Enum):
@@ -123,3 +123,90 @@ class IntegrityCheckResult(BaseModel):
     sha256_hash: str
     is_valid: bool
     checked_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class MultimodalAnalysisRequest(BaseModel):
+    """Invocation payload for live multimodal media intelligence."""
+
+    asset_id: Optional[str] = None
+    media_title: str = ""
+    title: Optional[str] = None
+    media_category: str = "image"
+    category: Optional[str] = None
+    source_context: str = ""
+    source: Optional[str] = None
+    content_snippet: str = ""
+    snippet: Optional[str] = None
+    target_sector: Optional[str] = "food_manufacturing"
+    company_name: Optional[str] = None
+    company_context: Optional[str] = None
+    prompt_directive: Optional[str] = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def sync_request_fields(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            t = data.get("title") or data.get("media_title") or "Workplace Evidence Asset"
+            data["title"] = t
+            data["media_title"] = t
+
+            c = data.get("category") or data.get("media_category") or "image"
+            data["category"] = c
+            data["media_category"] = c
+
+            s = data.get("source") or data.get("source_context") or "Sensor Telemetry"
+            data["source"] = s
+            data["source_context"] = s
+
+            sn = data.get("snippet") or data.get("content_snippet") or "Telemetry excerpt"
+            data["snippet"] = sn
+            data["content_snippet"] = sn
+
+            comp = data.get("company_context") or data.get("company_name") or "Enterprise Workplace"
+            data["company_context"] = comp
+            data["company_name"] = comp
+        return data
+
+
+class MultimodalAnalysisResult(BaseModel):
+    """Structured operational intelligence extracted from multimodal media."""
+
+    sample_id: Optional[str] = None
+    asset_id: Optional[str] = None
+    category: str = "image"
+    title: str = ""
+    source: str = ""
+    snippet: str = ""
+    detected_tasks: List[str] = Field(default_factory=list)
+    ergonomic_risk: str = "LOW (15/100)"
+    automation_potential: int = 70
+    recommended_pathway: str = "Frontline Operator -> AI Automation Specialist"
+    model_used: str = "Vertex AI Gemini 2.5 Flash (Multimodal)"
+    model_attributed: str = "Google Vertex AI Gemini 2.5 Flash Multimodal"
+    ai_reasoning_trace: str = ""
+    reasoning_trace: str = ""
+    sha256: str = ""
+    sha256_seal: str = ""
+    analyzed_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+    @model_validator(mode="before")
+    @classmethod
+    def sync_result_fields(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            sid = data.get("sample_id") or data.get("asset_id") or "SMP-ASSET-01"
+            data["sample_id"] = sid
+            data["asset_id"] = sid
+
+            m = data.get("model_used") or data.get("model_attributed") or "Google Vertex AI Gemini 2.5 Flash Multimodal"
+            data["model_used"] = m
+            data["model_attributed"] = m
+
+            r = data.get("ai_reasoning_trace") or data.get("reasoning_trace") or "Extracted via Gemini Multimodal perception."
+            data["ai_reasoning_trace"] = r
+            data["reasoning_trace"] = r
+
+            h = data.get("sha256") or data.get("sha256_seal") or ""
+            data["sha256"] = h
+            data["sha256_seal"] = h
+        return data
+

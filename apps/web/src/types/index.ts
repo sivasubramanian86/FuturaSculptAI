@@ -157,6 +157,42 @@ export interface ClaimVerificationResult {
   explanation: string;
 }
 
+export interface MultimodalAnalysisRequest {
+  media_title?: string;
+  media_category?: 'image' | 'audio' | 'video' | 'doc';
+  source_context?: string;
+  content_snippet?: string;
+  target_sector?: string;
+  company_name?: string;
+  prompt_directive?: string;
+  asset_id?: string;
+  category?: 'image' | 'audio' | 'video' | 'doc';
+  title?: string;
+  source?: string;
+  snippet?: string;
+  company_context?: string;
+}
+
+export interface MultimodalAnalysisResult {
+  sample_id: string;
+  asset_id?: string;
+  category: string;
+  title: string;
+  source: string;
+  snippet: string;
+  detected_tasks: string[];
+  ergonomic_risk: string;
+  automation_potential: number;
+  recommended_pathway: string;
+  model_used: string;
+  model_attributed?: string;
+  ai_reasoning_trace: string;
+  reasoning_trace?: string;
+  sha256: string;
+  sha256_seal?: string;
+  analyzed_at: string;
+}
+
 export interface ScoreComponent {
   name: string;
   weight: number;
@@ -656,11 +692,13 @@ export interface BoardroomPerspective {
 export interface ConflictResolution {
   consensus_points: string[];
   unresolved_disagreements: string[];
+  disagreements?: string[];
   trade_offs: string[];
   blocking_controls: string[];
   alternative_transformation_paths: string[];
   governed_recommendation: string;
   required_human_approvers: string[];
+  recommended_human_decision_makers?: string[];
 }
 
 export interface BoardroomSimulationRequest {
@@ -724,6 +762,7 @@ export interface BigQueryVaultLedgerResponse {
   total: number;
   source: 'bigquery' | 'local_fallback';
 }
+
 
 
 

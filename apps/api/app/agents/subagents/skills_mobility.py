@@ -24,22 +24,25 @@ class SkillsMobilityAgent(BaseSwarmAgent):
         Returns:
             AgentStep: Reskilling pathway and required credentials.
         """
-        pathway = "ROL-001 Inspector -> ROL-003 AI Automation Supervisor (6-week certified module)."
+        from app.agents.enterprise_profiles import resolve_enterprise_profile
+
+        profile = context.shared_memory.get("enterprise_profile") or resolve_enterprise_profile(context.request)
+        pathway = profile.reskilling_pathway
         context.shared_memory["reskilling_pathway"] = pathway
         context.shared_memory["skills_adjacency"] = {
-            "source_skills": ["Manual Visual Inspection", "Defect Logging"],
-            "target_skills": ["Edge-TPU Calibration", "AI Anomaly Supervision"],
-            "transition_difficulty": "Low-Moderate (42 hours training)",
+            "source_skills": profile.source_skills,
+            "target_skills": profile.target_skills,
+            "transition_difficulty": profile.transition_difficulty,
         }
 
         return AgentStep(
             agent_role=self.role,
             step_index=context.step_index,
-            thought="Benchmarking operator capabilities against emerging Edge Vision calibration requirements.",
+            thought=f"Benchmarking {profile.target_role_name} capabilities at {profile.company_name} against emerging automation requirements.",
             tool_called="compile_reskilling_curriculum",
             observation=(
-                "Identified transition pathway: ROL-001 (Manual Inspector) -> "
-                "ROL-003 (AI Automation Supervisor). Required micro-credentials: SKL-002."
+                f"Identified transition pathway: {pathway}. "
+                f"Curriculum difficulty: {profile.transition_difficulty}."
             ),
             autonomy_tier=AutonomyTier.A1_RECOMMENDATION,
             evidence_citations=context.citations,

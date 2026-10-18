@@ -781,6 +781,11 @@ class FuturaBoardroomCoordinator(Agent):
                 "Chief Financial Officer (Overtime Budget Authorization)",
                 "Works Council / Union Lead (Bilateral Agreement)",
             ],
+            required_human_approvers=[
+                "Executive VP of Human Resources (Workforce Policy Sign-off)",
+                "Chief Financial Officer (Overtime Budget Authorization)",
+                "Works Council / Union Lead (Bilateral Agreement)",
+            ],
             governed_recommendation=adk_resolution.consensus_strategy,
         )
 

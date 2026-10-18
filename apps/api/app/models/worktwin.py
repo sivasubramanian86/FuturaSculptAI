@@ -1,8 +1,6 @@
-"""Domain models for Futura WorkTwin Fabric: Governed digital work twins."""
-
 from enum import Enum
 from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class TwinType(str, Enum):
@@ -77,33 +75,74 @@ class BoardroomPerspective(BaseModel):
 
     role: ExecutivePersona
     role_title: str
-    stance: str = Field(..., description="FAVORABLE | CAUTIOUS | BLOCKING | CONDITIONAL")
+    stance: str = Field(..., description="FAVORABLE | CAUTIOUS | BLOCKING | CONDITIONAL | SKEPTICAL | OPPOSED")
     assessment: str
     recommendation: Optional[str] = Field(default=None, description="Specific executive recommendation")
-    key_arguments: List[str]
-    blocking_risks: List[str]
-    approval_conditions: List[str]
-    assumptions_requiring_evidence: List[str]
+    key_arguments: List[str] = Field(default_factory=list)
+    blocking_risks: List[str] = Field(default_factory=list)
+    identified_risks: List[str] = Field(default_factory=list)
+    approval_conditions: List[str] = Field(default_factory=list)
+    mandatory_conditions: List[str] = Field(default_factory=list)
+    assumptions_requiring_evidence: List[str] = Field(default_factory=list)
     cited_evidence_ids: List[str] = Field(default_factory=list)
+    evidence_citations: List[str] = Field(default_factory=list)
     confidence_score: float = Field(default=0.92, ge=0.0, le=1.0)
     source_spans: List[Dict[str, Any]] = Field(default_factory=list)
+    autonomy_limit: str = Field(default="WT2_SIMULATE")
     support_status: str = Field(
         default="SUPPORTED",
         description="SUPPORTED | INSUFFICIENT_EVIDENCE | NON_FACTUAL_RECOMMENDATION",
     )
 
+    @model_validator(mode="before")
+    @classmethod
+    def sync_perspective_fields(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            if "blocking_risks" in data and "identified_risks" not in data:
+                data["identified_risks"] = data["blocking_risks"]
+            elif "identified_risks" in data and "blocking_risks" not in data:
+                data["blocking_risks"] = data["identified_risks"]
+
+            if "approval_conditions" in data and "mandatory_conditions" not in data:
+                data["mandatory_conditions"] = data["approval_conditions"]
+            elif "mandatory_conditions" in data and "approval_conditions" not in data:
+                data["approval_conditions"] = data["mandatory_conditions"]
+
+            if "cited_evidence_ids" in data and "evidence_citations" not in data:
+                data["evidence_citations"] = data["cited_evidence_ids"]
+            elif "evidence_citations" in data and "cited_evidence_ids" not in data:
+                data["cited_evidence_ids"] = data["evidence_citations"]
+        return data
+
 
 class ConflictResolution(BaseModel):
     """Synthesized consensus, trade-offs, and governance resolution from multi-twin debate."""
 
-    consensus_points: List[str]
-    unresolved_disagreements: List[str]
+    consensus_points: List[str] = Field(default_factory=list)
+    unresolved_disagreements: List[str] = Field(default_factory=list)
     disagreements: List[str] = Field(default_factory=list)
-    value_risk_tradeoffs: List[str]
-    blocking_controls: List[str]
-    alternative_transformation_paths: List[str]
-    recommended_human_decision_makers: List[str]
-    governed_recommendation: str
+    value_risk_tradeoffs: List[str] = Field(default_factory=list)
+    trade_offs: List[str] = Field(default_factory=list)
+    blocking_controls: List[str] = Field(default_factory=list)
+    alternative_transformation_paths: List[str] = Field(default_factory=list)
+    recommended_human_decision_makers: List[str] = Field(default_factory=list)
+    required_human_approvers: List[str] = Field(default_factory=list)
+    governed_recommendation: str = Field(default="GOVERNED_APPROVAL_WITH_CONDITIONS")
+
+    @model_validator(mode="before")
+    @classmethod
+    def sync_resolution_fields(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            if "recommended_human_decision_makers" in data and "required_human_approvers" not in data:
+                data["required_human_approvers"] = data["recommended_human_decision_makers"]
+            elif "required_human_approvers" in data and "recommended_human_decision_makers" not in data:
+                data["recommended_human_decision_makers"] = data["required_human_approvers"]
+
+            if "value_risk_tradeoffs" in data and "trade_offs" not in data:
+                data["trade_offs"] = data["value_risk_tradeoffs"]
+            elif "trade_offs" in data and "value_risk_tradeoffs" not in data:
+                data["value_risk_tradeoffs"] = data["trade_offs"]
+        return data
 
 
 class BoardroomConflictResolution(BaseModel):

@@ -72,12 +72,16 @@ class SwarmOrchestrator:
         trajectories: List[AgentStep] = []
         citations = request.evidence_ids if request.evidence_ids else ["EVD-STRAT-01", "EVD-SOP-01"]
 
+        from app.agents.enterprise_profiles import resolve_enterprise_profile_async
+
+        profile = await resolve_enterprise_profile_async(request, tenant_id=tenant_id)
+
         base_context = AgentContext(
             tenant_id=tenant_id,
             request=request,
             citations=citations,
             step_index=1,
-            shared_memory={},
+            shared_memory={"enterprise_profile": profile},
         )
 
         # 1. Orchestrator Step: Framing and Seed Graph Hydration
@@ -86,13 +90,14 @@ class SwarmOrchestrator:
                 agent_role=AgentRole.ORCHESTRATOR,
                 step_index=1,
                 thought=(
-                    f"Decomposing organizational transformation request for {request.sector} "
+                    f"Decomposing organizational transformation request for {profile.company_name} ({profile.sector_display_name}) "
                     f"over horizon {request.horizon_years} years."
                 ),
                 tool_called="hydrate_temporal_workgraph",
                 observation=(
                     f"Active seed graph loaded for tenant {tenant_id}. "
-                    f"Identified target role {request.target_role_id} and capability {request.target_capability_id}."
+                    f"Identified target role {profile.target_role_name} ({request.target_role_id or profile.target_role_id}) "
+                    f"and capability {profile.target_capability_name}."
                 ),
                 autonomy_tier=AutonomyTier.A0_READ_ONLY,
                 evidence_citations=citations,
@@ -250,14 +255,14 @@ class SwarmOrchestrator:
         status = "REQUIRES_APPROVAL" if autonomy_gate == AutonomyTier.A2_APPROVAL_GATE else "COMPLETED"
 
         synthesis = SwarmSynthesis(
-            title=f"Enterprise Work Transformation: Horizon Year {request.horizon_years}",
+            title=f"Enterprise Work Transformation: {profile.company_name} (Horizon Year {request.horizon_years})",
             executive_summary=(
-                f"Multi-agent swarm synthesized hybrid augmentation strategy for {request.sector}. "
+                f"Multi-agent swarm synthesized hybrid augmentation strategy for {profile.company_name} ({profile.sector_display_name}). "
                 f"Routine task allocation transitions to {agent_work_pct:.1f}% autonomous agent triage while "
-                f"upskilling operators to supervisory roles with {human_work_pct:.1f}% agency retention."
+                f"upskilling {profile.target_role_name} operators with {human_work_pct:.1f}% agency retention."
             ),
             human_in_the_loop_recommendation=(
-                "Empower operators with Edge-TPU anomaly adjudication cockpits with explicit fallback stop-buttons."
+                f"Empower {profile.target_role_name} operators with {profile.blueprint_agent_name} adjudication cockpits and explicit fallback stop-buttons."
             ),
             projected_human_work_pct=human_work_pct,
             projected_agent_work_pct=agent_work_pct,
@@ -268,7 +273,7 @@ class SwarmOrchestrator:
             task_matrix=task_matrix,
             agent_blueprints=agent_blueprints,
             solution_dossier=solution_dossier,
-            adversarial_critique="Audited by AdversarialCriticAgent: zero hallucinations detected, claim groundedness verified.",
+            adversarial_critique=f"Audited by AdversarialCriticAgent: zero hallucinations detected, claim groundedness verified for {profile.company_name}.",
             groundedness_score=groundedness,
         )
 

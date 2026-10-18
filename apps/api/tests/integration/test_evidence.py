@@ -285,3 +285,56 @@ def test_claim_verification_multiple_segments_in_envelope():
     assert res["verdict"] == ClaimVerdict.SUPPORTED.value
     assert len(res["cited_segments"]) == 2
     assert res["cited_evidence_ids"] == [ev_id]
+
+
+def test_multimodal_analyze_with_defaults():
+    """Verify live multimodal analysis endpoint returns structured reasoning and SHA-256 seal."""
+    payload = {
+        "asset_id": "SMP-IMG-01",
+        "category": "image",
+        "title": "Packaging Line 4 Optical Sorter Feed",
+        "source": "Edge-TPU Camera 04",
+        "snippet": "High-speed conveyor surface with 12 food package seal defects detected per minute.",
+        "company_context": "food_manufacturing",
+        "prompt_directive": "Assess visual defect rate and operator ergonomics.",
+    }
+    resp = client.post(
+        "/api/v1/evidence/multimodal-analyze",
+        json=payload,
+        headers={"X-Tenant-ID": "tenant-test-01"},
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["asset_id"] == "SMP-IMG-01"
+    assert data["category"] == "image"
+    assert len(data["detected_tasks"]) >= 1
+    assert "LOW" in data["ergonomic_risk"] or "18/100" in data["ergonomic_risk"] or "ergonomic" in data["ergonomic_risk"].lower()
+    assert data["automation_potential"] > 0
+    assert len(data["sha256_seal"]) == 64
+    assert len(data["reasoning_trace"]) > 0
+    assert "Gemini" in data["model_attributed"] or "Vertex" in data["model_attributed"]
+
+
+def test_multimodal_analyze_custom_enterprise():
+    """Verify live multimodal analysis works for Tesla or custom enterprise."""
+    payload = {
+        "asset_id": "CUSTOM-TSLA-01",
+        "category": "video",
+        "title": "Gigafactory Giga-Casting Mold Feed",
+        "source": "Robotic Laser Scanning Telemetry",
+        "snippet": "Structural sub-assembly weld alignment with high-speed automated cycle time.",
+        "company_context": "tesla",
+        "prompt_directive": "Verify Cobotic Cell Supervisor reskilling pathway.",
+    }
+    resp = client.post(
+        "/api/v1/evidence/multimodal-analyze",
+        json=payload,
+        headers={"X-Tenant-ID": "tenant-test-01"},
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["asset_id"] == "CUSTOM-TSLA-01"
+    assert len(data["detected_tasks"]) >= 1
+    assert data["automation_potential"] >= 50
+    assert len(data["sha256_seal"]) == 64
+

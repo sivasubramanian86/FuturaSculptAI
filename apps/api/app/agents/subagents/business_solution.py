@@ -29,10 +29,13 @@ class BusinessSolutionAgent(BaseSwarmAgent):
         Returns:
             AgentStep: Business solution dossier compilation observation.
         """
+        from app.agents.enterprise_profiles import resolve_enterprise_profile
+
         req = context.request
-        sector = req.sector or "food_manufacturing"
+        profile = context.shared_memory.get("enterprise_profile") or resolve_enterprise_profile(req)
+        sector = profile.sector
         horizon = req.horizon_years
-        task_matrix = context.shared_memory.get("task_matrix", [])
+        task_matrix = context.shared_memory.get("task_matrix") or profile.tasks
 
         # Model financial uplift grounded in conservative operational metrics
         annual_savings = 320000.0 * float(horizon) * 0.5
@@ -41,22 +44,18 @@ class BusinessSolutionAgent(BaseSwarmAgent):
         payback_months = round(max(1.2, 4.5 / float(horizon)), 1)
 
         dossier = BusinessSolutionDossier(
-            transformation_title=f"Horizon {horizon} Enterprise Work Transformation: {sector.replace('_', ' ').title()}",
+            transformation_title=f"Horizon {horizon} Enterprise Work Transformation: {profile.company_name} ({profile.sector_display_name})",
             target_sector=sector,
             horizon_years=horizon,
-            current_state_assessment=(
-                "Manual visual inspection line bottlenecking throughput with 3.2% undetected micro-fissure rate."
-            ),
-            target_state_architecture=(
-                "Edge-TPU sensor integration coupled with Google ADK PackagingVisionAgent and operator supervision."
-            ),
+            current_state_assessment=profile.current_state_assessment,
+            target_state_architecture=profile.target_state_architecture,
             task_allocations=task_matrix,
             net_ebitda_impact_usd=net_ebitda,
             payback_period_months=payback_months,
             reskilling_roadmap_weeks=6,
             risk_mitigation_plan=(
-                "Zero individual terminations; dual-operator pilot verification for first 60 days; "
-                "hardware bypass switch installed at inspection stations."
+                f"Zero individual terminations; human supervisory pilot verification for {profile.company_name}; "
+                "hardware & software fail-safe bypass switch installed at operator stations."
             ),
         )
         context.shared_memory["solution_dossier"] = dossier

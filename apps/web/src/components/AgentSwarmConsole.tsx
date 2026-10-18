@@ -18,15 +18,67 @@ export interface AgentSwarmConsoleProps {
   i18n?: TranslationKeys;
 }
 
+interface EnterpriseOption {
+  id: string;
+  name: string;
+  sector: string;
+  targetRole: string;
+  defaultPrompt: string;
+}
+
+const ENTERPRISE_OPTIONS: EnterpriseOption[] = [
+  {
+    id: 'food_manufacturing',
+    name: 'FoodPack International',
+    sector: 'food_manufacturing',
+    targetRole: 'Packaging Quality Inspector (ROL-001)',
+    defaultPrompt: 'Augment high-speed seal verification with Edge-TPU vision sensors and cobotic line inspection.',
+  },
+  {
+    id: 'tesla',
+    name: 'Tesla Inc.',
+    sector: 'automotive_robotics',
+    targetRole: 'Gigafactory Robotics Operator (ROL-TSLA-01)',
+    defaultPrompt: 'Deploy autonomous vision AI for giga-casting defect detection while elevating line operators to Cobotic Cell Supervisors.',
+  },
+  {
+    id: 'apple',
+    name: 'Apple Inc.',
+    sector: 'consumer_technology',
+    targetRole: 'SMT Optical Inspection Tech (ROL-AAPL-01)',
+    defaultPrompt: 'Automate microscopic solder joint acoustic inspection on iPhone logic boards with worker-in-the-loop audit gates.',
+  },
+  {
+    id: 'coca_cola',
+    name: 'The Coca-Cola Company',
+    sector: 'beverage_distribution',
+    targetRole: 'High-Speed Bottling Operator (ROL-KO-01)',
+    defaultPrompt: 'Transform automated beverage filling line telemetry with acoustic bearing fault detection and predictive maintenance.',
+  },
+  {
+    id: 'berkshire',
+    name: 'Berkshire Hathaway / BNSF Rail',
+    sector: 'conglomerate_energy_transport',
+    targetRole: 'Freight Rail Locomotive Specialist (ROL-BRK-01)',
+    defaultPrompt: 'Implement wayside thermal acoustic detector arrays for BNSF freight trains with FRA-compliant safety governance.',
+  },
+  {
+    id: 'custom',
+    name: 'Custom Enterprise (Dynamic Agentic RAG)',
+    sector: 'custom_enterprise',
+    targetRole: 'Autonomous Knowledge Extraction',
+    defaultPrompt: 'Analyze organizational workforce transformation, task automation potential, and ethical human reskilling pathway.',
+  },
+];
+
 export const AgentSwarmConsole: React.FC<AgentSwarmConsoleProps> = ({
   onRunSwarm,
   i18n,
 }) => {
   const t = i18n || en;
 
-  const [prompt, setPrompt] = useState<string>(
-    'Augment high-speed seal verification with Edge-TPU vision sensors.'
-  );
+  const [selectedEnterprise, setSelectedEnterprise] = useState<EnterpriseOption>(ENTERPRISE_OPTIONS[0]);
+  const [prompt, setPrompt] = useState<string>(ENTERPRISE_OPTIONS[0].defaultPrompt);
   const [horizonYears, setHorizonYears] = useState<number>(3);
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [swarmResult, setSwarmResult] = useState<SwarmRunResponse | null>(null);
@@ -38,6 +90,11 @@ export const AgentSwarmConsole: React.FC<AgentSwarmConsoleProps> = ({
     window.sessionStorage.removeItem('futura-demo-swarm-result');
     setSwarmResult(JSON.parse(result));
   }, []);
+
+  const handleSelectEnterprise = (opt: EnterpriseOption) => {
+    setSelectedEnterprise(opt);
+    setPrompt(opt.defaultPrompt);
+  };
 
   const handleLaunchSwarm = async (): Promise<void> => {
     if (!prompt.trim()) return;
@@ -51,9 +108,9 @@ export const AgentSwarmConsole: React.FC<AgentSwarmConsoleProps> = ({
 
       const payload: SwarmRunRequest = {
         scenario_prompt: prompt,
-        sector: 'food_manufacturing',
-        target_role_id: 'ROL-001',
-        target_capability_id: 'CAP-001',
+        sector: selectedEnterprise.sector,
+        target_role_id: selectedEnterprise.id === 'food_manufacturing' ? 'ROL-001' : `ROL-${selectedEnterprise.id.toUpperCase()}-01`,
+        target_capability_id: `CAP-${selectedEnterprise.id.toUpperCase()}-01`,
         horizon_years: horizonYears,
         evidence_ids: ['EVD-SOP-01', 'EVD-STRAT-01'],
       };
@@ -105,8 +162,36 @@ export const AgentSwarmConsole: React.FC<AgentSwarmConsoleProps> = ({
       </div>
 
       <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '14px' }}>
-        Coordinates 5 specialized Google ADK agents (WorkGraph Architect, Task Decomposer, Skill Gap Analyst, Governance Critic, FinOps Evaluator). Enforces Responsible AI Red Lines and A0-A4 autonomy tiers.
+        Coordinates 5 specialized Google ADK agents (WorkGraph Architect, Task Decomposer, Skill Gap Analyst, Governance Critic, FinOps Evaluator). Ingests real company domain knowledge via Dynamic Agentic RAG with A0-A4 autonomy tiers.
       </p>
+
+      {/* Enterprise Presets Chips */}
+      <div style={{ marginBottom: '14px' }}>
+        <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '6px' }}>
+          Select Enterprise or Custom Organization (Agentic RAG):
+        </div>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          {ENTERPRISE_OPTIONS.map((opt) => (
+            <button
+              key={opt.id}
+              type="button"
+              className={`btn-subtle ${selectedEnterprise.id === opt.id ? 'active' : ''}`}
+              style={{
+                fontSize: '11px',
+                padding: '4px 10px',
+                borderRadius: '6px',
+                background: selectedEnterprise.id === opt.id ? 'rgba(99, 102, 241, 0.25)' : 'rgba(255, 255, 255, 0.04)',
+                border: `1px solid ${selectedEnterprise.id === opt.id ? 'var(--accent-indigo)' : 'var(--border-subtle)'}`,
+                color: selectedEnterprise.id === opt.id ? '#c7d2fe' : 'var(--text-secondary)',
+                cursor: 'pointer',
+              }}
+              onClick={() => handleSelectEnterprise(opt)}
+            >
+              🏢 {opt.name}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* Input Controls */}
       <div style={{ display: 'flex', gap: '10px', marginBottom: '12px', flexWrap: 'wrap' }}>
@@ -333,6 +418,14 @@ export const AgentSwarmConsole: React.FC<AgentSwarmConsoleProps> = ({
               marginBottom: '16px',
             }}
           >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+              <span className="badge" style={{ background: 'rgba(99,102,241,0.2)', color: '#c7d2fe', border: '1px solid rgba(99,102,241,0.4)', fontSize: '11px' }}>
+                🏢 {selectedEnterprise.name}
+              </span>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                Target: {selectedEnterprise.targetRole}
+              </span>
+            </div>
             <h4 style={{ fontSize: '14px', fontWeight: 600, marginBottom: '6px' }}>
               {swarmResult.synthesis.title}
             </h4>

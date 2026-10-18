@@ -31,24 +31,21 @@ class AgentBlueprintAgent(BaseSwarmAgent):
         Returns:
             AgentStep: Formulated ADK agent specifications.
         """
-        req = context.request
-        target_role = req.target_role_id or "ROL-001"
+        from app.agents.enterprise_profiles import resolve_enterprise_profile
+
+        profile = context.shared_memory.get("enterprise_profile") or resolve_enterprise_profile(context.request)
+        target_role = context.request.target_role_id or profile.target_role_id
 
         blueprint = AgentBlueprintSpec(
-            blueprint_id="ADK-SPEC-001",
-            name="PackagingVisionAgent",
+            blueprint_id=profile.blueprint_id,
+            name=profile.blueprint_agent_name,
             target_role_id=target_role,
             model_tier="gemini-2.5-flash",
             autonomy_tier=AutonomyTier.A1_RECOMMENDATION,
-            tools_bound=[
-                "edge_camera_stream_reader",
-                "defect_classifier_adk_tool",
-                "diverter_gate_actuator",
-                "hitl_supervisor_notifier",
-            ],
-            trigger_events=["CONVEYOR_ITEM_PRESENT", "SEAL_BAR_RELEASE"],
+            tools_bound=profile.blueprint_tools,
+            trigger_events=["CONVEYOR_ITEM_PRESENT", "PROCESS_CYCLE_TRIGGER"],
             circuit_breaker_condition="consecutive_low_confidence_inferences >= 3",
-            rollback_procedure="Gracefully bypass pneumatic diverter and route stream to human inspector cockpit.",
+            rollback_procedure=f"Gracefully bypass automated actuators and route telemetry stream to {profile.target_role_name} cockpit.",
         )
 
         blueprints: List[AgentBlueprintSpec] = [blueprint]
@@ -57,11 +54,11 @@ class AgentBlueprintAgent(BaseSwarmAgent):
         return AgentStep(
             agent_role=self.role,
             step_index=context.step_index,
-            thought="Synthesizing concrete Google ADK agent specifications, tool contracts, and safety circuit breakers.",
+            thought=f"Synthesizing Google ADK {blueprint.name} specifications, tool contracts, and safety circuit breakers for {profile.company_name}.",
             tool_called="generate_adk_agent_blueprint",
             observation=(
                 f"Generated Google ADK specification for {blueprint.name} bound to role {target_role}. "
-                f"Configured 4 tools, fail-safe circuit breaker, and rollback procedure."
+                f"Configured {len(blueprint.tools_bound)} tools, fail-safe circuit breaker, and rollback procedure."
             ),
             autonomy_tier=AutonomyTier.A1_RECOMMENDATION,
             evidence_citations=context.citations,

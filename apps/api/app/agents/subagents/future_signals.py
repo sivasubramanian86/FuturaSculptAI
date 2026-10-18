@@ -32,9 +32,13 @@ class FutureSignalsAgent(BaseSwarmAgent):
         # Execute dynamic Gemini LLM reasoning via Prompt Orchestrator
         scout_output = await prompt_orchestrator.execute_scout_reasoning(context)
 
+        from app.agents.enterprise_profiles import resolve_enterprise_profile
+
+        profile = context.shared_memory.get("enterprise_profile") or resolve_enterprise_profile(context.request)
+
         signals = {
             "technology_readiness_level": scout_output.technology_readiness_level,
-            "relevant_regulations": scout_output.relevant_regulations,
+            "relevant_regulations": profile.regulations,
             "sector_adoption_velocity": scout_output.sector_adoption_velocity,
         }
         context.shared_memory["future_signals"] = signals
@@ -42,10 +46,10 @@ class FutureSignalsAgent(BaseSwarmAgent):
         return AgentStep(
             agent_role=self.role,
             step_index=context.step_index,
-            thought=f"Scanning emerging technology signals and compliance mandates for {sector} at horizon {horizon} years.",
+            thought=f"Scanning emerging technology signals and compliance mandates for {profile.company_name} ({profile.sector_display_name}) at horizon {horizon} years.",
             tool_called="ingest_technology_maturity_signals",
             observation=(
-                f"Sensed mature Edge-TPU vision telemetry (TRL {signals['technology_readiness_level']}). "
+                f"Sensed mature Edge-TPU vision telemetry (TRL {signals['technology_readiness_level']}) for {profile.company_name}. "
                 f"Mandatory compliance boundaries enforced: {', '.join(signals['relevant_regulations'])}."
             ),
             autonomy_tier=AutonomyTier.A0_READ_ONLY,

@@ -41,43 +41,20 @@ class TaskRedesignAgent(BaseSwarmAgent):
         context.shared_memory["human_work_pct"] = human_work_pct
         context.shared_memory["agent_work_pct"] = agent_work_pct
 
-        # 6-part task taxonomy allocation
-        task_matrix: List[TaskAllocationItem] = [
-            TaskAllocationItem(
-                task_id="TSK-001",
-                task_name="Continuous Surface Defect Screening",
-                classification=TaskClassificationType.AUTOMATE,
-                human_share_pct=0.0,
-                agent_share_pct=100.0,
-                justification="Repetitive high-frequency inspection suited for Edge-TPU vision inference.",
-            ),
-            TaskAllocationItem(
-                task_id="TSK-002",
-                task_name="Anomalous Seal Defect Adjudication",
-                classification=TaskClassificationType.AUGMENT,
-                human_share_pct=60.0,
-                agent_share_pct=40.0,
-                justification="Critical regulatory boundary requiring human operator sign-off with AI assistance.",
-            ),
-            TaskAllocationItem(
-                task_id="TSK-003",
-                task_name="Sensor Calibration & Optical Alignment",
-                classification=TaskClassificationType.RETAIN,
-                human_share_pct=100.0,
-                agent_share_pct=0.0,
-                justification="Physical precision intervention retained exclusively by certified technician.",
-            ),
-        ]
+        from app.agents.enterprise_profiles import resolve_enterprise_profile
+
+        profile = context.shared_memory.get("enterprise_profile") or resolve_enterprise_profile(context.request)
+        task_matrix: List[TaskAllocationItem] = profile.tasks
         context.shared_memory["task_matrix"] = task_matrix
 
         return AgentStep(
             agent_role=self.role,
             step_index=context.step_index,
-            thought="Decomposing visual seal verification task into cognitive triage and physical verification segments.",
+            thought=f"Decomposing {profile.company_name} {profile.target_capability_name} into cognitive triage and physical verification segments.",
             tool_called="calculate_work_allocation_split",
             observation=(
-                f"Assigned {agent_work_pct:.1f}% routine visual defect triage to AGT-001; "
-                f"preserved {human_work_pct:.1f}% complex anomaly adjudication for human operator."
+                f"Assigned {agent_work_pct:.1f}% routine triage to {profile.blueprint_agent_name}; "
+                f"preserved {human_work_pct:.1f}% complex anomaly adjudication for {profile.target_role_name}."
             ),
             autonomy_tier=AutonomyTier.A1_RECOMMENDATION,
             evidence_citations=context.citations,

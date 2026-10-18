@@ -535,7 +535,7 @@ export const WorkTwinFabricStudio: React.FC<WorkTwinFabricStudioProps> = ({ i18n
                       <span>✓</span> Boardroom Consensus Points
                     </span>
                     <ul style={{ margin: '8px 0 0 0', paddingLeft: '18px', fontSize: '12px', color: 'var(--text-secondary)' }}>
-                      {simResult.conflict_resolution.consensus_points.map((pt, i) => (
+                      {(simResult.conflict_resolution?.consensus_points || []).map((pt, i) => (
                         <li key={i} style={{ marginBottom: '4px' }}>{pt}</li>
                       ))}
                     </ul>
@@ -547,7 +547,7 @@ export const WorkTwinFabricStudio: React.FC<WorkTwinFabricStudioProps> = ({ i18n
                       <span>⚠️</span> Unresolved Executive Disagreements
                     </span>
                     <ul style={{ margin: '8px 0 0 0', paddingLeft: '18px', fontSize: '12px', color: 'var(--text-secondary)' }}>
-                      {simResult.conflict_resolution.unresolved_disagreements.map((dis, i) => (
+                      {(simResult.conflict_resolution?.unresolved_disagreements || simResult.conflict_resolution?.disagreements || []).map((dis, i) => (
                         <li key={i} style={{ marginBottom: '4px' }}>{dis}</li>
                       ))}
                     </ul>
@@ -559,7 +559,7 @@ export const WorkTwinFabricStudio: React.FC<WorkTwinFabricStudioProps> = ({ i18n
                       <span>🛡️</span> Mandatory SAIF/CISO Blocking Controls
                     </span>
                     <ul style={{ margin: '8px 0 0 0', paddingLeft: '18px', fontSize: '12px', color: 'var(--text-secondary)' }}>
-                      {simResult.conflict_resolution.blocking_controls.map((ctrl, i) => (
+                      {(simResult.conflict_resolution?.blocking_controls || []).map((ctrl, i) => (
                         <li key={i} style={{ marginBottom: '4px' }}>{ctrl}</li>
                       ))}
                     </ul>
@@ -571,7 +571,7 @@ export const WorkTwinFabricStudio: React.FC<WorkTwinFabricStudioProps> = ({ i18n
                       <span>🔀</span> Alternative Transformation Pathways
                     </span>
                     <ul style={{ margin: '8px 0 0 0', paddingLeft: '18px', fontSize: '12px', color: 'var(--text-secondary)' }}>
-                      {simResult.conflict_resolution.alternative_transformation_paths.map((alt, i) => (
+                      {(simResult.conflict_resolution?.alternative_transformation_paths || []).map((alt, i) => (
                         <li key={i} style={{ marginBottom: '4px' }}>{alt}</li>
                       ))}
                     </ul>
@@ -583,7 +583,7 @@ export const WorkTwinFabricStudio: React.FC<WorkTwinFabricStudioProps> = ({ i18n
                   <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)' }}>
                     Designated Human Decision-Makers Required:
                   </span>
-                  {simResult.conflict_resolution.required_human_approvers.map((approver, i) => (
+                  {(simResult.conflict_resolution?.required_human_approvers || (simResult.conflict_resolution as any)?.recommended_human_decision_makers || []).map((approver: string, i: number) => (
                     <span
                       key={i}
                       style={{
@@ -604,10 +604,10 @@ export const WorkTwinFabricStudio: React.FC<WorkTwinFabricStudioProps> = ({ i18n
               {/* Individual Executive Perspective Cards */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>
-                  Synthetic Executive Perspectival Stances ({simResult.perspectives.length})
+                  Synthetic Executive Perspectival Stances ({(simResult.perspectives || []).length})
                 </h4>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '16px' }}>
-                  {simResult.perspectives.map((persp: BoardroomPerspective, idx: number) => {
+                  {(simResult.perspectives || []).map((persp: BoardroomPerspective, idx: number) => {
                     const badge = getStanceBadge(persp.stance);
                     return (
                       <div
@@ -666,7 +666,7 @@ export const WorkTwinFabricStudio: React.FC<WorkTwinFabricStudioProps> = ({ i18n
                             Key Arguments
                           </span>
                           <ul style={{ margin: '4px 0 0 0', paddingLeft: '16px', fontSize: '12px', color: 'var(--text-secondary)' }}>
-                            {persp.key_arguments.map((arg, i) => (
+                            {(persp.key_arguments || []).map((arg, i) => (
                               <li key={i}>{arg}</li>
                             ))}
                           </ul>
@@ -678,7 +678,7 @@ export const WorkTwinFabricStudio: React.FC<WorkTwinFabricStudioProps> = ({ i18n
                             Identified Risks
                           </span>
                           <ul style={{ margin: '4px 0 0 0', paddingLeft: '16px', fontSize: '12px', color: 'var(--text-secondary)' }}>
-                            {persp.identified_risks.map((risk, i) => (
+                            {(persp.identified_risks || (persp as any).blocking_risks || []).map((risk: string, i: number) => (
                               <li key={i}>{risk}</li>
                             ))}
                           </ul>
@@ -690,7 +690,7 @@ export const WorkTwinFabricStudio: React.FC<WorkTwinFabricStudioProps> = ({ i18n
                             Mandatory Conditions
                           </span>
                           <ul style={{ margin: '4px 0 0 0', paddingLeft: '16px', fontSize: '12px', color: 'var(--text-secondary)' }}>
-                            {persp.mandatory_conditions.map((cond, i) => (
+                            {(persp.mandatory_conditions || (persp as any).approval_conditions || []).map((cond: string, i: number) => (
                               <li key={i}>{cond}</li>
                             ))}
                           </ul>
@@ -698,7 +698,7 @@ export const WorkTwinFabricStudio: React.FC<WorkTwinFabricStudioProps> = ({ i18n
 
                         {/* Citations */}
                         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: 'auto', paddingTop: '8px' }}>
-                          {persp.evidence_citations.map((cite, i) => (
+                          {(persp.evidence_citations || (persp as any).cited_evidence_ids || []).map((cite: string, i: number) => (
                             <span
                               key={i}
                               style={{
@@ -786,7 +786,7 @@ export const WorkTwinFabricStudio: React.FC<WorkTwinFabricStudioProps> = ({ i18n
             </div>
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px' }}>
-              {manifests.map((m: WorkTwinManifest) => (
+              {(manifests || []).map((m: WorkTwinManifest) => (
                 <div
                   key={m.twin_id}
                   style={{
@@ -831,7 +831,7 @@ export const WorkTwinFabricStudio: React.FC<WorkTwinFabricStudioProps> = ({ i18n
                   <div>
                     <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)' }}>Approved Skills:</span>
                     <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginTop: '4px' }}>
-                      {m.skills.map((skill, i) => (
+                      {(m.skills || []).map((skill, i) => (
                         <span
                           key={i}
                           style={{

@@ -61,6 +61,11 @@ class Settings(BaseSettings):
     vertex_context_cache_enabled: bool = True
     mock_llm_mode: bool = False  # Default to live Vertex AI; tests set MOCK_LLM_MODE=true via conftest
 
+    @property
+    def mock_mode(self) -> bool:
+        """Compatibility property for modules referencing settings.mock_mode."""
+        return self.mock_llm_mode
+
     # Session budget & FinOps limits
     session_cost_cap_usd: float = 2.00
     bigquery_max_bytes_billed: int = 1073741824  # 1 GB
