@@ -959,6 +959,80 @@ describe('ApiClient', () => {
     ).rejects.toThrow('Failed to generate Gemini Live dialogue: Internal Server Error');
   });
 
+  it('streams Gemini Live SSE dialogue events and triggers typed callbacks', async () => {
+    const sseEvents = [
+      'data: {"type": "init", "model_used": "models/gemini-3.8-live", "voice_persona": "kore"}\n\n',
+      'data: {"type": "reasoning", "reasoning_trace": "Cognitive analysis: safety first."}\n\n',
+      'data: {"type": "text_delta", "delta": "Hello "}\n\n',
+      'data: {"type": "text_delta", "delta": "worker!"}\n\n',
+      'data: {"type": "text_complete", "text": "Hello worker!"}\n\n',
+      'data: {"type": "audio", "audio_base64": "UklGRgAAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA="}\n\n',
+      'data: {"type": "done", "latency_ms": 210.4, "model_used": "models/gemini-3.8-live", "voice_persona": "kore"}\n\n',
+    ];
+
+    const encoder = new TextEncoder();
+    let streamIndex = 0;
+    const mockStream = {
+      getReader: () => ({
+        read: async () => {
+          if (streamIndex < sseEvents.length) {
+            const val = encoder.encode(sseEvents[streamIndex++]);
+            return { done: false, value: val };
+          }
+          return { done: true, value: undefined };
+        },
+      }),
+    };
+
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      body: mockStream,
+    } as any);
+
+    const onInit = vi.fn();
+    const onReasoning = vi.fn();
+    const onTextDelta = vi.fn();
+    const onTextComplete = vi.fn();
+    const onAudio = vi.fn();
+    const onDone = vi.fn();
+
+    await client.streamGeminiLiveDialogue(
+      { message: 'Hello from worker' },
+      { onInit, onReasoning, onTextDelta, onTextComplete, onAudio, onDone }
+    );
+
+    expect(onInit).toHaveBeenCalledWith(
+      expect.objectContaining({ model_used: 'models/gemini-3.8-live', voice_persona: 'kore' })
+    );
+    expect(onReasoning).toHaveBeenCalledWith('Cognitive analysis: safety first.');
+    expect(onTextDelta).toHaveBeenCalledTimes(2);
+    expect(onTextComplete).toHaveBeenCalledWith('Hello worker!');
+    expect(onAudio).toHaveBeenCalledWith(expect.stringContaining('UklGRg'));
+    expect(onDone).toHaveBeenCalledWith(
+      expect.objectContaining({ latency_ms: 210.4, model_used: 'models/gemini-3.8-live' })
+    );
+
+    // Fail response error handling
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: false,
+      statusText: 'Gateway Timeout',
+    } as any);
+
+    await expect(
+      client.streamGeminiLiveDialogue({ message: 'Fail' }, {})
+    ).rejects.toThrow('Failed to initiate Gemini Live stream: Gateway Timeout');
+
+    // Missing body handling
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      body: null,
+    } as any);
+
+    await expect(
+      client.streamGeminiLiveDialogue({ message: 'No body' }, {})
+    ).rejects.toThrow('Streaming response body unavailable');
+  });
+
   it('manages WorkTwin manifests and handles failures', async () => {
     const mockManifests = [
       {

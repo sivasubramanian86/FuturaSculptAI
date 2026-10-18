@@ -1,5 +1,7 @@
 from datetime import datetime, timezone
+import json
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 
 from app.adapters.pubsub_adapter import pubsub_adapter
 from app.adapters.vertex_adapter import vertex_adapter
@@ -100,3 +102,48 @@ async def live_audio_dialogue(
         output_tokens=res["output_tokens"],
         estimated_cost_usd=res["estimated_cost_usd"],
     )
+
+
+@router.post("/live-stream")
+async def live_audio_stream(
+    request: GeminiLiveDialogueRequest,
+    tenant_id: str = Depends(get_optional_tenant_id),
+) -> StreamingResponse:
+    """Stream real-time Gemini Live dialogue and voice synthesis events via SSE."""
+    async def event_generator():
+        try:
+            async for event in vertex_adapter.stream_live_dialogue_events(
+                prompt=request.message,
+                model=request.model,
+                voice_persona=request.voice_persona,
+                reasoning_budget=request.reasoning_budget,
+                language=request.language,
+                context_topic=request.context_topic,
+            ):
+                yield f"data: {json.dumps(event)}\n\n"
+        except Exception as exc:  # pragma: no cover
+            yield f"data: {json.dumps({'type': 'error', 'detail': str(exc)})}\n\n"
+
+    pubsub_adapter.publish(
+        topic_name="futurasculpt-workforce-telemetry",
+        message={
+            "event_type": "GEMINI_LIVE_STREAM",
+            "model_used": request.model,
+            "voice_persona": request.voice_persona,
+            "prompt_length": len(request.message),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        },
+        attributes={"tenant_id": tenant_id, "action": "live_stream"},
+        tenant_id=tenant_id,
+    )
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
+

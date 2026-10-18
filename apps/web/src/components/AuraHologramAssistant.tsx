@@ -595,6 +595,188 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
     }
   };
 
+  const executeLiveDialogueWithFallback = async (
+    targetMsgId: string,
+    prompt: string,
+    contextTopic?: string,
+    isTourStep: boolean = false,
+    tourPrefix: string = '',
+    tourHighlights: string[] = []
+  ) => {
+    setIsLoadingLive(true);
+    let sseSucceeded = false;
+    let streamText = '';
+
+    // Option A: Real-Time SSE Token & Audio Streaming (< 300ms time-to-first-token)
+    try {
+      await api.streamGeminiLiveDialogue(
+        {
+          message: prompt,
+          model: selectedModel,
+          voice_persona: selectedVoicePersona,
+          reasoning_budget:
+            selectedModel === 'models/gemini-3.8-live-extended-thinking'
+              ? reasoningBudget
+              : undefined,
+          language: currentLanguage,
+          context_topic: contextTopic,
+        },
+        {
+          onInit: (initData) => {
+            setMessages((prev) => {
+              const existing = prev.find((m) => m.id === targetMsgId);
+              if (existing) {
+                return prev.map((m) =>
+                  m.id === targetMsgId
+                    ? {
+                        ...m,
+                        modelUsed: initData.model_used,
+                        voicePersona: initData.voice_persona,
+                      }
+                    : m
+                );
+              }
+              return [
+                ...prev,
+                {
+                  id: targetMsgId,
+                  sender: 'aura',
+                  text: '...',
+                  modelUsed: initData.model_used,
+                  voicePersona: initData.voice_persona,
+                },
+              ];
+            });
+          },
+          onReasoning: (trace) => {
+            setMessages((prev) =>
+              prev.map((m) => (m.id === targetMsgId ? { ...m, reasoningTrace: trace } : m))
+            );
+          },
+          onTextDelta: (delta) => {
+            sseSucceeded = true;
+            streamText += delta;
+            setMessages((prev) => {
+              const formatted = isTourStep
+                ? `${tourPrefix}\n\n${streamText}\n\nKey Capabilities:\n• ${tourHighlights.join('\n• ')}`
+                : streamText;
+              const existing = prev.find((m) => m.id === targetMsgId);
+              if (existing) {
+                return prev.map((m) => (m.id === targetMsgId ? { ...m, text: formatted } : m));
+              }
+              return [
+                ...prev,
+                {
+                  id: targetMsgId,
+                  sender: 'aura',
+                  text: formatted,
+                  modelUsed: selectedModel,
+                  voicePersona: selectedVoicePersona,
+                },
+              ];
+            });
+          },
+          onTextComplete: (fullText) => {
+            sseSucceeded = true;
+            streamText = fullText;
+            setMessages((prev) => {
+              const formatted = isTourStep
+                ? `${tourPrefix}\n\n${fullText}\n\nKey Capabilities:\n• ${tourHighlights.join('\n• ')}`
+                : fullText;
+              return prev.map((m) => (m.id === targetMsgId ? { ...m, text: formatted } : m));
+            });
+          },
+          onAudio: (audioB64) => {
+            playAudioBase64(audioB64);
+          },
+          onDone: (doneData) => {
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === targetMsgId
+                  ? {
+                      ...m,
+                      latencyMs: doneData.latency_ms,
+                      modelUsed: doneData.model_used,
+                      voicePersona: doneData.voice_persona,
+                    }
+                  : m
+              )
+            );
+          },
+          onError: () => {
+            // Drop through to Option B
+          },
+        }
+      );
+    } catch {
+      // Drop through to Option B
+    }
+
+    if (sseSucceeded) {
+      setIsLoadingLive(false);
+      return;
+    }
+
+    // Option B: Stable Monolithic REST .wav Delivery
+    try {
+      const liveRes = await api.geminiLiveDialogue({
+        message: prompt,
+        model: selectedModel,
+        voice_persona: selectedVoicePersona,
+        reasoning_budget:
+          selectedModel === 'models/gemini-3.8-live-extended-thinking'
+            ? reasoningBudget
+            : undefined,
+        language: currentLanguage,
+        context_topic: contextTopic,
+      });
+
+      setMessages((prev) => {
+        const formatted = isTourStep
+          ? `${tourPrefix}\n\n${liveRes.response_text}\n\nKey Capabilities:\n• ${tourHighlights.join('\n• ')}`
+          : liveRes.response_text;
+        const existing = prev.find((m) => m.id === targetMsgId);
+        const updatedMsg: ChatMessage = {
+          id: targetMsgId,
+          sender: 'aura',
+          text: formatted,
+          modelUsed: liveRes.model_used,
+          reasoningTrace: liveRes.reasoning_trace,
+          latencyMs: liveRes.latency_ms,
+          voicePersona: liveRes.voice_persona,
+        };
+        return existing
+          ? prev.map((m) => (m.id === targetMsgId ? updatedMsg : m))
+          : [...prev, updatedMsg];
+      });
+
+      if (liveRes.audio_base64) {
+        playAudioBase64(liveRes.audio_base64);
+      }
+    } catch {
+      // Option C: Local Deterministic Offline Intelligence
+      const fallbackReply = generateAuraResponse(prompt);
+      setMessages((prev) => {
+        const formatted = isTourStep
+          ? `${tourPrefix}\n\n${fallbackReply}\n\nKey Capabilities:\n• ${tourHighlights.join('\n• ')}`
+          : fallbackReply;
+        const existing = prev.find((m) => m.id === targetMsgId);
+        const fallbackMsg: ChatMessage = {
+          id: targetMsgId,
+          sender: 'aura',
+          text: formatted,
+          modelUsed: selectedModel,
+          voicePersona: selectedVoicePersona,
+        };
+        return existing
+          ? prev.map((m) => (m.id === targetMsgId ? fallbackMsg : m))
+          : [...prev, fallbackMsg];
+      });
+    } finally {
+      setIsLoadingLive(false);
+    }
+  };
+
   const handleStartTour = async (stepIdx: number = 0) => {
     const idx = Math.max(0, Math.min(stepIdx, FUTURA_TOUR_STEPS.length - 1));
     const step = FUTURA_TOUR_STEPS[idx];
@@ -613,51 +795,16 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
       voicePersona: selectedVoicePersona,
     };
     setMessages((prev) => [...prev, tourMsg]);
-    setIsLoadingLive(true);
 
-    try {
-      const liveRes = await api.geminiLiveDialogue({
-        message: step.prompt,
-        model: selectedModel,
-        voice_persona: selectedVoicePersona,
-        language: currentLanguage,
-        context_topic: step.tabId,
-      });
-
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.id === tourMsg.id
-            ? {
-                ...m,
-                text: `🎙️ Stage ${step.step}/8: ${step.title}\n\n${liveRes.response_text}\n\nKey Capabilities:\n• ${step.highlights.join('\n• ')}`,
-                modelUsed: liveRes.model_used,
-                reasoningTrace: liveRes.reasoning_trace,
-                latencyMs: liveRes.latency_ms,
-                voicePersona: liveRes.voice_persona,
-              }
-            : m
-        )
-      );
-
-      if (liveRes.audio_base64) {
-        playAudioBase64(liveRes.audio_base64);
-      }
-    } catch {
-      // Offline fallback: use local knowledge text
-      const fallbackReply = generateAuraResponse(step.prompt);
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.id === tourMsg.id
-            ? {
-                ...m,
-                text: `🎙️ Stage ${step.step}/8: ${step.title}\n\n${fallbackReply}\n\nKey Capabilities:\n• ${step.highlights.join('\n• ')}`,
-              }
-            : m
-        )
-      );
-    } finally {
-      setIsLoadingLive(false);
-    }
+    const tourPrefix = `🎙️ Stage ${step.step}/8: ${step.title}`;
+    await executeLiveDialogueWithFallback(
+      tourMsg.id,
+      step.prompt,
+      step.tabId,
+      true,
+      tourPrefix,
+      step.highlights
+    );
   };
 
   const handleNextTourStep = () => {
@@ -803,48 +950,9 @@ export const AuraHologramAssistant: React.FC<AuraHologramAssistantProps> = ({
 
     setMessages((prev) => [...prev, userMsg]);
     setInputText('');
-    setIsLoadingLive(true);
 
-    try {
-      const liveRes = await api.geminiLiveDialogue({
-        message: text,
-        model: selectedModel,
-        voice_persona: selectedVoicePersona,
-        reasoning_budget:
-          selectedModel === 'models/gemini-3.8-live-extended-thinking'
-            ? reasoningBudget
-            : undefined,
-        language: currentLanguage,
-      });
-
-      const auraMsg: ChatMessage = {
-        id: `aura-${Date.now() + 1}`,
-        sender: 'aura',
-        text: liveRes.response_text,
-        modelUsed: liveRes.model_used,
-        reasoningTrace: liveRes.reasoning_trace,
-        latencyMs: liveRes.latency_ms,
-        voicePersona: liveRes.voice_persona,
-      };
-
-      setMessages((prev) => [...prev, auraMsg]);
-      if (liveRes.audio_base64) {
-        playAudioBase64(liveRes.audio_base64);
-      }
-    } catch {
-      // Offline / fallback response without robotic speech synthesis
-      const replyText = generateAuraResponse(text);
-      const auraMsg: ChatMessage = {
-        id: `aura-${Date.now() + 1}`,
-        sender: 'aura',
-        text: replyText,
-        modelUsed: selectedModel,
-        voicePersona: selectedVoicePersona,
-      };
-      setMessages((prev) => [...prev, auraMsg]);
-    } finally {
-      setIsLoadingLive(false);
-    }
+    const auraMsgId = `aura-${Date.now() + 1}`;
+    await executeLiveDialogueWithFallback(auraMsgId, text);
   };
 
   const handleClose = () => {

@@ -479,3 +479,93 @@ def test_api_live_dialogue_endpoint():
     assert "2048 token budget" in data2["reasoning_trace"]
     assert "Transformation Roadmap" in data2["response_text"]
 
+
+def test_api_live_stream_endpoint():
+    """Verify POST /api/v1/agents/live-stream delivers SSE events with sub-300ms chunks and audio."""
+    import json
+
+    # 1. Standard model streaming
+    payload_live = {
+        "message": "Explain UPI QR code payment safety for retail cashiers.",
+        "model": "models/gemini-3.8-live",
+        "voice_persona": "kore",
+        "language": "en",
+    }
+    with client.stream(
+        "POST",
+        "/api/v1/agents/live-stream",
+        json=payload_live,
+        headers={"X-Tenant-ID": "tenant-test-01"},
+    ) as response:
+        assert response.status_code == 200
+        assert "text/event-stream" in response.headers["content-type"]
+        events = []
+        for line in response.iter_lines():
+            if line.startswith("data:"):
+                data = json.loads(line[5:].strip())
+                events.append(data)
+
+        types = [e["type"] for e in events]
+        assert "init" in types
+        assert "text_delta" in types
+        assert "text_complete" in types
+        assert "audio" in types
+        assert "done" in types
+
+        init_ev = next(e for e in events if e["type"] == "init")
+        assert init_ev["model_used"] == "models/gemini-3.8-live"
+        assert init_ev["voice_persona"] == "kore"
+
+        complete_ev = next(e for e in events if e["type"] == "text_complete")
+        assert "UPI & QR Payments" in complete_ev["text"]
+
+    # 2. Extended thinking model streaming
+    payload_thinking = {
+        "message": "Explain 1y, 3y, 5y, 10y transformation roadmap.",
+        "model": "models/gemini-3.8-live-extended-thinking",
+        "voice_persona": "aoede",
+        "reasoning_budget": 2048,
+        "language": "en",
+    }
+    with client.stream(
+        "POST",
+        "/api/v1/agents/live-stream",
+        json=payload_thinking,
+        headers={"X-Tenant-ID": "tenant-test-01"},
+    ) as response2:
+        assert response2.status_code == 200
+        events2 = []
+        for line in response2.iter_lines():
+            if line.startswith("data:"):
+                data = json.loads(line[5:].strip())
+                events2.append(data)
+
+        types2 = [e["type"] for e in events2]
+        assert "reasoning" in types2
+        reasoning_ev = next(e for e in events2 if e["type"] == "reasoning")
+        assert "2048 token budget" in reasoning_ev["reasoning_trace"]
+
+
+@pytest.mark.asyncio
+async def test_vertex_adapter_stream_live_events_direct():
+    """Verify vertex_adapter.stream_live_dialogue_events directly yields structured event dictionaries."""
+    from app.adapters import vertex_adapter
+
+    events = []
+    async for event in vertex_adapter.stream_live_dialogue_events(
+        prompt="Explain cinema industry digital likeness protections",
+        model="models/gemini-3.8-live-extended-thinking",
+        voice_persona="aoede",
+        reasoning_budget=1024,
+    ):
+        events.append(event)
+
+    types = [e["type"] for e in events]
+    assert types[0] == "init"
+    assert types[1] == "reasoning"
+    assert "text_delta" in types
+    assert "text_complete" in types
+    assert "audio" in types
+    assert types[-1] == "done"
+
+

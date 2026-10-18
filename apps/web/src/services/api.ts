@@ -508,6 +508,83 @@ export class ApiClient {
     return res.json();
   }
 
+  async streamGeminiLiveDialogue(
+    payload: {
+      message: string;
+      model?: string;
+      voice_persona?: string;
+      reasoning_budget?: number;
+      language?: string;
+      context_topic?: string;
+    },
+    callbacks: {
+      onInit?: (data: { model_used: string; voice_persona: string }) => void;
+      onReasoning?: (trace: string) => void;
+      onTextDelta?: (delta: string) => void;
+      onTextComplete?: (text: string) => void;
+      onAudio?: (audioBase64: string) => void;
+      onDone?: (data: { latency_ms: number; model_used: string; voice_persona: string }) => void;
+      onError?: (err: any) => void;
+    }
+  ): Promise<void> {
+    const res = await fetch(`${API_BASE}/agents/live-stream`, {
+      method: 'POST',
+      headers: {
+        ...this.getHeaders(),
+        Accept: 'text/event-stream',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to initiate Gemini Live stream: ${res.statusText}`);
+    }
+
+    if (!res.body) {
+      throw new Error('Streaming response body unavailable');
+    }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n\n');
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (trimmed.startsWith('data:')) {
+          try {
+            const data = JSON.parse(trimmed.slice(5).trim());
+            if (data.type === 'init' && callbacks.onInit) {
+              callbacks.onInit(data);
+            } else if (data.type === 'reasoning' && callbacks.onReasoning) {
+              callbacks.onReasoning(data.reasoning_trace);
+            } else if (data.type === 'text_delta' && callbacks.onTextDelta) {
+              callbacks.onTextDelta(data.delta);
+            } else if (data.type === 'text_complete' && callbacks.onTextComplete) {
+              callbacks.onTextComplete(data.text);
+            } else if (data.type === 'audio' && callbacks.onAudio && data.audio_base64) {
+              callbacks.onAudio(data.audio_base64);
+            } else if (data.type === 'done' && callbacks.onDone) {
+              callbacks.onDone(data);
+            } else if (data.type === 'error' && callbacks.onError) {
+              callbacks.onError(new Error(data.detail || 'Stream error'));
+            }
+          } catch {
+            // Ignore malformed chunks
+          }
+        }
+      }
+    }
+  }
+
+
   async getWorkTwinManifests(): Promise<WorkTwinManifest[]> {
     const res = await fetch(`${API_BASE}/worktwins/manifests`, {
       headers: this.getHeaders(),
