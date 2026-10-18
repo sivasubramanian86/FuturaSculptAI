@@ -139,3 +139,25 @@ def test_bigquery_adapter_outcome_query_failure():
     assert len(res["nodes"]) == 1
 
 
+def test_firestore_repos_mock_mode_active():
+    """Verify Firestore repositories fast-path when mock_llm_mode is True and Client is unmocked."""
+    class DummyClient:
+        pass
+
+    mock_fs = MagicMock()
+    mock_fs.Client = DummyClient
+
+    with patch.dict(sys.modules, {"google.cloud.firestore": mock_fs}), patch("google.cloud.firestore", mock_fs, create=True):
+        with patch.object(settings, "mock_llm_mode", True):
+            repo1 = FirestoreWorkTwinRepository()
+            assert repo1._client is None
+
+            repo2 = FirestoreConsentRepository()
+            assert repo2._client is None
+
+            repo3 = FirestoreBoardroomRunRepository()
+            assert repo3._client is None
+
+
+
+

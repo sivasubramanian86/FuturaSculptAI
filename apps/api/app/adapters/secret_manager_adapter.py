@@ -6,7 +6,7 @@ from typing import Any, Dict, Optional
 
 try:
     from google.cloud import secretmanager
-except (ImportError, AttributeError):
+except (ImportError, AttributeError):  # pragma: no cover
     secretmanager = None  # type: ignore[assignment]
 
 from app.core.config import settings

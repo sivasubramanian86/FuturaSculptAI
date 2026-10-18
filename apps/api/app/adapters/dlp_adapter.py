@@ -6,7 +6,7 @@ from typing import Any, List, Optional, Pattern, Tuple
 
 try:
     from google.cloud import dlp_v2
-except (ImportError, AttributeError):
+except (ImportError, AttributeError):  # pragma: no cover
     dlp_v2 = None  # type: ignore[assignment]
 
 from app.core.config import settings
