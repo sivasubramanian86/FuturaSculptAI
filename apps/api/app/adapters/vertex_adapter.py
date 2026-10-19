@@ -281,16 +281,26 @@ class VertexAIAdapter:
         try:
             import httpx
 
+            # Map logical tier model to live Google Cloud Vertex AI publisher model
+            live_model = target_model
+            if "3.8-flash" in target_model or "workhorse" in target_model or "flash-lite" in target_model:
+                live_model = "gemini-2.5-flash"
+            elif (
+                "3.1-pro" in target_model
+                or "3.8-pro" in target_model
+                or "argon" in target_model
+                or "workspace" in target_model
+            ):
+                live_model = "gemini-2.5-pro" if self.location != "asia-southeast1" else "gemini-2.5-flash"
+
             url = (
                 f"https://{'aiplatform.googleapis.com' if self.location == 'global' else f'{self.location}-aiplatform.googleapis.com'}/v1/projects/{self.project_id}/"
-                f"locations/{self.location}/publishers/google/models/{target_model}:generateContent"
+                f"locations/{self.location}/publishers/google/models/{live_model}:generateContent"
             )
             import google.auth
             from google.auth.transport.requests import Request
 
-            credentials, _ = google.auth.default(
-                scopes=["https://www.googleapis.com/auth/cloud-platform"]
-            )
+            credentials, _ = google.auth.default(scopes=["https://www.googleapis.com/auth/cloud-platform"])
             if not credentials.valid:
                 credentials.refresh(Request())
             headers = {
@@ -302,16 +312,14 @@ class VertexAIAdapter:
                 "generationConfig": {"temperature": temperature},
             }
 
-            async with httpx.AsyncClient(timeout=10.0) as client:
+            async with httpx.AsyncClient(timeout=25.0) as client:
                 resp = await client.post(url, json=payload, headers=headers)
                 elapsed_ms = round((time.perf_counter() - start_t) * 1000.0, 2)
                 if resp.status_code == 200:
                     data = resp.json()
                     candidates = data.get("candidates", [])
                     extracted_text = (
-                        candidates[0]["content"]["parts"][0]["text"]
-                        if candidates
-                        else "Generated Vertex response."
+                        candidates[0]["content"]["parts"][0]["text"] if candidates else "Generated Vertex response."
                     )
                     extracted_text = sanitize_model_response(extracted_text)
                     return {
@@ -606,7 +614,6 @@ class VertexAIAdapter:
             "model_used": target_model,
             "voice_persona": voice_persona,
         }
-
 
     async def synthesize_live_audio_base64(
         self,

@@ -181,6 +181,8 @@ class BoardroomSimulationResult(BaseModel):
     model_route: str
     total_cost_usd: float
     audit_verdict: str
+    adk_session_id: Optional[str] = None
+    adk_runner_status: Optional[str] = "COMPLETED"
 
 
 # Alias for response schema compatibility

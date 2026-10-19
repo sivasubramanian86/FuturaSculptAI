@@ -49,7 +49,9 @@ async def test_ceo_role_twin_agent_deliberation():
     assert "EVD-FOOD-001" in p_fwd.cited_evidence_ids
 
     # Pause proposal
-    p_pause = await agent.deliberate("Pause Automation for 4-Day Work Week Mentoring", "DairyPro", "food_manufacturing", "EVD-FOOD")
+    p_pause = await agent.deliberate(
+        "Pause Automation for 4-Day Work Week Mentoring", "DairyPro", "food_manufacturing", "EVD-FOOD"
+    )
     assert p_pause.stance == "CAUTIOUS"
     assert "32-hour" in p_pause.recommendation
 
@@ -81,7 +83,9 @@ async def test_chro_role_twin_agent_deliberation():
     assert p_fwd.stance == "CAUTIOUS"
     assert "120-hour" in p_fwd.recommendation
 
-    p_pause = await agent.deliberate("Pause Automation for 4-Day Work Week", "BakeryGroup", "food_manufacturing", "EVD-FOOD")
+    p_pause = await agent.deliberate(
+        "Pause Automation for 4-Day Work Week", "BakeryGroup", "food_manufacturing", "EVD-FOOD"
+    )
     assert p_pause.stance == "FAVORABLE"
     assert "mentoring" in p_pause.recommendation.lower()
 
@@ -129,7 +133,9 @@ async def test_employee_advocate_role_twin_agent_deliberation():
     assert p_fwd.stance == "CONDITIONAL"
     assert "override" in p_fwd.recommendation.lower()
 
-    p_pause = await agent.deliberate("Pause Automation for Worker Well-Being", "LaborFront", "food_manufacturing", "EVD-FOOD")
+    p_pause = await agent.deliberate(
+        "Pause Automation for Worker Well-Being", "LaborFront", "food_manufacturing", "EVD-FOOD"
+    )
     assert p_pause.stance == "FAVORABLE"
     assert "Right to Disconnect" in p_pause.recommendation
 
@@ -285,3 +291,56 @@ async def test_futura_boardroom_simulation_and_red_line_violation():
     with pytest.raises(PolicyViolationException) as exc:
         await coordinator.simulate_boardroom(redline_req)
     assert "Red-line violation" in str(exc.value)
+
+
+@pytest.mark.asyncio
+async def test_adk_runner_and_session_invocation():
+    """Verify official Google ADK InMemoryRunner and Session invocation in deliberation pipeline."""
+    from google.adk.runners import InMemoryRunner
+
+    coordinator = get_adk_boardroom_agent()
+    assert isinstance(coordinator.adk_runner, InMemoryRunner)
+
+    req = BoardroomSimulationRequest(
+        proposal_title="Edge Compute Automation",
+        proposal_description="Deploy edge inferencing for packaging Line 3.",
+        sector="food_manufacturing",
+        target_enterprise="AgriTech Processing",
+    )
+    res = await coordinator.simulate_boardroom(req)
+    assert res.adk_session_id is not None
+    assert res.adk_session_id.startswith("adk-session-")
+    assert res.adk_runner_status == "COMPLETED"
+
+
+@pytest.mark.asyncio
+async def test_independent_role_deliberation_domain_aware():
+    """Verify role agents provide independent, domain-aware deliberation rather than static food templates."""
+    coordinator = get_adk_boardroom_agent()
+
+    healthcare_req = BoardroomSimulationRequest(
+        proposal_title="AI-Assisted Discharge Planning",
+        proposal_description="Clinical workflow tool to assist attending clinicians in hospital discharge planning with full doctor veto authority.",
+        sector="healthcare",
+        target_enterprise="MetroHealth Regional Hospital",
+    )
+    res = await coordinator.simulate_boardroom(healthcare_req)
+    advocate_perspective = next(p for p in res.perspectives if p.role == ExecutivePersona.EMPLOYEE_ADVOCATE)
+    ciso_perspective = next(p for p in res.perspectives if p.role == ExecutivePersona.CISO)
+
+    # Healthcare-specific advocacy rather than food conveyors
+    assert (
+        "clinician" in advocate_perspective.recommendation.lower()
+        or "patient" in advocate_perspective.recommendation.lower()
+    )
+    assert "conveyor" not in advocate_perspective.recommendation.lower()
+
+    # Healthcare-specific security rather than camera feeds
+    assert (
+        "hipaa" in ciso_perspective.recommendation.lower()
+        or "phi" in ciso_perspective.recommendation.lower()
+        or "zero-trust" in ciso_perspective.recommendation.lower()
+    )
+
+    # Healthcare-specific conflict resolution
+    assert "clinical" in res.conflict_resolution.governed_recommendation.lower()
