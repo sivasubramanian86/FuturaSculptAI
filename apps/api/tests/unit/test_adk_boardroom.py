@@ -17,6 +17,8 @@ from app.agents.adk_boardroom import (
     boardroom_coordinator,
     get_adk_boardroom_agent,
 )
+from app.adapters.vertex_adapter import vertex_adapter
+from app.core.config import settings
 from app.core.exceptions import PolicyViolationException
 from app.models.worktwin import (
     BoardroomPerspective,
@@ -344,3 +346,129 @@ async def test_independent_role_deliberation_domain_aware():
 
     # Healthcare-specific conflict resolution
     assert "clinical" in res.conflict_resolution.governed_recommendation.lower()
+
+
+@pytest.mark.asyncio
+async def test_finance_domain_aware_deliberation():
+    """Verify role agents provide independent financial domain perspectives."""
+    coordinator = get_adk_boardroom_agent()
+
+    fin_req = BoardroomSimulationRequest(
+        proposal_title="Wealth Advisory Portfolio Optimization",
+        proposal_description="Deploy algorithmic portfolio analysis to assist relationship managers with client allocations.",
+        sector="financial_services",
+        target_enterprise="Apex Global Wealth Management",
+    )
+    res = await coordinator.simulate_boardroom(fin_req)
+    assert len(res.perspectives) == 6
+
+    ceo = next(p for p in res.perspectives if p.role == ExecutivePersona.CEO)
+    cto = next(p for p in res.perspectives if p.role == ExecutivePersona.CTO)
+    chro = next(p for p in res.perspectives if p.role == ExecutivePersona.CHRO)
+    ciso = next(p for p in res.perspectives if p.role == ExecutivePersona.CISO)
+    cfo = next(p for p in res.perspectives if p.role == ExecutivePersona.CFO)
+    advocate = next(p for p in res.perspectives if p.role == ExecutivePersona.EMPLOYEE_ADVOCATE)
+
+    assert "financial" in ceo.assessment.lower() or "capital" in ceo.assessment.lower()
+    assert "microservices" in cto.recommendation.lower() or "audit" in cto.recommendation.lower()
+    assert "analysts" in chro.key_arguments[0].lower() or "reskilling" in chro.recommendation.lower()
+    assert "soc2" in ciso.assessment.lower() or "kms" in ciso.recommendation.lower()
+    assert "cost-to-income" in cfo.recommendation.lower() or "margins" in cfo.key_arguments[1].lower()
+    assert "whistleblower" in advocate.recommendation.lower() or "quota" in advocate.approval_conditions[0].lower()
+
+
+@pytest.mark.asyncio
+async def test_general_sector_deliberation():
+    """Verify general enterprise domain proposal deliberation fallback."""
+    coordinator = get_adk_boardroom_agent()
+
+    gen_req = BoardroomSimulationRequest(
+        proposal_title="Autonomous Drone Logistics",
+        proposal_description="Deploy drone fleet routing for warehouse-to-dock distribution.",
+        sector="logistics",
+        target_enterprise="OmniFreight Logistics",
+    )
+    res = await coordinator.simulate_boardroom(gen_req)
+    assert len(res.perspectives) == 6
+    ceo = next(p for p in res.perspectives if p.role == ExecutivePersona.CEO)
+    assert "logistics" in ceo.assessment.lower()
+    assert "governance standards" in ceo.recommendation.lower()
+
+
+@pytest.mark.asyncio
+async def test_live_llm_mode_deliberation_and_consensus_mocked(monkeypatch):
+    """Verify deliberation and consensus synthesis when live LLM mode is active."""
+    coordinator = get_adk_boardroom_agent()
+    orig_mock = settings.mock_llm_mode
+
+    # Mock vertex_adapter to return valid JSON
+    valid_json = (
+        "{\n"
+        '  "stance": "CONDITIONAL",\n'
+        '  "assessment": "Valid LLM generated assessment for executive review.",\n'
+        '  "recommendation": "Authorize controlled pilot with strict KPIs.",\n'
+        '  "key_arguments": ["Drives 15% efficiency gain", "Ensures compliance"],\n'
+        '  "blocking_risks": ["Model latency during peak loads"],\n'
+        '  "approval_conditions": ["Mandatory weekly human sign-off"],\n'
+        '  "confidence_score": 0.94\n'
+        "}"
+    )
+
+    async def mock_generate_text(prompt, model_name=None, temperature=0.2):
+        return {
+            "content": f"```json\n{valid_json}\n```",
+            "model_used": "gemini-2.5-flash",
+            "fallback_applied": False,
+            "estimated_cost_usd": 0.0018,
+        }
+
+    monkeypatch.setattr(vertex_adapter, "generate_text", mock_generate_text)
+
+    try:
+        settings.mock_llm_mode = False
+        req = BoardroomSimulationRequest(
+            proposal_title="Customer Service Copilot Deployment",
+            proposal_description="Deploy generative AI copilot to assist telecommunications customer care reps.",
+            sector="telecom",
+            target_enterprise="Global Telecom Corp",
+        )
+        res = await coordinator.simulate_boardroom(req)
+        assert len(res.perspectives) == 6
+        assert res.model_route == "google-adk-gemini-2.5-flash"
+        assert res.total_cost_usd == 0.0018
+        for p in res.perspectives:
+            assert "Valid LLM generated assessment" in p.assessment
+
+    finally:
+        settings.mock_llm_mode = orig_mock
+
+
+@pytest.mark.asyncio
+async def test_live_llm_mode_error_and_session_resilience(monkeypatch):
+    """Verify error resilience when live LLM raises exceptions or session creation fails."""
+    coordinator = get_adk_boardroom_agent()
+    orig_mock = settings.mock_llm_mode
+
+    async def mock_fail(*args, **kwargs):
+        raise RuntimeError("Vertex AI network timeout")
+
+    monkeypatch.setattr(vertex_adapter, "generate_text", mock_fail)
+
+    # Also mock session_service.create_session to raise exception
+    if coordinator.adk_runner and hasattr(coordinator.adk_runner, "session_service"):
+        monkeypatch.setattr(coordinator.adk_runner.session_service, "create_session", mock_fail)
+
+    try:
+        settings.mock_llm_mode = False
+        req = BoardroomSimulationRequest(
+            proposal_title="Smart Grid Load Balancing",
+            proposal_description="Automate dynamic energy distribution during high load intervals.",
+            sector="energy",
+            target_enterprise="National Grid Energy",
+        )
+        res = await coordinator.simulate_boardroom(req)
+        assert len(res.perspectives) == 6
+        # Fallback executed gracefully
+        assert res.adk_runner_status == "COMPLETED"
+    finally:
+        settings.mock_llm_mode = orig_mock

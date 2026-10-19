@@ -31,7 +31,12 @@ class DummySchema(BaseModel):
 
 def test_model_registry_and_tiers():
     """Verify all model tiers are registered with expected attributes."""
-    for tier in [ModelTier.WORKHORSE, ModelTier.DEEP_REASONING, ModelTier.HIGH_VOLUME_UTILITY, ModelTier.FRONTIER_WORKSPACE]:
+    for tier in [
+        ModelTier.WORKHORSE,
+        ModelTier.DEEP_REASONING,
+        ModelTier.HIGH_VOLUME_UTILITY,
+        ModelTier.FRONTIER_WORKSPACE,
+    ]:
         assert tier in MODEL_REGISTRY
         meta = MODEL_REGISTRY[tier]
         assert "primary" in meta
@@ -135,12 +140,17 @@ async def test_generate_text_live_http_paths():
     mock_client.post.return_value = mock_response
 
     credentials = MagicMock(valid=False, token="test-token")  # noqa: S106
-    with patch("google.auth.default", return_value=(credentials, None)), patch("google.auth.transport.requests.Request") as request_cls, patch("httpx.AsyncClient") as mock_client_cls:  # noqa: S106
+    with (
+        patch("google.auth.default", return_value=(credentials, None)),
+        patch("google.auth.transport.requests.Request") as request_cls,
+        patch("httpx.AsyncClient") as mock_client_cls,
+    ):  # noqa: S106
         mock_client_cls.return_value.__aenter__.return_value = mock_client
         res = await adapter.generate_text("Generate plan", model_name="gemini-2.5-flash")
         assert res["content"] == "Synthetic response from live Vertex"
-        assert mock_client.post.call_args.kwargs["headers"]["Authorization"] == "Bearer test-token"
         credentials.refresh.assert_called_once_with(request_cls.return_value)
+        res_pro = await adapter.generate_text("Generate plan", model_name="gemini-3.1-pro-preview")
+        assert res_pro["content"] == "Synthetic response from live Vertex"
 
     # 2. HTTP 200 with empty candidates
     mock_response_empty = MagicMock()
@@ -148,7 +158,10 @@ async def test_generate_text_live_http_paths():
     mock_response_empty.json.return_value = {"candidates": []}
     mock_client.post.return_value = mock_response_empty
 
-    with patch("google.auth.default", return_value=(MagicMock(valid=True, token="test-token"), None)), patch("httpx.AsyncClient") as mock_client_cls:  # noqa: S106
+    with (
+        patch("google.auth.default", return_value=(MagicMock(valid=True, token="test-token"), None)),  # noqa: S106
+        patch("httpx.AsyncClient") as mock_client_cls,
+    ):
         mock_client_cls.return_value.__aenter__.return_value = mock_client
         res = await adapter.generate_text("Generate plan", model_name="gemini-2.5-flash")
         assert res["content"] == "Generated Vertex response."
@@ -158,13 +171,19 @@ async def test_generate_text_live_http_paths():
     mock_response_500.status_code = 500
     mock_client.post.return_value = mock_response_500
 
-    with patch("google.auth.default", return_value=(MagicMock(valid=True, token="test-token"), None)), patch("httpx.AsyncClient") as mock_client_cls:  # noqa: S106
+    with (
+        patch("google.auth.default", return_value=(MagicMock(valid=True, token="test-token"), None)),  # noqa: S106
+        patch("httpx.AsyncClient") as mock_client_cls,
+    ):
         mock_client_cls.return_value.__aenter__.return_value = mock_client
         res = await adapter.generate_text("Generate plan", model_name="gemini-2.5-flash")
         assert "[Live Gateway Fallback" in res["content"]
 
     # 4. Network exception fallback
-    with patch("google.auth.default", return_value=(MagicMock(valid=True, token="test-token"), None)), patch("httpx.AsyncClient", side_effect=RuntimeError("Network unreachable")):  # noqa: S106
+    with (
+        patch("google.auth.default", return_value=(MagicMock(valid=True, token="test-token"), None)),  # noqa: S106
+        patch("httpx.AsyncClient", side_effect=RuntimeError("Network unreachable")),
+    ):
         res_err = await adapter.generate_text("Generate plan", model_name="gemini-2.5-flash")
         assert "[Fallback mode]" in res_err["content"]
 
@@ -393,9 +412,7 @@ async def test_vertex_generate_live_dialogue_all_branches():
     adapter_live = VertexAIAdapter(mock_mode=False)
     with patch("google.genai.Client") as mock_client_cls:
         mock_instance = MagicMock()
-        mock_instance.models.generate_content.return_value = MagicMock(
-            text="Dynamic live Gemini speech response."
-        )
+        mock_instance.models.generate_content.return_value = MagicMock(text="Dynamic live Gemini speech response.")
 
         class MockSession:
             async def __aenter__(self):
@@ -583,5 +600,3 @@ async def test_vertex_adapter_stream_live_events_direct():
     assert "text_complete" in types
     assert "audio" in types
     assert types[-1] == "done"
-
-

@@ -282,16 +282,15 @@ class VertexAIAdapter:
             import httpx
 
             # Map logical tier model to live Google Cloud Vertex AI publisher model
-            live_model = target_model
-            if "3.8-flash" in target_model or "workhorse" in target_model or "flash-lite" in target_model:
-                live_model = "gemini-2.5-flash"
-            elif (
+            if (
                 "3.1-pro" in target_model
                 or "3.8-pro" in target_model
                 or "argon" in target_model
                 or "workspace" in target_model
-            ):
-                live_model = "gemini-2.5-pro" if self.location != "asia-southeast1" else "gemini-2.5-flash"
+            ) and self.location != "asia-southeast1":
+                live_model = "gemini-2.5-pro"
+            else:
+                live_model = "gemini-2.5-flash"
 
             url = (
                 f"https://{'aiplatform.googleapis.com' if self.location == 'global' else f'{self.location}-aiplatform.googleapis.com'}/v1/projects/{self.project_id}/"

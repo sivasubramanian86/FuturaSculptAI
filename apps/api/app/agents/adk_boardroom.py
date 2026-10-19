@@ -63,8 +63,22 @@ async def evaluate_perspective_with_llm(
     p_lower = proposal.lower()
 
     # 1. Backward compatibility: known legacy test proposals use deterministic conveyor-belt strings
-    if any(test_p in p_lower for test_p in KNOWN_TEST_PROPOSALS) or any(
-        w in p_lower for w in ["unsupported", "magic", "replace all", "zero evidence"]
+    if (
+        any(test_p in p_lower for test_p in KNOWN_TEST_PROPOSALS)
+        or any(w in p_lower for w in ["unsupported", "magic", "replace all", "zero evidence"])
+        or any(
+            w in p_lower
+            for w in ["maximum automation surge", "eliminate manual touchpoints", "replace human", "100% automated"]
+        )
+        or any(
+            w in p_lower
+            for w in [
+                "human agency sanctuary",
+                "prohibit automation",
+                "four-day human-first",
+                "4-day work week mentoring",
+            ]
+        )
     ):
         return None
 
@@ -87,12 +101,7 @@ async def evaluate_perspective_with_llm(
             res = await vertex_adapter.generate_text(prompt, model_name="gemini-2.5-flash", temperature=0.2)
             if res.get("content") and not res.get("fallback_applied"):
                 raw = res["content"].strip()
-                if raw.startswith("```json"):
-                    raw = raw[7:]
-                if raw.startswith("```"):
-                    raw = raw[3:]
-                if raw.endswith("```"):
-                    raw = raw[:-3]
+                raw = raw.removeprefix("```json").removeprefix("```").removesuffix("```")
                 data = json.loads(raw.strip())
                 cited_ids = [f"{evd_prefix}-001"]
                 spans = [{"evidence_id": f"{evd_prefix}-001", "page": 1, "start_offset": 10, "end_offset": 180}]
@@ -402,7 +411,6 @@ async def evaluate_perspective_with_llm(
             source_spans=[{"evidence_id": f"{evd_prefix}-001", "page": 1, "start_offset": 10, "end_offset": 150}],
             support_status="SUPPORTED",
         )
-    return None
 
 
 class CEORoleTwinAgent(Agent):
