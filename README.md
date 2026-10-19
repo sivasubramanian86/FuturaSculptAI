@@ -4,7 +4,7 @@
 [![Python: 3.12+](https://img.shields.io/badge/Python-3.12+-3776AB?logo=python&logoColor=white)](apps/api)
 [![TypeScript: 5.6](https://img.shields.io/badge/TypeScript-5.6-3178C6?logo=typescript&logoColor=white)](apps/web)
 [![React: 18](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)](apps/web)
-[![Google Cloud: Vertex AI](https://img.shields.io/badge/Google%20Cloud-Vertex%20AI%20Gemini%203.8%20%26%20Argon-4285F4?logo=googlecloud&logoColor=white)](https://cloud.google.com/vertex-ai)
+[![Google Cloud: Vertex AI](https://img.shields.io/badge/Google%20Cloud-Vertex%20AI%20Gemini%202.5%20Flash%20%26%20Pro-4285F4?logo=googlecloud&logoColor=white)](https://cloud.google.com/vertex-ai)
 [![Google ADK: v1.0.0](https://img.shields.io/badge/Google%20ADK-Agent%20Development%20Kit%20v1.0-4285F4?logo=google&logoColor=white)](https://cloud.google.com)
 [![Google Cloud: Cloud Run](https://img.shields.io/badge/Google%20Cloud-Cloud%20Run%20v2-4285F4?logo=googlecloud&logoColor=white)](https://cloud.google.com/run)
 [![Terraform: IaC](https://img.shields.io/badge/IaC-Terraform%201.5+-844FBA?logo=terraform&logoColor=white)](deploy/terraform)

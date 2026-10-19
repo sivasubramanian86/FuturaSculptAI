@@ -13,7 +13,7 @@ from app.models.evidence import (
 
 
 class EvidenceVerifier:
-    """Audits scenario claims against cryptographic EvidenceEnvelopes to guarantee zero hallucinations."""
+    """Audits scenario claims against cryptographic EvidenceEnvelopes with tamper-evident SHA-256 integrity and token entailment verification."""
 
     def verify_claim(
         self,

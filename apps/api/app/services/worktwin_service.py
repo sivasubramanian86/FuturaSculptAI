@@ -24,6 +24,9 @@ from app.repositories.worktwin_repository import (
     InMemoryConsentRepository,
     InMemoryWorkTwinRepository,
     WorkTwinRepository,
+    get_boardroom_run_repository,
+    get_consent_repository,
+    get_worktwin_repository,
 )
 
 logger = logging.getLogger("futurasculpt.worktwin_service")
@@ -49,6 +52,8 @@ class WorkTwinService:
         """Backward-compatible dictionary accessor for in-memory manifests."""
         if isinstance(self._twin_repo, InMemoryWorkTwinRepository):
             return self._twin_repo._store
+        if hasattr(self._twin_repo, "_fallback") and isinstance(self._twin_repo._fallback, InMemoryWorkTwinRepository):
+            return self._twin_repo._fallback._store
         return {}
 
     @property
@@ -56,6 +61,8 @@ class WorkTwinService:
         """Backward-compatible dictionary accessor for in-memory employee consents."""
         if isinstance(self._consent_repo, InMemoryConsentRepository):
             return {c.employee_id: c for c in self._consent_repo._store.values()}
+        if hasattr(self._consent_repo, "_fallback") and isinstance(self._consent_repo._fallback, InMemoryConsentRepository):
+            return {c.employee_id: c for c in self._consent_repo._fallback._store.values()}
         return {}
 
     def _seed_default_role_twins(self) -> None:
@@ -275,4 +282,8 @@ class WorkTwinService:
         return result
 
 
-worktwin_service = WorkTwinService()
+worktwin_service = WorkTwinService(
+    twin_repo=get_worktwin_repository(),
+    consent_repo=get_consent_repository(),
+    boardroom_repo=get_boardroom_run_repository(),
+)

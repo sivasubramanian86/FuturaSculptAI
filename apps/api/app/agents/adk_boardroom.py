@@ -28,7 +28,7 @@ from app.models.worktwin import (
 )
 from app.repositories.worktwin_repository import (
     BoardroomRunRepository,
-    InMemoryBoardroomRunRepository,
+    get_boardroom_run_repository,
 )
 
 logger = logging.getLogger("futurasculpt.adk_boardroom")
@@ -1275,7 +1275,7 @@ class FuturaBoardroomCoordinator(Agent):
     parallel_deliberation: Optional[ParallelAgent] = None
     sequential_pipeline: Optional[SequentialAgent] = None
     adk_runner: Optional[InMemoryRunner] = None
-    boardroom_repo: BoardroomRunRepository = Field(default_factory=InMemoryBoardroomRunRepository)
+    boardroom_repo: BoardroomRunRepository = Field(default_factory=get_boardroom_run_repository)
 
     def model_post_init(self, __context: Any) -> None:
         """Initialize Google ADK Parallel and Sequential orchestrators and Runner."""
