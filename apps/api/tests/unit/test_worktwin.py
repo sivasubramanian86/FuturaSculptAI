@@ -185,8 +185,6 @@ def test_worktwin_service_repository_properties():
     from app.repositories.worktwin_repository import (
         FirestoreConsentRepository,
         FirestoreWorkTwinRepository,
-        InMemoryConsentRepository,
-        InMemoryWorkTwinRepository,
     )
 
     custom_svc = WorkTwinService(twin_repo=MagicMock(), consent_repo=MagicMock())
