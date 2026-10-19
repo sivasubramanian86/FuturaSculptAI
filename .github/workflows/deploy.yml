@@ -61,7 +61,7 @@ jobs:
             --cpu=1
             --min-instances=0
             --max-instances=10
-            --set-env-vars=GCP_PROJECT_ID=${{ env.PROJECT_ID }},ENVIRONMENT=${{ inputs.environment || 'production' }},VERTEX_AI_LOCATION=${{ env.REGION }},GIT_SHA=${{ github.sha }},AUTH_DEV_MODE=false
+            --set-env-vars=GCP_PROJECT_ID=${{ env.PROJECT_ID }},ENVIRONMENT=hackathon-evaluation,VERTEX_AI_LOCATION=global,GIT_SHA=${{ github.sha }},AUTH_DEV_MODE=true,MOCK_LLM_MODE=false
 
       - name: Build and Push Frontend Cockpit Container
         run: |
